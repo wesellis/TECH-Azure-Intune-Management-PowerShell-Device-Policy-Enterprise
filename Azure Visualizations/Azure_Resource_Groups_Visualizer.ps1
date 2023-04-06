@@ -11,7 +11,7 @@ Date: April 6, 2023
 Version: 1.0
 
 .LINK
-GitHub Repository: https://github.com/yourusername/yourrepositoryname
+GitHub Repository: Azure Visualizations/Azure_Resource_Groups_Visualizer.ps1
 
 .PARAMETER ResourceGroups
 Specifies one or more Azure resource groups to visualize. You can specify multiple resource groups by separating them with a comma. For example:

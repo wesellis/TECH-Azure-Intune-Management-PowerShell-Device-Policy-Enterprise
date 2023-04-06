@@ -11,7 +11,7 @@ Date: April 6, 2023
 Version: 1.0
 
 .LINK
-GitHub Repository: https://github.com/wesellis/PowerShell-for-Azure-Intune-Management/
+GitHub Repository: Azure Visualizations/Azure_Visual_Map.ps1
 
 #>
 

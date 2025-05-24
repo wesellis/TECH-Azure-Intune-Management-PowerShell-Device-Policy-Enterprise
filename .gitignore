@@ -1,0 +1,143 @@
+# PowerShell for Azure Intune Management - .gitignore
+
+# PowerShell specific
+*.log
+*.tmp
+*.temp
+*.cache
+*.pid
+*.seed
+*.pid.lock
+$PROFILE
+
+# Azure CLI and PowerShell profiles
+.azure/
+.azureProfile/
+
+# Configuration files with sensitive data
+config/*.json
+config/*.xml
+config/*.yaml
+config/*.yml
+!config/sample-config.json
+!config/template-config.json
+secrets/
+credentials/
+.env
+.env.local
+
+# Azure subscription and credential files
+*.publishsettings
+*.azureProfile
+*.subscription
+auth.json
+credentials.json
+
+# Script execution logs and outputs
+logs/
+outputs/
+reports/
+results/
+exports/
+*.csv
+*.xlsx
+*.json
+*.xml
+!scripts/sample-data/*.csv
+!scripts/sample-data/*.json
+
+# Intune specific files
+device-exports/
+policy-backups/
+app-packages/
+compliance-reports/
+
+# Windows image creation files
+*.wim
+*.iso
+*.vhd
+*.vhdx
+*.esd
+drivers/
+images/
+temp-mount/
+
+# Personal configuration and notes
+personal/
+notes/
+TODO.md
+NOTES.md
+scratch.*
+private/
+
+# Test data and temporary files
+test-data/
+temp-data/
+backup/
+archives/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Compressed files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# Large media files
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv

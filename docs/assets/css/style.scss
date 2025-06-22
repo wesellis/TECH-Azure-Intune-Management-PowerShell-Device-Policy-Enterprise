@@ -1,0 +1,29 @@
+﻿---
+---
+
+@import "{{ site.theme }}";
+
+/* Custom styles for Azure Intune Management documentation */
+.main-content {
+  max-width: 1200px;
+}
+
+.highlight {
+  background-color: #f8f9fa;
+  border-left: 3px solid #0366d6;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+code {
+  background-color: #f6f8fa;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+
+pre {
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  padding: 16px;
+  overflow: auto;
+}

@@ -1,0 +1,25 @@
+﻿title: Azure Intune Management
+description: PowerShell scripts and tools for Azure and Intune management
+baseurl: "/azure-intune-management"
+url: "https://wesellis.github.io"
+
+markdown: kramdown
+highlighter: rouge
+theme: jekyll-theme-primer
+
+plugins:
+  - jekyll-github-metadata
+  - jekyll-seo-tag
+
+github:
+  repository_nwo: wesellis/azure-intune-management
+  repository_url: https://github.com/wesellis/azure-intune-management
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/

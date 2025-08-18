@@ -1,0 +1,202 @@
+<#
+.SYNOPSIS
+    Script Templatewithauth
+
+.DESCRIPTION
+    Professional PowerShell script for enterprise automation.
+    Optimized for performance, reliability, and error handling.
+
+.AUTHOR
+    Enterprise PowerShell Framework
+
+.VERSION
+    1.0
+
+.NOTES
+    Requires appropriate permissions and modules
+#>
+
+<#
+.SYNOPSIS
+    We Enhanced Script Templatewithauth
+
+.DESCRIPTION
+    Professional PowerShell script for enterprise automation.
+    Optimized for performance, reliability, and error handling.
+
+.AUTHOR
+    Enterprise PowerShell Framework
+
+.VERSION
+    1.0
+
+.NOTES
+    Requires appropriate permissions and modules
+
+
+<#
+.SYNOPSIS
+
+
+.DESCRIPTION
+
+
+.PARAMETER TenantName
+    Specify the tenant name, e.g. domain.onmicrosoft.com.
+
+.PARAMETER ApplicationID
+    Specify the Application ID of the app registration in Azure AD. By default, the script will attempt to use well known Microsoft Intune PowerShell app registration.
+
+.PARAMETER PromptBehavior
+    Set the prompt behavior when acquiring a token.
+
+.EXAMPLE
+    
+
+.NOTES
+    FileName:    <script name>.ps1
+    Author:      Nickolaj Andersen
+    Contact:     @NickolajA
+    Created:     2019-10-01
+    Updated:     2019-10-01
+    
+    Version history:
+    1.0.0 - (2019-10-01) Script created
+
+    Required modules:
+    AzureAD (Install-Module -Name AzureAD)
+    PSIntuneAuth (Install-Module -Name PSIntuneAuth)
+
+[CmdletBinding(SupportsShouldProcess = $true)]
+[CmdletBinding()]
+$ErrorActionPreference = "Stop"
+param(
+    [parameter(Mandatory = $true, HelpMessage = " Specify the tenant name, e.g. domain.onmicrosoft.com." )]
+    [ValidateNotNullOrEmpty()]
+    [Parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [Parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [string]$WETenantName,
+
+    [parameter(Mandatory = $false, HelpMessage = " Specify the Application ID of the app registration in Azure AD. By default, the script will attempt to use well known Microsoft Intune PowerShell app registration." )]
+    [ValidateNotNullOrEmpty()]
+    [string]$WEApplicationID = " d1ddf0e4-d672-4dae-b554-9d5bdfd93547" ,
+
+    [parameter(Mandatory=$false, HelpMessage=" Set the prompt behavior when acquiring a token." )]
+    [ValidateNotNullOrEmpty()]
+    [ValidateSet(" Auto" , " Always" , " Never" , " RefreshSession" )]
+    [string]$WEPromptBehavior = " Auto"
+)
+Begin {
+    # Determine if the PSIntuneAuth module needs to be installed
+    try {
+        Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
+        $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false
+        if ($WEPSIntuneAuthModule -ne $null) {
+            Write-Verbose -Message " Authentication module detected, checking for latest version"
+            $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
+            if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
+                Write-Verbose -Message " Latest version of PSIntuneAuth module is not installed, attempting to install: $($WELatestModuleVersion.ToString())"
+               ;  $WEUpdateModuleInvocation = Update-Module -Name PSIntuneAuth -Scope CurrentUser -Force -ErrorAction Stop -Confirm:$false -Verbose:$false
+            }
+        }
+    }
+    catch [System.Exception] {
+        Write-Warning -Message " Unable to detect PSIntuneAuth module, attempting to install from PSGallery"
+        try {
+            # Install NuGet package provider
+           ;  $WEPackageProvider = Install-PackageProvider -Name NuGet -Force -Verbose:$false
+
+            # Install PSIntuneAuth module
+            Install-Module -Name PSIntuneAuth -Scope AllUsers -Force -ErrorAction Stop -Confirm:$false -Verbose:$false
+            Write-Verbose -Message " Successfully installed PSIntuneAuth"
+        }
+        catch [System.Exception] {
+            Write-Warning -Message " An error occurred while attempting to install PSIntuneAuth module. Error message: $($_.Exception.Message)" ; break
+        }
+    }
+
+    # Check if token has expired and if, request a new
+    Write-Verbose -Message " Checking for existing authentication token"
+    if ($WEGlobal:AuthToken -ne $null) {
+        $WEUTCDateTime = (Get-Date).ToUniversalTime()
+        $WETokenExpireMins = ($WEGlobal:AuthToken.ExpiresOn.datetime - $WEUTCDateTime).Minutes
+        Write-Verbose -Message " Current authentication token expires in (minutes): $($WETokenExpireMins)"
+        if ($WETokenExpireMins -le 0) {
+            Write-Verbose -Message " Existing token found but has expired, requesting a new token"
+            $WEGlobal:AuthToken = Get-MSIntuneAuthToken -TenantName $WETenantName -ClientID $WEApplicationID -PromptBehavior $WEPromptBehavior
+        }
+        else {
+            if ($WEPromptBehavior -like " Always" ) {
+                Write-Verbose -Message " Existing authentication token has not expired but prompt behavior was set to always ask for authentication, requesting a new token"
+                $WEGlobal:AuthToken = Get-MSIntuneAuthToken -TenantName $WETenantName -ClientID $WEApplicationID -PromptBehavior $WEPromptBehavior
+            }
+            else {
+                Write-Verbose -Message " Existing authentication token has not expired, will not request a new token"
+            }
+        }
+    }
+    else {
+        Write-Verbose -Message " Authentication token does not exist, requesting a new token"
+        $WEGlobal:AuthToken = Get-MSIntuneAuthToken -TenantName $WETenantName -ClientID $WEApplicationID -PromptBehavior $WEPromptBehavior
+    }
+}
+Process {
+    # Functions
+    function WE-Get-ErrorResponseBody {
+        [CmdletBinding()]
+$ErrorActionPreference = " Stop"
+param(
+            [parameter(Mandatory = $true)]
+            [ValidateNotNullOrEmpty()]
+            [System.Exception]$WEException
+        )
+
+        # Read the error stream
+        $WEErrorResponseStream = $WEException.Response.GetResponseStream()
+        $WEStreamReader = New-Object System.IO.StreamReader($WEErrorResponseStream)
+        $WEStreamReader.BaseStream.Position = 0
+        $WEStreamReader.DiscardBufferedData()
+        $WEResponseBody = $WEStreamReader.ReadToEnd()
+
+        # Handle return object
+        return $WEResponseBody
+    }
+
+    # Construct Graph variables
+    $WEGraphVersion = " beta"
+    $WEGraphResource = ""
+    $WEGraphURI = " https://graph.microsoft.com/$($WEGraphVersion)/$($WEGraphResource)"
+
+    #
+    # Main code
+    #
+
+    try {
+        #
+        # Select either the POST or GET method below depending on purpose of the script
+        #
+
+        # Call Graph API and post JSON response
+        $WEGraphResponse = Invoke-RestMethod -Uri $WEGraphURI -Headers $WEAuthToken -Method Post -Body $WEBody -ContentType " application/json" -ErrorAction Stop -Verbose:$false
+
+        # Call Graph API and get JSON response
+       ;  $WEGraphResponse = Invoke-RestMethod -Uri $WEGraphURI -Headers $WEAuthToken -Method Get -ErrorAction Stop -Verbose:$false
+        
+        # Handle return objects from response
+        $WEGraphResponse.value
+    }
+    catch [System.Exception] {
+        # Construct stream reader for reading the response body from API call
+       ;  $WEResponseBody = Get-ErrorResponseBody -Exception $_.Exception
+
+        # Handle response output and error message
+        Write-Output -InputObject " Response content:`n$WEResponseBody"
+        Write-Warning -Message " Request to $($WEGraphURI) failed with HTTP Status $($_.Exception.Response.StatusCode) and description: $($_.Exception.Response.StatusDescription)"
+    }
+}
+
+# Wesley Ellis Enterprise PowerShell Toolkit
+# Enhanced automation solutions: wesellis.com
+# ============================================================================

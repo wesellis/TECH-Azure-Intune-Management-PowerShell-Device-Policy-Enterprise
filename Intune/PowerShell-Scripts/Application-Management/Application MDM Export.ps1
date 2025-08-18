@@ -1,0 +1,500 @@
+<#
+.SYNOPSIS
+    Application Mdm Export
+
+.DESCRIPTION
+    Professional PowerShell script for enterprise automation.
+    Optimized for performance, reliability, and error handling.
+
+.AUTHOR
+    Enterprise PowerShell Framework
+
+.VERSION
+    1.0
+
+.NOTES
+    Requires appropriate permissions and modules
+#>
+
+<#
+.SYNOPSIS
+    We Enhanced Application Mdm Export
+
+.DESCRIPTION
+    Professional PowerShell script for enterprise automation.
+    Optimized for performance, reliability, and error handling.
+
+.AUTHOR
+    Enterprise PowerShell Framework
+
+.VERSION
+    1.0
+
+.NOTES
+    Requires appropriate permissions and modules
+
+
+<#
+
+
+
+$WEErrorActionPreference = "Stop"
+$WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
+
+.COPYRIGHT
+Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+See LICENSE in the project root for license information.
+
+
+
+
+
+function WE-Get-AuthToken {
+
+<#
+.SYNOPSIS
+This function is used to authenticate with the Graph API REST interface
+.DESCRIPTION
+The function authenticate with the Graph API Interface with the tenant name
+.EXAMPLE
+Get-AuthToken
+Authenticates you with the Graph API interface
+.NOTES
+NAME: Get-AuthToken
+
+
+[cmdletbinding()]
+
+[CmdletBinding()]
+$ErrorActionPreference = " Stop"
+param(
+    [Parameter(Mandatory=$true)]
+    $WEUser
+)
+
+$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+
+$tenant = $userUpn.Host
+
+Write-WELog " Checking for AzureAD module..." " INFO"
+
+    $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
+
+    if ($WEAadModule -eq $null) {
+
+        Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
+        $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
+
+    }
+
+    if ($WEAadModule -eq $null) {
+        write-host
+        write-host " AzureAD Powershell module not installed..." -f Red
+        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        write-host " Script can't continue..." -f Red
+        write-host
+        exit
+    }
+
+
+
+    if($WEAadModule.count -gt 1){
+
+        $WELatest_Version = ($WEAadModule | select version | Sort-Object)[-1]
+
+        $aadModule = $WEAadModule | ? { $_.version -eq $WELatest_Version.version }
+
+            # Checking if there are multiple versions of the same module found
+
+            if($WEAadModule.count -gt 1){
+
+            $aadModule = $WEAadModule | select -Unique
+
+            }
+
+        $adal = Join-Path $WEAadModule.ModuleBase " Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
+        $adalforms = Join-Path $WEAadModule.ModuleBase " Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
+
+    }
+
+    else {
+
+        $adal = Join-Path $WEAadModule.ModuleBase " Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
+        $adalforms = Join-Path $WEAadModule.ModuleBase " Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll"
+
+    }
+
+[System.Reflection.Assembly]::LoadFrom($adal) | Out-Null
+
+[System.Reflection.Assembly]::LoadFrom($adalforms) | Out-Null
+
+
+
+$clientId = " <replace with your clientID>"
+
+$redirectUri = " urn:ietf:wg:oauth:2.0:oob"
+
+$resourceAppIdURI = " https://graph.microsoft.com"
+
+$authority = " https://login.microsoftonline.com/$WETenant"
+
+    try {
+
+    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+
+    # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
+    # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
+
+    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+
+    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+
+    $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
+
+        # If the accesstoken is valid then create the authentication header
+
+        if($authResult.AccessToken){
+
+        # Creating header for Authorization token
+
+        $authHeader = @{
+            'Content-Type'='application/json'
+            'Authorization'=" Bearer " + $authResult.AccessToken
+            'ExpiresOn'=$authResult.ExpiresOn
+            }
+
+        return $authHeader
+
+        }
+
+        else {
+
+        Write-Host
+        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
+        Write-Host
+        break
+
+        }
+
+    }
+
+    catch {
+
+    write-host $_.Exception.Message -f Red
+    write-host $_.Exception.ItemName -f Red
+    write-host
+    break
+
+    }
+
+}
+
+
+
+Function Get-IntuneApplication(){
+
+<#
+.SYNOPSIS
+This function is used to get applications from the Graph API REST interface
+.DESCRIPTION
+The function connects to the Graph API Interface and gets any applications added
+.EXAMPLE
+Get-IntuneApplication
+Returns any applications configured in Intune
+.NOTES
+NAME: Get-IntuneApplication
+
+
+[cmdletbinding()]
+
+[CmdletBinding()]
+$ErrorActionPreference = " Stop"
+param(
+    $WEName,
+    $WEAppId
+)
+
+$graphApiVersion = " Beta"
+$WEResource = " deviceAppManagement/mobileApps"
+
+    try {
+
+        if($WEName){
+
+        $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEResource)"
+        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value | Where-Object { ($_.'displayName').contains(" $WEName" ) -and (!($_.'@odata.type').Contains(" managed" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.iosVppApp" )) }
+
+        }
+
+        elseif($WEAppId){
+
+        $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEResource)/$WEAppId"
+        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get)
+
+        }
+
+        else {
+
+        $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEResource)"
+        (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value | ? { (!($_.'@odata.type').Contains(" managed" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.iosVppApp" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.windowsAppX" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.androidForWorkApp" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.windowsMobileMSI" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.androidLobApp" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.iosLobApp" )) -and (!($_.'@odata.type').Contains(" #microsoft.graph.microsoftStoreForBusinessApp" )) }
+
+        }
+
+    }
+
+    catch {
+
+    $ex = $_.Exception
+    Write-WELog " Request to $WEUri failed with HTTP Status $([int]$ex.Response.StatusCode) $($ex.Response.StatusDescription)" " INFO" -f Red
+    $errorResponse = $ex.Response.GetResponseStream()
+   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+    $reader.BaseStream.Position = 0
+    $reader.DiscardBufferedData()
+   ;  $responseBody = $reader.ReadToEnd();
+    Write-WELog " Response content:`n$responseBody" " INFO" -f Red
+    Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
+    write-host
+    break
+
+    }
+
+}
+
+
+
+Function Export-JSONData(){
+
+<#
+.SYNOPSIS
+This function is used to export JSON data returned from Graph
+.DESCRIPTION
+This function is used to export JSON data returned from Graph
+.EXAMPLE
+Export-JSONData -JSON $WEJSON
+Export the JSON inputted on the function
+.NOTES
+NAME: Export-JSONData
+
+
+
+
+function Write-WELog {
+    [CmdletBinding()]
+$ErrorActionPreference = " Stop"
+param(
+        [Parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [Parameter(Mandatory=$false)]
+    [ValidateNotNullOrEmpty()]
+    [string]$Message,
+        [ValidateSet(" INFO" , " WARN" , " ERROR" , " SUCCESS" )]
+        [string]$Level = " INFO"
+    )
+    
+   ;  $timestamp = Get-Date -Format " yyyy-MM-dd HH:mm:ss"
+   ;  $colorMap = @{
+        " INFO" = " Cyan" ; " WARN" = " Yellow" ; " ERROR" = " Red" ; " SUCCESS" = " Green"
+    }
+    
+    $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
+    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+}
+
+[CmdletBinding()]
+$ErrorActionPreference = " Stop"
+param(
+$WEJSON,
+$WEType,
+$WEExportPath
+
+)
+
+    try {
+
+        if($WEJSON -eq "" -or $WEJSON -eq $null){
+
+        write-host " No JSON specified, please specify valid JSON..." -f Red
+
+        }
+
+        elseif(!$WEExportPath){
+
+        write-host " No export path parameter set, please provide a path to export the file" -f Red
+
+        }
+
+        elseif(!(Test-Path $WEExportPath)){
+
+        write-host " $WEExportPath doesn't exist, can't export JSON Data" -f Red
+
+        }
+
+        else {
+
+        $WEJSON1 = ConvertTo-Json $WEJSON
+
+        $WEJSON_Convert = $WEJSON1 | ConvertFrom-Json
+
+        $displayName = $WEJSON_Convert.displayName
+
+        # Updating display name to follow file naming conventions - https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
+        $WEDisplayName = $WEDisplayName -replace '\<|\>|:|" |/|\\|\||\?|\*', " _"
+
+        $WEProperties = ($WEJSON_Convert | Get-Member | ? { $_.MemberType -eq " NoteProperty" }).Name
+
+            if($WEType){
+
+                $WEFileName_CSV = " $WEDisplayName" + " _" + $WEType + " _" + $(get-date -f dd-MM-yyyy-H-mm-ss) + " .csv"
+                $WEFileName_JSON = " $WEDisplayName" + " _" + $WEType + " _" + $(get-date -f dd-MM-yyyy-H-mm-ss) + " .json"
+
+            }
+
+            else {
+
+                $WEFileName_CSV = " $WEDisplayName" + " _" + $(get-date -f dd-MM-yyyy-H-mm-ss) + " .csv"
+                $WEFileName_JSON = " $WEDisplayName" + " _" + $(get-date -f dd-MM-yyyy-H-mm-ss) + " .json"
+
+            }
+
+            $WEObject = New-Object System.Object
+
+                foreach($WEProperty in $WEProperties){
+
+                $WEObject | Add-Member -MemberType NoteProperty -Name $WEProperty -Value $WEJSON_Convert.$WEProperty
+
+                }
+
+            write-host " Export Path:" " $WEExportPath"
+
+            $WEObject | Export-Csv -LiteralPath " $WEExportPath\$WEFileName_CSV" -Delimiter " ," -NoTypeInformation -Append
+            $WEJSON1 | Set-Content -LiteralPath " $WEExportPath\$WEFileName_JSON"
+            write-host " CSV created in $WEExportPath\$WEFileName_CSV..." -f cyan
+            write-host " JSON created in $WEExportPath\$WEFileName_JSON..." -f cyan
+            
+        }
+
+    }
+
+    catch {
+
+    $_.Exception
+
+    }
+
+}
+
+
+
+
+
+write-host
+
+
+if($global:authToken){
+
+    # Setting DateTime to Universal time to work in all timezones
+    $WEDateTime = (Get-Date).ToUniversalTime()
+
+    # If the authToken exists checking when it expires
+    $WETokenExpires = ($authToken.ExpiresOn.datetime - $WEDateTime).Minutes
+
+        if($WETokenExpires -le 0){
+
+        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        write-host
+
+            # Defining User Principal Name if not present
+
+            if($WEUser -eq $null -or $WEUser -eq "" ){
+
+            $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
+            Write-Host
+
+            }
+
+        $global:authToken = Get-AuthToken -User $WEUser
+
+        }
+}
+
+
+
+else {
+
+    if($WEUser -eq $null -or $WEUser -eq "" ){
+
+    $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
+    Write-Host
+
+    }
+
+
+$global:authToken = Get-AuthToken -User $WEUser
+
+}
+
+
+
+
+
+$WEExportPath = Read-Host -Prompt " Please specify a path to export application data to e.g. C:\IntuneOutput"
+
+    # If the directory path doesn't exist prompt user to create the directory
+    $WEExportPath = $WEExportPath.replace('" ','')
+
+    if(!(Test-Path " $WEExportPath" )){
+
+    Write-Host
+    Write-WELog " Path '$WEExportPath' doesn't exist, do you want to create this directory? Y or N?" " INFO" -ForegroundColor Yellow
+
+    $WEConfirm = read-host
+
+        if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
+
+        new-item -ItemType Directory -Path " $WEExportPath" | Out-Null
+        Write-Host
+
+        }
+
+        else {
+
+        Write-WELog " Creation of directory path was cancelled..." " INFO" -ForegroundColor Red
+        Write-Host
+        break
+
+        }
+
+    }
+
+
+
+$WEMDMApps = Get-IntuneApplication
+
+if($WEMDMApps){
+
+    foreach($WEApp in $WEMDMApps){
+
+       ;  $WEApplication = Get-IntuneApplication -AppId $WEApp.id
+       ;  $WEType = $WEApplication.'@odata.type'.split(" ." )[2]
+
+
+        write-host " MDM Application:" $WEApplication.displayName -f Yellow
+        Export-JSONData -JSON $WEApplication -Type $WEType -ExportPath " $WEExportPath"
+        Write-Host
+
+    }
+
+}
+
+else {
+
+    Write-WELog " No MDM Applications added to the Intune Service..." " INFO" -ForegroundColor Red
+    Write-Host
+
+}
+
+
+
+# Wesley Ellis Enterprise PowerShell Toolkit
+# Enhanced automation solutions: wesellis.com
+# ============================================================================

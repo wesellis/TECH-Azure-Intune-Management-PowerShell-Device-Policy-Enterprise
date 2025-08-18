@@ -7,7 +7,7 @@
 
 > **Enterprise-grade PowerShell toolkit for comprehensive Azure Intune management featuring 395+ production-ready scripts, advanced device automation, policy deployment, and complete administrative control**
 
-**Author**: Wesley Ellis | **Email**: wes@wesellis.com | **Website**: wesellis.com
+**Author**: Wesley Ellis | **Website**: wesellis.com
 
 Trusted by IT administrators managing 1000+ devices. Automate your Intune workflows and reduce manual tasks by 90%.
 
@@ -235,33 +235,13 @@ Contributions are welcome! Please read our contribution guidelines before submit
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 💵 Pricing
+## 🎁 Free Open Source Scripts
 
-### Professional License - $49
-**One-time purchase includes:**
-- ✅ All 50+ PowerShell scripts
-- ✅ Comprehensive admin guide
-- ✅ Lifetime updates
-- ✅ Email support
-- ✅ Deployment templates
-- ✅ Video tutorials (coming soon)
-
-**[Get Instant Access →](https://gumroad.com/l/azure-intune-toolkit)**
-
-### Why Paid?
-- **Continuous development** - Regular updates for new Intune features
-- **Professional support** - Get help when you need it
-- **Enterprise tested** - Battle-tested in production environments
-- **Time savings** - Worth 100+ hours of development time
-
-## 🎁 Free Sample Scripts
-
-Try before you buy! These scripts are included free:
-- Basic device information export
-- Simple compliance check
-- Test connectivity script
-
-**[Download Free Samples](https://github.com/wesellis/azure-intune-management/releases/tag/samples)**
+All scripts are included free and open source:
+- Complete device management automation
+- Advanced compliance and policy deployment
+- Comprehensive reporting and analytics
+- Enterprise-grade security and remediation tools
 
 ## 💼 Perfect For
 
@@ -271,24 +251,20 @@ Try before you buy! These scripts are included free:
 - **Consultants** implementing Intune
 - **System Engineers** automating workflows
 
-## 📈 Customer Success
+## 📈 Community Success
 
 > "Reduced our Intune management time by 75%. The LAPS implementation alone saved us days of work." - *IT Director, 5000+ devices*
 
-> "The malware removal scripts caught infections our AV missed. Worth every penny." - *Security Admin*
+> "The malware removal scripts caught infections our AV missed. Excellent open source toolkit." - *Security Admin*
 
 > "Used the toolkit to migrate 2000 devices to Intune. Flawless execution." - *Cloud Architect*
 
 ## Support
 
-### Professional Support (License Holders)
-- **Email**: support@azureintunetoolkit.com
-- **Response Time**: Within 24 hours
-- **Updates**: Automatic notifications
-
 ### Community Support
-- GitHub Issues (best effort)
-- Community discussions
+- GitHub Issues for bug reports and feature requests
+- Community discussions and shared knowledge
+- Open source collaboration and contributions
 
 ## Acknowledgments
 

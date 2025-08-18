@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Detection Bios Adminpw Change
 
@@ -85,7 +85,7 @@ try{
     $WERegKeyexist = Test-Path 'HKLM:\SOFTWARE\Dell\BIOS'
 	Write-Output " Checking if BIOS admin password is set on the machine."
 
-	if($WEBIOSAdminPW -eq $null)
+	if($null -eq $WEBIOSAdminPW)
 	{
 		Write-Error -Category ResourceUnavailable -CategoryTargetName " root/dcim/sysman/wmisecurity" -CategoryTargetType " PasswordObject" -Message " Unable to get the 'Admin' object in class 'PasswordObject' in the Namespace 'root/dcim/sysman/wmisecurity'" 
 		exit 1
@@ -98,9 +98,9 @@ try{
 			# Registry key exists, password is known.
 			# check if BIOS password older that 180 days
 		; 	$WEDateExpire = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Dell\BIOS\' -Name Update | Select-Object -ExpandProperty Update
-			if ((Get-Date -Format yyyyMMdd) -le (Get-Date $WEDateExpire -Format yyyyMMdd))
+			if ((Get-Date -Format yyyyMMdd) -le (Get-Date -ErrorAction Stop $WEDateExpire -Format yyyyMMdd))
 			{
-				write-host " BIOS Admin password is not older than 180 days. No need to update the password."
+				Write-Information " BIOS Admin password is not older than 180 days. No need to update the password."
 				exit 0 
 			}
 			else

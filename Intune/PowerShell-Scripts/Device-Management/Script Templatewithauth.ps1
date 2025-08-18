@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Script Templatewithauth
 
@@ -93,7 +93,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
             $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
@@ -144,7 +144,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Get-ErrorResponseBody {
+    [CmdletBinding()]
+function WE-Get-ErrorResponseBody -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -155,7 +156,7 @@ param(
 
         # Read the error stream
         $WEErrorResponseStream = $WEException.Response.GetResponseStream()
-        $WEStreamReader = New-Object System.IO.StreamReader($WEErrorResponseStream)
+        $WEStreamReader = New-Object -ErrorAction Stop System.IO.StreamReader($WEErrorResponseStream)
         $WEStreamReader.BaseStream.Position = 0
         $WEStreamReader.DiscardBufferedData()
         $WEResponseBody = $WEStreamReader.ReadToEnd()

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Biosinventorytola
 
@@ -72,14 +72,14 @@ $WETimeStampField = ""
 
 
 
-Function New-Signature ($customerId, $sharedKey, $date, $contentLength, $method, $contentType, $resource) {
+Function New-Signature -ErrorAction Stop ($customerId, $sharedKey, $date, $contentLength, $method, $contentType, $resource) {
     $xHeaders = " x-ms-date:" + $date
     $stringToHash = $method + " `n" + $contentLength + " `n" + $contentType + " `n" + $xHeaders + " `n" + $resource
 
     $bytesToHash = [Text.Encoding]::UTF8.GetBytes($stringToHash)
     $keyBytes = [Convert]::FromBase64String($sharedKey)
 
-    $sha256 = New-Object System.Security.Cryptography.HMACSHA256
+    $sha256 = New-Object -ErrorAction Stop System.Security.Cryptography.HMACSHA256
     $sha256.Key = $keyBytes
     $calculatedHash = $sha256.ComputeHash($bytesToHash)
     $encodedHash = [Convert]::ToBase64String($calculatedHash)
@@ -92,7 +92,7 @@ Function Send-LogAnalyticsData($customerId, $sharedKey, $body, $logType) {
     $resource = " /api/logs"
     $rfc1123date = [DateTime]::UtcNow.ToString(" r" )
     $contentLength = $body.Length
-    $signature = New-Signature `
+    $signature = New-Signature -ErrorAction Stop `
         -customerId $customerId `
         -sharedKey $sharedKey `
         -date $rfc1123date `
@@ -121,8 +121,8 @@ Function Send-LogAnalyticsData($customerId, $sharedKey, $body, $logType) {
     $statusmessage = " $($response.StatusCode) : $($payloadsize)"
     return $statusmessage 
 }#endfunction
-function WE-Get-XMLData ($WEXMLUrl) {
-    $xml = New-Object xml
+function WE-Get-XMLData -ErrorAction Stop ($WEXMLUrl) {
+    $xml = New-Object -ErrorAction Stop xml
     $resolver = New-Object -TypeName System.Xml.XmlUrlResolver
     $resolver.Credentials = [System.Net.CredentialCache]::DefaultCredentials
     $reader = New-Object -TypeName System.Xml.XmlReaderSettings
@@ -152,7 +152,7 @@ foreach($WESKU in $WEDellSystemSKUs.Results.SystemSKU_s){
         $WECurrentDellBIOSVersion = $WEDellBIOSLatest.dellVersion
         [DateTime]$WECurrentDellBIOSDate = $WEDellBIOSLatest.releaseDate
         #Write-Output " SKU:$($sku),Version:$($WEBiosLatest.ver),Date:$($WEBiosLatest.date)"
-        $WEBIOSInventory = New-Object System.Object
+        $WEBIOSInventory = New-Object -ErrorAction Stop System.Object
         $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " SKU" -Value " $WESKU" -Force   
         $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMVersion" -Value " $WECurrentDellBIOSVersion" -Force   
         $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMDate" -Value " $WECurrentDellBIOSDate" -Force      
@@ -183,7 +183,7 @@ foreach($WESKU in $WEHPSystemSKUs.Results.SystemSKU_s){
         [DateTime]$WECurrentBIOSDate = $WEBIOSLatest.date
         
         #Write-Output " SKU:$($sku),Version:$($WEBiosLatest.ver),Date:$($WEBiosLatest.date)"
-        $WEBIOSInventory = New-Object System.Object
+        $WEBIOSInventory = New-Object -ErrorAction Stop System.Object
         $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " SKU" -Value " $WESKU" -Force   
         $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMVersion" -Value " $WECurrentBIOSVersion" -Force   
         $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMDate" -Value " $WECurrentBIOSDate" -Force 
@@ -227,7 +227,7 @@ foreach($WESKU in $WELenovoSystemSKUs.Results.SystemSKU_s){
             [DateTime]$WECurrentBIOSDate = $WELatestOEMBIOSInfo.ReleaseDate
             
             #Write-Output " SKU:$($sku),Version:$($WEBiosLatest.ver),Date:$($WEBiosLatest.date)"
-                $WEBIOSInventory = New-Object System.Object
+                $WEBIOSInventory = New-Object -ErrorAction Stop System.Object
                 $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " SKU" -Value " $WESKU" -Force   
                 $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMVersion" -Value " $WECurrentBIOSVersion" -Force   
                 $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMDate" -Value " $WECurrentBIOSDate" -Force  
@@ -235,7 +235,7 @@ foreach($WESKU in $WELenovoSystemSKUs.Results.SystemSKU_s){
                 $WEBIOSJson = $WEBIOSInventory | ConvertTo-Json
         }
         else {
-            $WEBIOSInventory = New-Object System.Object
+            $WEBIOSInventory = New-Object -ErrorAction Stop System.Object
             $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " SKU" -Value " $WESKU" -Force   
             $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMVersion" -Value " NA" -Force   
             $WEBIOSInventory | Add-Member -MemberType NoteProperty -Name " OEMDate" -Value " NA" -Force       

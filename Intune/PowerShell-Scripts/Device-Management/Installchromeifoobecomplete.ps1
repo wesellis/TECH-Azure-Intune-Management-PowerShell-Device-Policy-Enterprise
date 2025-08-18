@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Installchromeifoobecomplete
 
@@ -61,6 +61,7 @@ namespace Api
 }
 " @
 
+[CmdletBinding()]
 function log
 {
     [CmdletBinding()]

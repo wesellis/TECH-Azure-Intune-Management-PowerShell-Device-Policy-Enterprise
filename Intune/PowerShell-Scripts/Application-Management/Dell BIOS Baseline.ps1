@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Bios Baseline
 
@@ -58,7 +58,7 @@ limitations under the License.
 
 <#
 .Synopsis
-   Set-DellBIOSDefaults cmdlet used to set Dell BIOS to default settings using Dell BIOS DirectWMI capabilities.
+   Set-DellBIOSDefaults -ErrorAction Stop cmdlet used to set Dell BIOS to default settings using Dell BIOS DirectWMI capabilities.
    IMPORTANT: Make sure you are using latest Powershell version 5 or newer to execute this cmdlet. Execute " Get-Host" to check the version.
    IMPORTANT: Make sure direct WMI capabilities are supported on the system. 
    IMPORTANT: This script does not reboots the system to apply the settings. In order to bring the settings into effect, reboot the system.
@@ -104,6 +104,7 @@ limitations under the License.
 
 
 
+[CmdletBinding()]
 Function Is-DellBIOSPasswordSet
 {
     [CmdletBinding()]
@@ -119,8 +120,8 @@ param(
 	try
 	{
 		$WEIsPasswordSet = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject | Where-Object NameId -EQ $WEPwdType | Select-Object -ExpandProperty IsPasswordSet -ErrorAction stop
-		if(1 -eq $WEIsPasswordSet) { Write-Host  $WEPwdType " password is set on the system" }
-		else { Write-Host  $WEPwdType " password is not set on the system" }
+		if(1 -eq $WEIsPasswordSet) { Write-Information $WEPwdType " password is set on the system" }
+		else { Write-Information $WEPwdType " password is not set on the system" }
 		return $WEIsPasswordSet
 	}
 	Catch
@@ -135,7 +136,8 @@ param(
 }
 
 
-Function Set-DellBIOSDefaults
+[CmdletBinding()]
+Function Set-DellBIOSDefaults -ErrorAction Stop
 {
 	[CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -204,7 +206,7 @@ param(
             if(!([String]::IsNullOrEmpty($WEAdminPwd)))
 			{
 				#Get encoder for encoding password
-	            $encoder = New-Object System.Text.UTF8Encoding
+	            $encoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
    
                 #encode the password
                ;  $WEAdminBytes = $encoder.GetBytes($WEAdminPwd)
@@ -255,12 +257,12 @@ param(
 	catch
 	{
 	; 	$WEException = $_
-		Write-Host $WEException
+		Write-Information $WEException
 	}
 	finally
 	{
-		Write-Host $result
-		Write-WELog " Function Set-DellBIOSDefaults Executed" " INFO"	
+		Write-Information $result
+		Write-WELog " Function Set-DellBIOSDefaults -ErrorAction Stop Executed" " INFO"	
 	}
 	
 }

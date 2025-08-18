@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Custominventory
 
@@ -88,7 +88,8 @@ $WETimeStampField = ""
 
 
 
-function WE-Get-AzureADDeviceID {
+[CmdletBinding()]
+function WE-Get-AzureADDeviceID -ErrorAction Stop {
     <#
     .SYNOPSIS
         Get the Azure AD device ID from the local device.
@@ -111,10 +112,10 @@ function WE-Get-AzureADDeviceID {
 		
 		# Retrieve the child key name that is the thumbprint of the machine certificate containing the device identifier guid
 		$WEAzureADJoinInfoThumbprint = Get-ChildItem -Path $WEAzureADJoinInfoRegistryKeyPath | Select-Object -ExpandProperty " PSChildName"
-		if ($WEAzureADJoinInfoThumbprint -ne $null) {
+		if ($null -ne $WEAzureADJoinInfoThumbprint) {
 			# Retrieve the machine certificate based on thumbprint from registry key
 			$WEAzureADJoinCertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" -Recurse | Where-Object { $WEPSItem.Thumbprint -eq $WEAzureADJoinInfoThumbprint }
-			if ($WEAzureADJoinCertificate -ne $null) {
+			if ($null -ne $WEAzureADJoinCertificate) {
 				# Determine the device identifier from the subject name
 				$WEAzureADDeviceID = ($WEAzureADJoinCertificate | Select-Object -ExpandProperty " Subject" ) -replace " CN=" , ""
 				# Handle return value
@@ -124,7 +125,8 @@ function WE-Get-AzureADDeviceID {
 	}
 } #endfunction 
 
-function WE-Get-AzureADJoinDate {
+[CmdletBinding()]
+function WE-Get-AzureADJoinDate -ErrorAction Stop {
     <#
     .SYNOPSIS
         Get the Azure AD device join date 
@@ -147,10 +149,10 @@ function WE-Get-AzureADJoinDate {
 		
 		# Retrieve the child key name that is the thumbprint of the machine certificate containing the device identifier guid
 		$WEAzureADJoinInfoThumbprint = Get-ChildItem -Path $WEAzureADJoinInfoRegistryKeyPath | Select-Object -ExpandProperty " PSChildName"
-		if ($WEAzureADJoinInfoThumbprint -ne $null) {
+		if ($null -ne $WEAzureADJoinInfoThumbprint) {
 			# Retrieve the machine certificate based on thumbprint from registry key
 			$WEAzureADJoinCertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" -Recurse | Where-Object { $WEPSItem.Thumbprint -eq $WEAzureADJoinInfoThumbprint }
-			if ($WEAzureADJoinCertificate -ne $null) {
+			if ($null -ne $WEAzureADJoinCertificate) {
 				# Determine the device identifier from the subject name
 				$WEAzureADJoinDate = ($WEAzureADJoinCertificate | Select-Object -ExpandProperty " NotBefore" ) 
 				# Handle return value
@@ -175,19 +177,19 @@ param(
         $regpath = $regpath + " HKU:\$WEUserSid\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
     }
     $propertyNames = 'DisplayName', 'DisplayVersion', 'Publisher', 'UninstallString'
-    $WEApps = Get-ItemProperty $regpath -Name $propertyNames -ErrorAction SilentlyContinue | . { process { if ($_.DisplayName) { $_ } } } | Select-Object DisplayName, DisplayVersion, Publisher, UninstallString, PSPath | Sort-Object DisplayName   
+    $WEApps = Get-ItemProperty -ErrorAction Stop $regpath -Name $propertyNames -ErrorAction SilentlyContinue | . { process { if ($_.DisplayName) { $_ } } } | Select-Object DisplayName, DisplayVersion, Publisher, UninstallString, PSPath | Sort-Object DisplayName   
     Remove-PSDrive -Name " HKU" | Out-Null
     Return $WEApps
 }#end function
 
-Function New-Signature ($customerId, $sharedKey, $date, $contentLength, $method, $contentType, $resource) {
+Function New-Signature -ErrorAction Stop ($customerId, $sharedKey, $date, $contentLength, $method, $contentType, $resource) {
     $xHeaders = " x-ms-date:" + $date
     $stringToHash = $method + " `n" + $contentLength + " `n" + $contentType + " `n" + $xHeaders + " `n" + $resource
 
     $bytesToHash = [Text.Encoding]::UTF8.GetBytes($stringToHash)
     $keyBytes = [Convert]::FromBase64String($sharedKey)
 
-    $sha256 = New-Object System.Security.Cryptography.HMACSHA256
+    $sha256 = New-Object -ErrorAction Stop System.Security.Cryptography.HMACSHA256
     $sha256.Key = $keyBytes
     $calculatedHash = $sha256.ComputeHash($bytesToHash)
     $encodedHash = [Convert]::ToBase64String($calculatedHash)
@@ -201,7 +203,7 @@ Function Send-LogAnalyticsData($customerId, $sharedKey, $body, $logType) {
     $resource = " /api/logs"
     $rfc1123date = [DateTime]::UtcNow.ToString(" r" )
     $contentLength = $body.Length
-    $signature = New-Signature `
+    $signature = New-Signature -ErrorAction Stop `
         -customerId $customerId `
         -sharedKey $sharedKey `
         -date $rfc1123date `
@@ -231,7 +233,8 @@ Function Send-LogAnalyticsData($customerId, $sharedKey, $body, $logType) {
     return $statusmessage 
 }#end function
 
-function WE-Get-AzureADTenantID {
+[CmdletBinding()]
+function WE-Get-AzureADTenantID -ErrorAction Stop {
 	# Cloud Join information registry path
 	$WEAzureADTenantInfoRegistryKeyPath = " HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\TenantInfo"
 	# Retrieve the child key name that is the tenant id for AzureAD
@@ -241,14 +244,14 @@ function WE-Get-AzureADTenantID {
 
 
 
-if (@(Get-ChildItem HKLM:SOFTWARE\Microsoft\Enrollments\ -Recurse | Where-Object { $_.PSChildName -eq 'MS DM Server' })) {
-    $WEMSDMServerInfo = Get-ChildItem HKLM:SOFTWARE\Microsoft\Enrollments\ -Recurse | Where-Object { $_.PSChildName -eq 'MS DM Server' }
+if (@(Get-ChildItem -ErrorAction Stop HKLM:SOFTWARE\Microsoft\Enrollments\ -Recurse | Where-Object { $_.PSChildName -eq 'MS DM Server' })) {
+    $WEMSDMServerInfo = Get-ChildItem -ErrorAction Stop HKLM:SOFTWARE\Microsoft\Enrollments\ -Recurse | Where-Object { $_.PSChildName -eq 'MS DM Server' }
     $WEManagedDeviceInfo = Get-ItemProperty -LiteralPath " Registry::$($WEMSDMServerInfo)"
 }
 $WEManagedDeviceName = $WEManagedDeviceInfo.EntDeviceName
 $WEManagedDeviceID = $WEManagedDeviceInfo.EntDMID
-$WEAzureADDeviceID = Get-AzureADDeviceID
-$WEAzureADTenantID = Get-AzureADTenantID
+$WEAzureADDeviceID = Get-AzureADDeviceID -ErrorAction Stop
+$WEAzureADTenantID = Get-AzureADTenantID -ErrorAction Stop
 
 
 $WEComputerInfo = Get-CimInstance -ClassName Win32_ComputerSystem
@@ -286,10 +289,10 @@ if ($WECollectDeviceInventory) {
 	$WEComputerOSName = $WEComputerOSInfo.Caption
 	$WEComputerSystemSkuNumber = $WEComputerInfo.SystemSKUNumber
 	$WEComputerSerialNr = $WEComputerBIOSInfo.SerialNumber
-	$WEComputerBIOSUUID = Get-CimInstance Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID
+	$WEComputerBIOSUUID = Get-CimInstance -ErrorAction Stop Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID
 	$WEComputerBIOSVersion = $WEComputerBIOSInfo.SMBIOSBIOSVersion
 	$WEComputerBIOSDate = $WEComputerBIOSInfo.ReleaseDate
-	$WEComputerSMBIOSAssetTag = Get-CimInstance Win32_SystemEnclosure | Select-Object -expandproperty SMBIOSAssetTag 
+	$WEComputerSMBIOSAssetTag = Get-CimInstance -ErrorAction Stop Win32_SystemEnclosure | Select-Object -expandproperty SMBIOSAssetTag 
 	$WEComputerFirmwareType = $env:firmware_type
 	$WEPCSystemType = $WEComputerInfo.PCSystemType
 		switch ($WEPCSystemType){
@@ -321,12 +324,12 @@ if ($WECollectDeviceInventory) {
 		
 	$WEComputerPhysicalMemory = [Math]::Round(($WEComputerInfo.TotalPhysicalMemory / 1GB))
 	$WEComputerOSBuild = $WEComputerOSInfo.BuildNumber
-	$WEComputerOSRevision = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR).UBR
-	$WEComputerCPU = Get-CimInstance win32_processor | Select-Object Name, Manufacturer, NumberOfCores, NumberOfLogicalProcessors
-	$WEComputerProcessorManufacturer = $WEComputerCPU.Manufacturer | Get-Unique
-	$WEComputerProcessorName = $WEComputerCPU.Name | Get-Unique
-	$WEComputerNumberOfCores = $WEComputerCPU.NumberOfCores | Get-Unique
-	$WEComputerNumberOfLogicalProcessors = $WEComputerCPU.NumberOfLogicalProcessors | Get-Unique
+	$WEComputerOSRevision = (Get-ItemProperty -ErrorAction Stop 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR).UBR
+	$WEComputerCPU = Get-CimInstance -ErrorAction Stop win32_processor | Select-Object Name, Manufacturer, NumberOfCores, NumberOfLogicalProcessors
+	$WEComputerProcessorManufacturer = $WEComputerCPU.Manufacturer | Get-Unique -ErrorAction Stop
+	$WEComputerProcessorName = $WEComputerCPU.Name | Get-Unique -ErrorAction Stop
+	$WEComputerNumberOfCores = $WEComputerCPU.NumberOfCores | Get-Unique -ErrorAction Stop
+	$WEComputerNumberOfLogicalProcessors = $WEComputerCPU.NumberOfLogicalProcessors | Get-Unique -ErrorAction Stop
 	$WEComputerSystemSKU = (Get-CIMInstance -ClassName MS_SystemInformation -NameSpace root\WMI).SystemSku.Trim()
 	
 	try {
@@ -367,7 +370,7 @@ if ($WECollectDeviceInventory) {
 			$WEComputerSystemSKU = Get-CIMInstance -Namespace root\wmi -Class MS_SystemInformation | Select-Object -ExpandProperty SystemSKU
 		}
 		" *HP*" {
-			$WEComputerModel = (Get-CIMInstance  -Class Win32_ComputerSystem | Select-Object -ExpandProperty Model).Trim()
+			$WEComputerModel = (Get-CIMInstance -ErrorAction Stop  -Class Win32_ComputerSystem | Select-Object -ExpandProperty Model).Trim()
 			$WEComputerSystemSKU = (Get-CIMInstance -ClassName MS_SystemInformation -NameSpace root\WMI).BaseBoardProduct.Trim()
 			
 			# Obtain current BIOS release
@@ -413,7 +416,7 @@ if ($WECollectDeviceInventory) {
 	#Get network adapters
 	$WENetWorkArray = @()
 	
-	$WECurrentNetAdapters = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' }
+	$WECurrentNetAdapters = Get-NetAdapter -ErrorAction Stop | Where-Object { $_.Status -eq 'Up' }
 	
 	foreach ($WECurrentNetAdapter in $WECurrentNetAdapters) {
 		$WEIPConfiguration = Get-NetIPConfiguration -InterfaceIndex $WECurrentNetAdapter[0].ifIndex
@@ -439,12 +442,12 @@ if ($WECollectDeviceInventory) {
 	$WEDiskArray = @()
 	# Pattern matching for validation
 # Pattern matching for validation
-$WEDisks = Get-PhysicalDisk | Where-Object { $_.BusType -match " NVMe|SATA|SAS|ATAPI|RAID" }
+$WEDisks = Get-PhysicalDisk -ErrorAction Stop | Where-Object { $_.BusType -match " NVMe|SATA|SAS|ATAPI|RAID" }
 	
 	# Loop through each disk
 	foreach ($WEDisk in ($WEDisks | Sort-Object DeviceID)) {
 		# Obtain disk health information from current disk
-		$WEDiskHealth = Get-PhysicalDisk -UniqueId $($WEDisk.UniqueId) | Get-StorageReliabilityCounter | Select-Object -Property Wear, ReadErrorsTotal, ReadErrorsUncorrected, WriteErrorsTotal, WriteErrorsUncorrected, Temperature, TemperatureMax
+		$WEDiskHealth = Get-PhysicalDisk -UniqueId $($WEDisk.UniqueId) | Get-StorageReliabilityCounter -ErrorAction Stop | Select-Object -Property Wear, ReadErrorsTotal, ReadErrorsUncorrected, WriteErrorsTotal, WriteErrorsUncorrected, Temperature, TemperatureMax
 		
 		# Obtain media type
 		$WEDriveDetails = Get-PhysicalDisk -UniqueId $($WEDisk.UniqueId) | Select-Object MediaType, HealthStatus
@@ -474,7 +477,7 @@ $WEDisks = Get-PhysicalDisk | Where-Object { $_.BusType -match " NVMe|SATA|SAS|A
 	
 	
 	# Create JSON to Upload to Log Analytics
-	$WEInventory = New-Object System.Object
+	$WEInventory = New-Object -ErrorAction Stop System.Object
 	$WEInventory | Add-Member -MemberType NoteProperty -Name " ManagedDeviceName" -Value " $WEManagedDeviceName" -Force
     $WEInventory | Add-Member -MemberType NoteProperty -Name " AzureADDeviceID" -Value " $WEAzureADDeviceID" -Force
 	$WEInventory | Add-Member -MemberType NoteProperty -Name " ManagedDeviceID" -Value " $WEManagedDeviceID" -Force
@@ -527,9 +530,9 @@ if ($WECollectAppInventory) {
 	#$WEAppLog = " AppInventory"
 	
 	#Get SID of current interactive users
-	$WECurrentLoggedOnUser = (Get-CimInstance win32_computersystem).UserName
+	$WECurrentLoggedOnUser = (Get-CimInstance -ErrorAction Stop win32_computersystem).UserName
 	if (-not ([string]::IsNullOrEmpty($WECurrentLoggedOnUser))) {
-		$WEAdObj = New-Object System.Security.Principal.NTAccount($WECurrentLoggedOnUser)
+		$WEAdObj = New-Object -ErrorAction Stop System.Security.Principal.NTAccount($WECurrentLoggedOnUser)
 		$strSID = $WEAdObj.Translate([System.Security.Principal.SecurityIdentifier])
 		$WEUserSid = $strSID.Value
 	} else {

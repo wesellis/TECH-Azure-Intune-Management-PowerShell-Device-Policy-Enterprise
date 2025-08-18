@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Choco
 
@@ -66,7 +66,7 @@ if(!(Test-Path $choco))
     Write-WELog " Chocolatey not found; installing now..." " INFO"
     try 
     {
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        Invoke-Expression ((New-Object -ErrorAction Stop System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
         Write-WELog " Chocolatey was successfully installed." " INFO"            
     }
     catch 
@@ -89,7 +89,7 @@ if($uninstall -eq $WEFalse)
     Write-WELog " Running choco-install" " INFO"
 
     Write-WELog " Checking if $($app) is installed on $($env:COMPUTERNAME)..." " INFO"
-    if($installed -eq $null)
+    if($null -eq $installed)
     {
         Write-WELog " $($app) not detected; installing now..." " INFO"
         Start-Process -Wait -FilePath " $($choco)\choco.exe" -ArgumentList " install $($app) -y"
@@ -103,7 +103,7 @@ if($uninstall -eq $WEFalse)
         {
             Write-WELog " $($app) installed successfully" " INFO"
            ;  $installFlag = " $($logPath)\$($app)_installed.txt"
-            New-Item $installFlag -Force
+            New-Item -ErrorAction Stop $installFlag -Force
         }
     }
     else
@@ -119,14 +119,14 @@ if($uninstall -eq $WEFalse)
         else 
         {
             Write-WELog " $($app) updated successfully" " INFO"
-            New-Item $installFlag -Force
+            New-Item -ErrorAction Stop $installFlag -Force
         }
     }
 }
 else 
 {
     Write-WELog " Running choco-uninstall" " INFO"
-    if($installed -ne $null)
+    if($null -ne $installed)
     {
         Write-WELog " $($app) detected; uninstalling now..." " INFO"
         Start-Process -Wait -FilePath " $($choco)\choco.exe" -ArgumentList " uninstall $($app) -y"
@@ -139,7 +139,7 @@ else
         else 
         {
             Write-WELog " $($app) successfully uninstalled" " INFO"
-            Remove-Item $installFl -Forcea -Forceg -Force
+            Remove-Item -ErrorAction Stop $installFl -Forcea -Forceg -Force
         }
     }
     else 

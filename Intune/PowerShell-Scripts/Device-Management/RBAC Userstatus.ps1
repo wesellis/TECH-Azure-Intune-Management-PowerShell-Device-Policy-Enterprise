@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Rbac Userstatus
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
     <#
     .SYNOPSIS
@@ -57,10 +58,10 @@ function WE-Get-AuthToken {
     .DESCRIPTION
     The function authenticate with the Graph API Interface with the tenant name
     .EXAMPLE
-    Get-AuthToken
+    Get-AuthToken -ErrorAction Stop
     Authenticates you with the Graph API interface
     .NOTES
-    NAME: Get-AuthToken
+    NAME: Get-AuthToken -ErrorAction Stop
     #>
     
     [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
         $WEUser
     )
     
-    $userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+    $userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
     
     $tenant = $userUpn.Host
     
@@ -80,20 +81,18 @@ param(
     
         $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
     
-        if ($WEAadModule -eq $null) {
+        if ($null -eq $WEAadModule) {
     
             Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
             $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
     
         }
     
-        if ($WEAadModule -eq $null) {
-            write-host
-            write-host " AzureAD Powershell module not installed..." -f Red
-            write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-            write-host " Script can't continue..." -f Red
-            write-host
-            exit
+        if ($null -eq $WEAadModule) {
+            Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+            Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+            Write-Information " Script can't continue..." -f Red
+            Write-Information exit
         }
     
     # Getting path to ActiveDirectory Assemblies
@@ -142,14 +141,14 @@ param(
     
         try {
     
-        $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+        $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
     
         # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
         # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
     
-        $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+        $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
     
-        $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+        $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
     
         $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
     
@@ -171,10 +170,8 @@ param(
     
             else {
     
-            Write-Host
-            Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-            Write-Host
-            break
+            Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+            Write-Information break
     
             }
     
@@ -182,10 +179,9 @@ param(
     
         catch {
     
-        write-host $_.Exception.Message -f Red
-        write-host $_.Exception.ItemName -f Red
-        write-host
-        break
+        Write-Information $_.Exception.Message -f Red
+        Write-Information $_.Exception.ItemName -f Red
+        Write-Information break
     
         }
     
@@ -201,13 +197,13 @@ param(
     .DESCRIPTION
     The function connects to the Graph API Interface and gets any users registered with AAD
     .EXAMPLE
-    Get-AADUser
+    Get-AADUser -ErrorAction Stop
     Returns all users registered with Azure AD
     .EXAMPLE
     Get-AADUser -userPrincipleName user@domain.com
     Returns specific user by UserPrincipalName registered with Azure AD
     .NOTES
-    NAME: Get-AADUser
+    NAME: Get-AADUser -ErrorAction Stop
     #>
     
     [cmdletbinding()]
@@ -225,7 +221,7 @@ param(
         
         try {
             
-            if($userPrincipalName -eq "" -or $userPrincipalName -eq $null){
+            if($userPrincipalName -eq "" -or $null -eq $userPrincipalName){
             
             $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)"
             (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -234,7 +230,7 @@ param(
     
             else {
                 
-                if($WEProperty -eq "" -or $WEProperty -eq $null){
+                if($WEProperty -eq "" -or $null -eq $WEProperty){
     
                 $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)/$userPrincipalName"
                 Write-Verbose $uri
@@ -258,14 +254,13 @@ param(
     
         $ex = $_.Exception
         $errorResponse = $ex.Response.GetResponseStream()
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -281,10 +276,10 @@ param(
     .DESCRIPTION
     The function connects to the Graph API Interface and gets any Groups registered with AAD
     .EXAMPLE
-    Get-AADGroup
+    Get-AADGroup -ErrorAction Stop
     Returns all users registered with Azure AD
     .NOTES
-    NAME: Get-AADGroup
+    NAME: Get-AADGroup -ErrorAction Stop
     #>
     
     [cmdletbinding()]
@@ -310,7 +305,7 @@ param(
     
             }
             
-            elseif($WEGroupName -eq "" -or $WEGroupName -eq $null){
+            elseif($WEGroupName -eq "" -or $null -eq $WEGroupName){
             
             $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)"
             (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -336,9 +331,7 @@ param(
                     $WEGID = $WEGroup.id
     
                     $WEGroup.displayName
-                    write-host
-    
-                    $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
+                    Write-Information $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
                     (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
     
                     }
@@ -353,14 +346,13 @@ param(
     
         $ex = $_.Exception
         $errorResponse = $ex.Response.GetResponseStream()
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -376,10 +368,10 @@ param(
     .DESCRIPTION
     The function connects to the Graph API Interface and gets any RBAC Role Definitions
     .EXAMPLE
-    Get-RBACRole
+    Get-RBACRole -ErrorAction Stop
     Returns any RBAC Role Definitions configured in Intune
     .NOTES
-    NAME: Get-RBACRole
+    NAME: Get-RBACRole -ErrorAction Stop
     #>
     
     $graphApiVersion = " Beta"
@@ -396,14 +388,13 @@ param(
     
         $ex = $_.Exception
         $errorResponse = $ex.Response.GetResponseStream()
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -422,7 +413,7 @@ param(
     Get-RBACRoleDefinition -id $id
     Returns an RBAC Role Definitions configured in Intune
     .NOTES
-    NAME: Get-RBACRoleDefinition
+    NAME: Get-RBACRoleDefinition -ErrorAction Stop
     #>
     
     [cmdletbinding()]
@@ -440,7 +431,7 @@ param(
     
             if(!$id){
     
-            write-host " No Role ID was passed to the function, provide an ID variable" -f Red
+            Write-Information " No Role ID was passed to the function, provide an ID variable" -f Red
             break
     
             }
@@ -454,14 +445,13 @@ param(
     
         $ex = $_.Exception
         $errorResponse = $ex.Response.GetResponseStream()
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -480,7 +470,7 @@ param(
     Get-RBACRoleAssignment -id $id
     Returns an RBAC Role Assignment configured in Intune
     .NOTES
-    NAME: Get-RBACRoleAssignment
+    NAME: Get-RBACRoleAssignment -ErrorAction Stop
     #>
     
     [cmdletbinding()]
@@ -498,7 +488,7 @@ param(
     
             if(!$id){
     
-            write-host " No Role Assignment ID was passed to the function, provide an ID variable" -f Red
+            Write-Information " No Role Assignment ID was passed to the function, provide an ID variable" -f Red
             break
     
             }
@@ -512,14 +502,13 @@ param(
     
         $ex = $_.Exception
         $errorResponse = $ex.Response.GetResponseStream()
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -529,9 +518,7 @@ param(
     
     #region Authentication
     
-    write-host
-    
-    # Checking if authToken exists before running authentication
+    Write-Information # Checking if authToken exists before running authentication
     if($global:authToken){
     
         # Setting DateTime to Universal time to work in all timezones
@@ -542,36 +529,31 @@ param(
     
             if($WETokenExpires -le 0){
     
-            write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-            write-host
+            Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+            Write-Information # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
     
-                # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
-    
-                if($WEUser -eq $null -or $WEUser -eq "" ){
+                if($null -eq $WEUser -or $WEUser -eq "" ){
     
                 $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-                Write-Host
+                Write-Information }
     
-                }
-    
-            $global:authToken = Get-AuthToken -User $WEUser
+            $script:authToken = Get-AuthToken -User $WEUser
     
             }
     }
     
-    # Authentication doesn't exist, calling Get-AuthToken function
+    # Authentication doesn't exist, calling Get-AuthToken -ErrorAction Stop [CmdletBinding()]
+function
     
     else {
     
-        if($WEUser -eq $null -or $WEUser -eq "" ){
+        if($null -eq $WEUser -or $WEUser -eq "" ){
     
         $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-        Write-Host
-    
-        }
+        Write-Information }
     
     # Getting the authorization token
-    $global:authToken = Get-AuthToken -User $WEUser
+    $script:authToken = Get-AuthToken -User $WEUser
     
     }
     
@@ -579,15 +561,13 @@ param(
     
     ####################################################
     
-    write-host
-    write-host " Please specify the User Principal Name you want to query:" -f Yellow
+    Write-Information write-host " Please specify the User Principal Name you want to query:" -f Yellow
     $WEUPN = Read-Host
     
-        if($WEUPN -eq $null -or $WEUPN -eq "" ){
+        if($null -eq $WEUPN -or $WEUPN -eq "" ){
     
         Write-WELog " Valid UPN not specified, script can't continue..." " INFO" -f Red
-        Write-Host
-        break
+        Write-Information break
     
         }
     
@@ -597,15 +577,11 @@ param(
     $WEUserDN = $WEUser.displayName
     $WEUserPN = $WEUser.userPrincipalName
     
-    Write-Host
-    write-host " -------------------------------------------------------------------"
-    write-host
-    write-host " Display Name:" $WEUser.displayName
-    write-host " User ID:" $WEUser.id
-    write-host " User Principal Name:" $WEUser.userPrincipalName
-    write-host
-    
-    ####################################################
+    Write-Information Write-Information " -------------------------------------------------------------------"
+    Write-Information Write-Information " Display Name:" $WEUser.displayName
+    Write-Information " User ID:" $WEUser.id
+    Write-Information " User Principal Name:" $WEUser.userPrincipalName
+    Write-Information ####################################################
     
     $WEMemberOf = Get-AADUser -userPrincipalName $WEUPN -Property MemberOf
     
@@ -615,19 +591,15 @@ param(
     
         $WEDirRole = $WEDirectoryRole.displayName
     
-        write-host " Directory Role:" -f Yellow
+        Write-Information " Directory Role:" -f Yellow
         $WEDirectoryRole.displayName
-        write-host
-    
-        }
+        Write-Information }
     
         else {
     
-        write-host " Directory Role:" -f Yellow
+        Write-Information " Directory Role:" -f Yellow
         Write-WELog " User" " INFO"
-        write-host
-    
-        }
+        Write-Information }
     
     ####################################################
     
@@ -635,7 +607,7 @@ param(
     
         if($WEAADGroups){
     
-        write-host " AAD Group Membership:" -f Yellow
+        Write-Information " AAD Group Membership:" -f Yellow
             
             foreach($WEAADGroup in $WEAADGroups){
             
@@ -645,24 +617,20 @@ param(
     
             }
     
-        write-host
-    
-        }
+        Write-Information }
     
         else {
     
-        write-host " AAD Group Membership:" -f Yellow
-        write-host " No Group Membership in AAD Groups"
-        Write-Host
-    
-        }
+        Write-Information " AAD Group Membership:" -f Yellow
+        Write-Information " No Group Membership in AAD Groups"
+        Write-Information }
     
     ####################################################
     
-    write-host " -------------------------------------------------------------------"
+    Write-Information " -------------------------------------------------------------------"
     
     # Getting all Intune Roles defined
-    $WERBAC_Roles = Get-RBACRole
+    $WERBAC_Roles = Get-RBACRole -ErrorAction Stop
     
     $WEUserRoleCount = 0
     
@@ -704,19 +672,13 @@ param(
     
                 $WEUserRoleCount++
     
-                Write-Host
-                write-host " RBAC Role Assigned: " $WERBAC_Role.displayName -ForegroundColor Cyan
+                Write-Information Write-Information " RBAC Role Assigned: " $WERBAC_Role.displayName
                 $WEPermissions = $WEPermissions + $WERBAC_Role.permissions.actions
-                Write-Host
-    
-                write-host " Assignment Display Name:" $WEAssignment.displayName -ForegroundColor Yellow
-                Write-Host
-    
-                Write-WELog " Assignment - Members:" " INFO" -f Yellow 
+                Write-Information Write-Information " Assignment Display Name:" $WEAssignment.displayName
+                Write-Information Write-WELog " Assignment - Members:" " INFO" -f Yellow 
                 $WERA_Names
     
-                Write-Host
-                Write-WELog " Assignment - Scope (Groups):" " INFO" -f Yellow
+                Write-Information Write-WELog " Assignment - Scope (Groups):" " INFO" -f Yellow
                 
                     if($WEAssignment.scopeType -eq " resourceScope" ){
                     
@@ -730,12 +692,11 @@ param(
     
                     else {
     
-                        Write-Host ($WEAssignment.ScopeType -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
+                        Write-Information ($WEAssignment.ScopeType -creplace  '([A-Z\W_]|\d+)(?<![a-z])',' $&').trim()
     
                     }
     
-                Write-Host
-                Write-WELog " Assignment - Scope Tags:" " INFO" -f Yellow
+                Write-Information Write-WELog " Assignment - Scope Tags:" " INFO" -f Yellow
                     
                     if($WEScopeTags){
     
@@ -755,8 +716,7 @@ param(
     
                     }
     
-                Write-Host
-                Write-WELog " Assignment - Permissions:" " INFO" -f Yellow
+                Write-Information Write-WELog " Assignment - Permissions:" " INFO" -f Yellow
                 
                 $WERolePermissions = $WERBAC_Role.permissions.actions | foreach { $_.replace(" Microsoft.Intune_" ,"" ) }
                 
@@ -764,8 +724,7 @@ param(
     
                ;  $WEScopeTagPermissions = $WEScopeTagPermissions + $WERolePermissions | foreach { $_.split(" _" )[0] } | select -Unique | sort
     
-                Write-Host
-                write-host " -------------------------------------------------------------------"
+                Write-Information Write-Information " -------------------------------------------------------------------"
     
                 }
     
@@ -779,8 +738,7 @@ param(
     
     if($WEPermissions){
     
-    Write-Host
-    write-host " Effective Permissions for user:" -ForegroundColor Yellow
+    Write-Information Write-Information " Effective Permissions for user:"
     
    ;  $WEPermissions = $WEPermissions | foreach { $_.replace(" Microsoft.Intune_" ,"" ) }
     
@@ -790,15 +748,11 @@ param(
     
     else {
     
-    Write-Host
-    write-host " User isn't part of any Intune Roles..." -ForegroundColor Yellow
+    Write-Information Write-Information " User isn't part of any Intune Roles..."
     
     }
     
-    Write-Host
-    
-    
-    ####################################################
+    Write-Information ####################################################
     
 
 

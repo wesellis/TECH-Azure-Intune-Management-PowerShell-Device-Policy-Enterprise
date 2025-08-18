@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Creates a local user account with a randomly generated password and adds it to the local Administrators group to be targeted by LAPS.
 
@@ -28,6 +28,7 @@ None.
 
 $LogFilePath = Join-Path -Path $env:TEMP -ChildPath "ScriptLog_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 
+[CmdletBinding()]
 function Write-Log {
     param (
         [string]$Message,
@@ -38,9 +39,9 @@ function Write-Log {
     
     # Write to the console
     switch ($Type) {
-        "ERROR" { Write-Host $LogMessage -ForegroundColor Red }
-        "WARNING" { Write-Host $LogMessage -ForegroundColor Yellow }
-        default { Write-Host $LogMessage }
+        "ERROR" { Write-Information $LogMessage -ForegroundColor Red }
+        "WARNING" { Write-Information $LogMessage -ForegroundColor Yellow }
+        default { Write-Information $LogMessage }
     }
     
     Add-Content -Path $LogFilePath -Value $LogMessage

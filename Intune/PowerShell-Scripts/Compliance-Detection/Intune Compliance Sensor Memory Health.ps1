@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Compliance Sensor Memory Health
 
@@ -81,9 +81,9 @@ limitations under the License.
 $health = Get-CimInstance -Namespace root/DCIM/SYSMAN -ClassName dcim_memory | select ElementName,DeviceID,HealthState
 $errorcheck = 0
 
-if($health -eq $null)
+if($null -eq $health)
 {
- write-host " Memory Detection is failed - System Does not have any RAMs/DCM is Not Installed"
+ Write-Information " Memory Detection is failed - System Does not have any RAMs/DCM is Not Installed"
  exit 1
 }
 else
@@ -93,11 +93,11 @@ foreach($x in 0..($instances.count - 1))
 {
 if ($health.HealthState[$x] -eq 5)
 { 
-Write-host " PASS- Memory Health State is Good for" ,$health.ElementName[$x]
+Write-Information " PASS- Memory Health State is Good for" ,$health.ElementName[$x]
 }
 else
 {
-Write-host " FAIL- Memory Health State is BAD for" ,$health.ElementName[$x]
+Write-Information " FAIL- Memory Health State is BAD for" ,$health.ElementName[$x]
 $errorcheck=1
 }
 }

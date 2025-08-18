@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Bios Tpm Pre Reboot
 
@@ -58,7 +58,7 @@ limitations under the License.
 
 <#
 .Synopsis
-   Set-DellBIOSTPM Cmdlet used to Enable TpmSecurity BIOS attribute using Dell BIOS DirectWMI capabilities.
+   Set-DellBIOSTPM -ErrorAction Stop Cmdlet used to Enable TpmSecurity BIOS attribute using Dell BIOS DirectWMI capabilities.
    IMPORTANT: Configuring TPM is handled using two scripts as Local System Restart is involved. These scripts in their order of execution are
 				1. 4_1_Dell_BIOS_TPM.ps1 - enables TPMSecurity and Restarts the local system (optional)
 				2. 4_2_Dell_BIOS_TPM.ps1 - activates TPM (TpmActivation) and Restarts the local system (optional)
@@ -87,6 +87,7 @@ limitations under the License.
 
 
 
+[CmdletBinding()]
 Function Is-DellBIOSPasswordSet
 {
     [CmdletBinding()]
@@ -102,8 +103,8 @@ param(
 	try
 	{
 		$WEIsPasswordSet = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject | Where-Object NameId -EQ $WEPwdType | Select-Object -ExpandProperty IsPasswordSet -ErrorAction stop
-		if(1 -eq $WEIsPasswordSet) { Write-Host  $WEPwdType " password is set on the system" }
-		else { Write-Host  $WEPwdType " password is not set on the system" }
+		if(1 -eq $WEIsPasswordSet) { Write-Information $WEPwdType " password is set on the system" }
+		else { Write-Information $WEPwdType " password is not set on the system" }
 		return $WEIsPasswordSet
 	}
 	Catch
@@ -118,7 +119,8 @@ param(
 }
 
 
-Function Get-DellBIOSAttributes
+[CmdletBinding()]
+Function Get-DellBIOSAttributes -ErrorAction Stop
 {
     try
 	{
@@ -143,12 +145,13 @@ Function Get-DellBIOSAttributes
     }
     Finally
     {
-        Write-WELog " Function Get-DellBIOSAttribute Executed" " INFO"
+        Write-WELog " Function Get-DellBIOSAttribute -ErrorAction Stop Executed" " INFO"
     }
 }
 
 
-Function Set-DellBIOSAttribute
+[CmdletBinding()]
+Function Set-DellBIOSAttribute -ErrorAction Stop
 {
     #Sets a Dell BIOS Attribute
 
@@ -176,7 +179,7 @@ param(
 	    $WEIsBIOSAdminPasswordSet = Is-DellBIOSPasswordSet -PwdType " Admin" -EA stop
 		
 	    #Perform a Get Operation to ensure that the given BIOS Attribute is applicable on the SUT and fetch the possible values
-	    $WEBIOSAttributes = Get-DellBIOSAttributes
+	    $WEBIOSAttributes = Get-DellBIOSAttributes -ErrorAction Stop
 
 	    $WECurrentValue = $WEBIOSAttributes | Where-Object AttributeName -eq $WEAttributeName | Select-Object -ExpandProperty CurrentValue -EA Stop
 
@@ -196,7 +199,7 @@ param(
                     if(!([String]::IsNullOrEmpty($WEAdminPwd)))
 			        {
 				        #Get encoder for encoding password
-	                    $encoder = New-Object System.Text.UTF8Encoding
+	                    $encoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
    
                         #encode the password
                        ;  $WEAdminBytes = $encoder.GetBytes($WEAdminPwd)
@@ -255,16 +258,17 @@ param(
     catch
     {
         $WEException = $_
-		Write-Host $WEException
+		Write-Information $WEException
     }
     finally
     {
-        Write-Host $result
-		Write-WELog " Function Set-DellBIOSAttribute Executed" " INFO"
+        Write-Information $result
+		Write-WELog " Function Set-DellBIOSAttribute -ErrorAction Stop Executed" " INFO"
     }
 }
 
 
+[CmdletBinding()]
 Function Restart-DellComputer
 {	
 	[CmdletBinding()]
@@ -278,7 +282,7 @@ param(
 	{
 	Write-WELog " Following will happen during restart" " INFO"
 	$WEWhatIf = Restart-Computer -WhatIf	
-	Write-Host $WEWhatIf
+	Write-Information $WEWhatIf
 	
 	Write-WELog " Waiting for" " INFO" $WESeconds " before restart"
 	Start-Sleep -Seconds $WESeconds
@@ -289,7 +293,7 @@ param(
 	catch
 	{
 		$WEException = $_
-		Write-Host $WEException
+		Write-Information $WEException
 	}
 	finally
 	{
@@ -298,7 +302,8 @@ param(
 }
 
 
-Function Set-DellBIOSTPM
+[CmdletBinding()]
+Function Set-DellBIOSTPM -ErrorAction Stop
 {
 		[CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -338,12 +343,12 @@ param(
 		catch
 		{
 		; 	$WEException = $_
-			Write-Host $WEException
+			Write-Information $WEException
 		}
 		finally
 		{
-			Write-Host $result
-			Write-WELog " Function Set-DellBIOSTPM Executed" " INFO"	
+			Write-Information $result
+			Write-WELog " Function Set-DellBIOSTPM -ErrorAction Stop Executed" " INFO"	
 		}
 }
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Rename Intunedeviceconfigurationprofile
 
@@ -121,7 +121,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
             $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
@@ -172,7 +172,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Get-ErrorResponseBody {
+    [CmdletBinding()]
+function WE-Get-ErrorResponseBody -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -183,7 +184,7 @@ param(
 
         # Read the error stream
         $WEErrorResponseStream = $WEException.Response.GetResponseStream()
-        $WEStreamReader = New-Object System.IO.StreamReader($WEErrorResponseStream)
+        $WEStreamReader = New-Object -ErrorAction Stop System.IO.StreamReader($WEErrorResponseStream)
         $WEStreamReader.BaseStream.Position = 0
         $WEStreamReader.DiscardBufferedData()
         $WEResponseBody = $WEStreamReader.ReadToEnd()
@@ -192,7 +193,8 @@ param(
         return $WEResponseBody
     }
 
-    function WE-Invoke-IntuneGraphRequest {
+    [CmdletBinding()]
+function WE-Invoke-IntuneGraphRequest {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -218,7 +220,7 @@ param(
                 " Get" {
                     Write-Verbose -Message " Current Graph API call is using method: Get"
                     $WEGraphResponse = Invoke-RestMethod -Uri $WEURI -Headers $WEAuthToken -Method Get -ErrorAction Stop -Verbose:$false
-                    if ($WEGraphResponse -ne $null) {
+                    if ($null -ne $WEGraphResponse) {
                         if ($WEGraphResponse.value -ne $null) {
                             foreach ($WEResponse in $WEGraphResponse.value) {
                                 $WEResponseList.Add($WEResponse) | Out-Null
@@ -232,7 +234,7 @@ param(
                 " Patch" {
                     Write-Verbose -Message " Current Graph API call is using method: Patch"
                     $WEGraphResponse = Invoke-RestMethod -Uri $WEURI -Headers $WEAuthToken -Method Patch -Body $WEBody -ContentType " application/json" -ErrorAction Stop -Verbose:$false
-                    if ($WEGraphResponse -ne $null) {
+                    if ($null -ne $WEGraphResponse) {
                         foreach ($WEResponseItem in $WEGraphResponse) {
                             $WEResponseList.Add($WEResponseItem) | Out-Null
                         }
@@ -255,7 +257,8 @@ param(
         }
     }
 
-    function WE-Get-IntuneDeviceConfigurationProfile {
+    [CmdletBinding()]
+function WE-Get-IntuneDeviceConfigurationProfile -ErrorAction Stop {
         # Construct Graph variables
         $WEGraphVersion = " beta"
         $WEGraphResource = " deviceManagement/deviceConfigurations"
@@ -268,7 +271,8 @@ param(
         return $WEGraphResponse
     }
 
-    function WE-Set-IntuneDeviceConfigurationProfileDisplayName {
+    [CmdletBinding()]
+function WE-Set-IntuneDeviceConfigurationProfileDisplayName -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -294,8 +298,8 @@ param(
     }    
 
     # Get all device configuration profiles and process each object
-    $WEDeviceConfigurationProfiles = Get-IntuneDeviceConfigurationProfile
-    if ($WEDeviceConfigurationProfiles -ne $null) {
+    $WEDeviceConfigurationProfiles = Get-IntuneDeviceConfigurationProfile -ErrorAction Stop
+    if ($null -ne $WEDeviceConfigurationProfiles) {
         foreach ($WEDeviceConfigurationProfile in $WEDeviceConfigurationProfiles) {
             Write-Verbose -Message " Processing current device configuration profile with name: $($WEDeviceConfigurationProfile.displayName)"
 

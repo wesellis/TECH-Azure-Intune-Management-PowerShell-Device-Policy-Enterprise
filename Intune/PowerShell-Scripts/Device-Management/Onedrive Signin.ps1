@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Onedrive Signin
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()
 try {
@@ -79,7 +80,7 @@ start odopen://sync?useremail=%upn%
 "
 
 New-Item -ItemType File -Path " C:\Windows" -Name " LaunchOneDriveWithCurrentUser.cmd" -Force
-Add-Content -Path " C:\Windows\LaunchOneDriveWithCurrentUser.cmd" $scriptText | Set-Content " C:\Windows\LaunchOneDriveWithCurrentUser.cmd" -Force
+Add-Content -Path " C:\Windows\LaunchOneDriveWithCurrentUser.cmd" $scriptText | Set-Content -ErrorAction Stop " C:\Windows\LaunchOneDriveWithCurrentUser.cmd" -Force
 Start-Sleep -Seconds 2
 
 

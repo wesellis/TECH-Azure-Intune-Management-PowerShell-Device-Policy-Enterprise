@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Removepersonalteams Detect
 
@@ -34,14 +34,14 @@
     Requires appropriate permissions and modules
 
 
-$WETeamsApp = Get-AppxPackage "*Teams*" -AllUsers -ErrorAction SilentlyContinue
+$WETeamsApp = Get-AppxPackage -ErrorAction Stop "*Teams*" -AllUsers -ErrorAction SilentlyContinue
 }
 
 
 $WEErrorActionPreference = " Stop"; 
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 ; 
-$WETeamsApp = Get-AppxPackage " *Teams*" -AllUsers -ErrorAction SilentlyContinue
+$WETeamsApp = Get-AppxPackage -ErrorAction Stop " *Teams*" -AllUsers -ErrorAction SilentlyContinue
 if($WETeamsApp.Name -eq " MicrosoftTeams" )
 {
     Write-WELog " Built-in Teams App found" " INFO"

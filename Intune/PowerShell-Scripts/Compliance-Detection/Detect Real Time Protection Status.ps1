@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Detect Real Time Protection Status
 
@@ -42,7 +42,7 @@ $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
 try {
-   ;  $computerstatus = Get-MpComputerStatus
+   ;  $computerstatus = Get-MpComputerStatus -ErrorAction Stop
         
     if ($computerstatus.RealTimeProtectionEnabled -eq $WETrue){
         #Exit 0 for Intune if NO error

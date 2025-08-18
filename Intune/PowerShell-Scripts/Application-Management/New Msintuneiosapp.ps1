@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     New Msintuneiosapp
 
@@ -119,7 +119,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
            ;  $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {

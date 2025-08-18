@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validate Ndesurl
 
@@ -103,34 +103,30 @@ param(
 
 
 
+[CmdletBinding()]
 function WE-Show-Usage{
 
-    Write-Host
-    Write-WELog " -help                       -h         Displays the help." " INFO"
+    Write-Information Write-WELog " -help                       -h         Displays the help." " INFO"
     Write-WELog " -usage                      -u         Displays this usage information." " INFO"
     Write-WELog " -querysize                  -q         Specify the size of the query string payload to use as a number of kilobytes (i.e. 20 or 25). Maximum value is 31" " INFO"
     Write-WELog " -server                     -s         Specify NDES server public DNS name in the form FQDN. For example ExternalDNSName.Contoso.com" " INFO"
-    Write-Host
-
-}
+    Write-Information }
 
 
 
+[CmdletBinding()]
 function WE-Get-NDESURLHelp{
 
-    write-host " Validate-NDESUrl will check that requests from devices enrolled in Microsoft Intune will get through all the network protections (such as a reverse proxy) and make it to the NDES server."
-    Write-Host
-    write-host " Since the certificate requests include a payload query string that is longer than what is allowed by default settings in Windows, IIS and some reverse proxy servers, those servers need to be configured to allow long query strings and web requests."
-    write-host " This tool will simulate a SCEP request with a large payload, allowing you to check the IIS logs on the NDES server to ensure that the request is not being blocked anywhere along the way."
-    Write-Host
-
-}
+    Write-Information " Validate-NDESUrl will check that requests from devices enrolled in Microsoft Intune will get through all the network protections (such as a reverse proxy) and make it to the NDES server."
+    Write-Information Write-Information " Since the certificate requests include a payload query string that is longer than what is allowed by default settings in Windows, IIS and some reverse proxy servers, those servers need to be configured to allow long query strings and web requests."
+    Write-Information " This tool will simulate a SCEP request with a large payload, allowing you to check the IIS logs on the NDES server to ensure that the request is not being blocked anywhere along the way."
+    Write-Information }
 
 
 
     if($help){
 
-    Get-NDESURLHelp
+    Get-NDESURLHelp -ErrorAction Stop
 
     break
 
@@ -153,9 +149,8 @@ function WE-Get-NDESURLHelp{
 
         if (Test-Path HKLM:SOFTWARE\Microsoft\Cryptography\MSCEP) {
     
-        Write-Host
-        Write-WELog " Error: This appears to be the NDES server. Please run this script from a different machine. An external (guest) connection is best." " INFO" -BackgroundColor Red
-        write-host " Exiting......................"
+        Write-Information Write-WELog " Error: This appears to be the NDES server. Please run this script from a different machine. An external (guest) connection is best." " INFO" -BackgroundColor Red
+        Write-Information " Exiting......................"
         break
 
         }
@@ -167,13 +162,9 @@ function WE-Get-NDESURLHelp{
 
 
 
-Write-host
-Write-host " ......................................................."
-Write-host
-Write-WELog " Trying base NDES URI... " " INFO" -ForegroundColor Yellow
-Write-host
-
-    if (resolve-dnsname $server -ErrorAction SilentlyContinue){
+Write-Information Write-Information " ......................................................."
+Write-Information Write-WELog " Trying base NDES URI... " " INFO"
+Write-Information if (resolve-dnsname $server -ErrorAction SilentlyContinue){
 
 
     $WENDESUrl = " https://$($server)/certsrv/mscep/mscep.dll"
@@ -182,25 +173,21 @@ Write-host
         if ($WEBaseURLstatuscode -eq " 200" ){
 
         Write-Warning " $($WENDESUrl) returns a status code 200 . This usually signifies an error with the Intune Connector registering itself or not being installed."
-        Write-Host
-        Write-WELog " This state will _not_ provide a working NDES infrastructure, although validation of long URI support can continue." " INFO"
-        Write-Host
-    
-        }
+        Write-Information Write-WELog " This state will _not_ provide a working NDES infrastructure, although validation of long URI support can continue." " INFO"
+        Write-Information }
 
 
         elseif ($WEBaseURLstatuscode -eq " 403" ){
 
         Write-WELog " Success: " " INFO" -ForegroundColor Green -NoNewline
-        write-host " Proceeding with validation!"
+        Write-Information " Proceeding with validation!"
 
         }
 
         else {
     
         Write-Warning " Unexpected Error code! This usually signifies an error with the Intune Connector registering itself or not being installed."
-        Write-Host
-        Write-host " Expected value is a 403. We received a $($WEBaseURLstatuscode). This state will _not_ provide a working NDES infrastructure, although we can proceed with the validation included in this test"
+        Write-Information Write-Information " Expected value is a 403. We received a $($WEBaseURLstatuscode). This state will _not_ provide a working NDES infrastructure, although we can proceed with the validation included in this test"
     
         }
 
@@ -208,13 +195,10 @@ Write-host
 
     else {
     
-    write-host " Error: Cannot resolve $($server)" -BackgroundColor Red
-    Write-Host
-    Write-WELog " Please ensure a DNS record is in place and name resolution is successful" " INFO"
-    Write-Host
-    Write-WELog " Exiting................................................" " INFO"
-    Write-Host
-    exit
+    Write-Information " Error: Cannot resolve $($server)" -BackgroundColor Red
+    Write-Information Write-WELog " Please ensure a DNS record is in place and name resolution is successful" " INFO"
+    Write-Information Write-WELog " Exiting................................................" " INFO"
+    Write-Information exit
     
     }
 
@@ -227,51 +211,40 @@ Write-host
 
 
 
-Write-host
-Write-host " ......................................................."
-Write-host
-Write-WELog " Trying to retrieve CA Capabilities... " " INFO" -ForegroundColor Yellow
-Write-host
-$WEGetCACaps = " $($WENDESUrl)?operation=GetCACaps&message=NDESLongUrlValidatorStep1of3"
+Write-Information Write-Information " ......................................................."
+Write-Information Write-WELog " Trying to retrieve CA Capabilities... " " INFO"
+Write-Information $WEGetCACaps = " $($WENDESUrl)?operation=GetCACaps&message=NDESLongUrlValidatorStep1of3"
 $WECACapsStatuscode = try {(Invoke-WebRequest -Uri $WEGetCACaps).statuscode} catch {$_.Exception.Response.StatusCode.Value__}
 
     if (-not ($WECACapsStatuscode -eq " 200" )){
 
-    Write-host " Retrieving the following URL: " -NoNewline
+    Write-Information " Retrieving the following URL: " -NoNewline
     Write-WELog " $WEGetCACaps" " INFO" -ForegroundColor Cyan
-    Write-host
-    write-host " Error: Server returned a $WECACapsStatuscode error. " -BackgroundColor Red
-    Write-Host
-    write-host " For a list of IIS error codes, please visit the below link."
+    Write-Information write-host " Error: Server returned a $WECACapsStatuscode error. " -BackgroundColor Red
+    Write-Information Write-Information " For a list of IIS error codes, please visit the below link."
     Write-WELog " URL: https://support.microsoft.com/en-gb/help/943891/the-http-status-code-in-iis-7-0--iis-7-5--and-iis-8-0" " INFO"
 
     }
 
     else {
 
-    Write-host " Retrieving the following URL: " -NoNewline
+    Write-Information " Retrieving the following URL: " -NoNewline
     Write-WELog " $WEGetCACaps" " INFO" -ForegroundColor Cyan
-    Write-host
-
-    $WECACaps = (Invoke-WebRequest -Uri $WEGetCACaps).content     
+    Write-Information $WECACaps = (Invoke-WebRequest -Uri $WEGetCACaps).content     
 
         if ($WECACaps) {
 
         Write-WELog " Success: " " INFO" -ForegroundColor Green -NoNewline
-        write-host " CA CApabilities retrieved:"
-        Write-Host
-        write-host $WECACaps
+        Write-Information " CA CApabilities retrieved:"
+        Write-Information Write-Information $WECACaps
 
         }
 
         else {
 
-        write-host " Error: Server is not returning CA Capabilities." -BackgroundColor Red
-        Write-Host
-        write-host " PLEASE NOTE: This is not a long URI issue. Please investigate the NDES configuration."
-        Write-Host
-
-        }
+        Write-Information " Error: Server is not returning CA Capabilities." -BackgroundColor Red
+        Write-Information Write-Information " PLEASE NOTE: This is not a long URI issue. Please investigate the NDES configuration."
+        Write-Information }
 
 }
 
@@ -281,51 +254,40 @@ $WECACapsStatuscode = try {(Invoke-WebRequest -Uri $WEGetCACaps).statuscode} cat
 
 
 
-Write-host
-Write-host " ......................................................."
-Write-host
-Write-WELog " Trying to retrieve CA Certificates... " " INFO" -ForegroundColor Yellow
-Write-host
-
-$WEGetCACerts = " $($WENDESUrl)?operation=GetCACerts&message=NDESLongUrlValidatorStep2of3"
+Write-Information Write-Information " ......................................................."
+Write-Information Write-WELog " Trying to retrieve CA Certificates... " " INFO"
+Write-Information $WEGetCACerts = " $($WENDESUrl)?operation=GetCACerts&message=NDESLongUrlValidatorStep2of3"
 $WECACertsStatuscode = try {(Invoke-WebRequest -Uri $WEGetCACerts).statuscode} catch {$_.Exception.Response.StatusCode.Value__}
 
     if (-not ($WECACertsStatuscode -eq " 200" )){
 
-    Write-host " Attempting to retrieve certificates from the following URL: " -NoNewline
+    Write-Information " Attempting to retrieve certificates from the following URL: " -NoNewline
     Write-WELog " $WEGetCACerts" " INFO" -ForegroundColor Cyan
-    Write-host
-    write-host " Error: Server returned a $WECACertsStatuscode error. " -BackgroundColor Red
-    Write-Host
-    write-host " For a list of IIS error codes, please visit the below link."
+    Write-Information write-host " Error: Server returned a $WECACertsStatuscode error. " -BackgroundColor Red
+    Write-Information Write-Information " For a list of IIS error codes, please visit the below link."
     Write-WELog " URL: https://support.microsoft.com/en-gb/help/943891/the-http-status-code-in-iis-7-0--iis-7-5--and-iis-8-0" " INFO"
 
     }
 
     else {
 
-    Write-host " Attempting to retrieve certificates from the following URI: " -NoNewline
+    Write-Information " Attempting to retrieve certificates from the following URI: " -NoNewline
     Write-WELog " $WEGetCACerts" " INFO" -ForegroundColor Cyan
-    Write-Host
-
-    $WECACerts = (Invoke-WebRequest -Uri $WEGetCACerts).content
+    Write-Information $WECACerts = (Invoke-WebRequest -Uri $WEGetCACerts).content
 
     if ($WECACerts) {
 
         Invoke-WebRequest -Uri $WEGetCACerts -ContentType " application/x-x509-ca-ra-cert" -OutFile " $env:temp\$server.p7b"
         Write-WELog " Success: " " INFO" -ForegroundColor Green -NoNewline
-        write-host " certificates retrieved. File written to disk: $env:temp\$server.p7b"
+        Write-Information " certificates retrieved. File written to disk: $env:temp\$server.p7b"
 
     }
 
     else {
 
-        write-host " Error: Server is not returning CA certificates." -BackgroundColor Red
-        Write-Host
-        write-host " PLEASE NOTE: This is _not_ a long URI issue. Please investigate the NDES configuration."
-        Write-Host
-
-    }
+        Write-Information " Error: Server is not returning CA certificates." -BackgroundColor Red
+        Write-Information Write-Information " PLEASE NOTE: This is _not_ a long URI issue. Please investigate the NDES configuration."
+        Write-Information }
 
 }
 
@@ -335,16 +297,13 @@ $WECACertsStatuscode = try {(Invoke-WebRequest -Uri $WEGetCACerts).statuscode} c
 
 
 
-Write-host
-Write-host " ......................................................."
-Write-host
-Write-WELog " Querying URI with simulated SCEP challenge... " " INFO" -ForegroundColor Yellow
+Write-Information Write-Information " ......................................................."
+Write-Information Write-WELog " Querying URI with simulated SCEP challenge... " " INFO"
 Write-host; 
 $WEChallengeUrlTemp = " $($WENDESUrl)?operation=PKIOperation&message=<SCEP CHALLENGE STRING>"
-Write-host " Retrieving the following URI: " -NoNewline
+Write-Information " Retrieving the following URI: " -NoNewline
 Write-WELog " $WEChallengeUrlTemp" " INFO" -ForegroundColor Cyan
-Write-host
-Write-WELog " Using a query size of $($querysize)KB... " " INFO"
+Write-Information Write-WELog " Using a query size of $($querysize)KB... " " INFO"
 Write-Host; 
 $challengeBase = " NDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallengeNDESLongUrlValidatorFakeChallenge" ;
 $testChallenge = $null
@@ -360,20 +319,15 @@ $WELongUrlStatusCode = try {(Invoke-WebRequest -Uri $WELongUrl).statuscode} catc
 
     if ($WELongUrlStatusCode -eq " 414" ){
 
-        write-host " Error: HTTP Error 414. The $($querysize)KB URI is too long. " -BackgroundColor Red
-        Write-Host
-        Write-WELog " Please ensure all servers and network devices support long URI's" " INFO" -ForegroundColor Blue
-        write-host
-
-    }
+        Write-Information " Error: HTTP Error 414. The $($querysize)KB URI is too long. " -BackgroundColor Red
+        Write-Information Write-WELog " Please ensure all servers and network devices support long URI's" " INFO"
+        Write-Information }
 
     elseif (-not ($WELongUrlStatusCode -eq " 200" )) {
 
-        write-host " Error: HTTP Error $($WELongUrlStatusCode)" -BackgroundColor Red
-        Write-Host
-        Write-WELog " Please check your network configuration." " INFO" -ForegroundColor Blue -BackgroundColor white
-        write-host
-        write-host " For a list of IIS error codes, please visit the below link."
+        Write-Information " Error: HTTP Error $($WELongUrlStatusCode)" -BackgroundColor Red
+        Write-Information Write-WELog " Please check your network configuration." " INFO" -ForegroundColor Blue -BackgroundColor white
+        Write-Information Write-Information " For a list of IIS error codes, please visit the below link."
         Write-WELog " URL: https://support.microsoft.com/en-gb/help/943891/the-http-status-code-in-iis-7-0--iis-7-5--and-iis-8-0" " INFO"
 
     }
@@ -381,7 +335,7 @@ $WELongUrlStatusCode = try {(Invoke-WebRequest -Uri $WELongUrl).statuscode} catc
     else {
 
         Write-WELog " Success: " " INFO" -ForegroundColor Green -NoNewline
-        write-host " Server accepts a $($querysize)KB URI."
+        Write-Information " Server accepts a $($querysize)KB URI."
 
      }
 
@@ -391,18 +345,9 @@ $WELongUrlStatusCode = try {(Invoke-WebRequest -Uri $WELongUrl).statuscode} catc
 
 
 
-Write-host
-Write-host " ......................................................."
-Write-host
-Write-host " End of NDES URI validation" -ForegroundColor Yellow
-Write-Host
-write-host " Ending script..." -ForegroundColor Yellow
-Write-host 
-
-
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information Write-Information " ......................................................."
+Write-Information Write-Information " End of NDES URI validation"
+Write-Information Write-Information " Ending script..."
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

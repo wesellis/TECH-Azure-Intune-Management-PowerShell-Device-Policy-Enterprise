@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Detection
 
@@ -43,7 +43,8 @@ try {
 $applicationNames = @(" Dell SupportAssist" , " Dell SupportAssist Remediation" , " Dell SupportAssist OS Recovery Plugin for Dell Update" )
 
 
-function WE-Get-RegistryKey {
+[CmdletBinding()]
+function WE-Get-RegistryKey -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -70,7 +71,7 @@ param(
     }
 }
 ; 
-$registryKeys = $applicationNames | Get-RegistryKey
+$registryKeys = $applicationNames | Get-RegistryKey -ErrorAction Stop
 
 
 return ($null -ne $registryKeys)

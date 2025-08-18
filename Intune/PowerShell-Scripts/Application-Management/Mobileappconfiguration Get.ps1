@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Mobileappconfiguration Get
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
     
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
     
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
     
 $tenant = $userUpn.Host
     
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
     
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
     
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
     
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
     
     }
     
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
     
 
@@ -140,19 +139,19 @@ $authority = " https://login.microsoftonline.com/$WETenant"
     
     try {
     
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
     
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
     
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
     
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $WEMethodArguments = [Type[]]@(" System.String" , " System.String" , " System.Uri" , " Microsoft.IdentityModel.Clients.ActiveDirectory.PromptBehavior" , " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" )
     $WENonAsync = $WEAuthContext.GetType().GetMethod(" AcquireToken" , $WEMethodArguments)
     
-    if ($WENonAsync -ne $null) {
+    if ($null -ne $WENonAsync) {
         $authResult = $authContext.AcquireToken($resourceAppIdURI, $clientId, [Uri]$redirectUri, [Microsoft.IdentityModel.Clients.ActiveDirectory.PromptBehavior]::Auto, $userId)
     } else {
         $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI, $clientId, [Uri]$redirectUri, $platformParameters, $userId).Result 
@@ -176,10 +175,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
     
         else {
     
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
     
         }
     
@@ -187,10 +184,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
     
     catch {
     
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
     
     }
     
@@ -206,10 +202,10 @@ This function is used to get all Mobile App Configuration Policies using the Gra
 .DESCRIPTION
 The function connects to the Graph API Interface and gets all Mobile App Configuration Policies from the itunes store
 .EXAMPLE
-Get-MobileAppConfigurations
+Get-MobileAppConfigurations -ErrorAction Stop
 Gets all Mobile App Configuration Policies configured in the Intune Service
 .NOTES
-NAME: Get-MobileAppConfigurations
+NAME: Get-MobileAppConfigurations -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -230,14 +226,13 @@ $WEResource = " deviceAppManagement/mobileAppConfigurations?`$expand=assignments
     
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
     
     }
     
@@ -253,10 +248,10 @@ This function is used to get all Targeted Managed App Configuration Policies usi
 .DESCRIPTION
 The function connects to the Graph API Interface and gets all Targeted Managed App Configuration Policies from the itunes store
 .EXAMPLE
-Get-TargetedManagedAppConfigurations
+Get-TargetedManagedAppConfigurations -ErrorAction Stop
 Gets all Targeted Managed App Configuration Policies configured in the Intune Service
 .NOTES
-NAME: Get-TargetedManagedAppConfigurations
+NAME: Get-TargetedManagedAppConfigurations -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -294,14 +289,13 @@ $graphApiVersion = " Beta"
     
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
     
     }
     
@@ -317,10 +311,10 @@ This function is used to get AAD Groups from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any Groups registered with AAD
 .EXAMPLE
-Get-AADGroup
+Get-AADGroup -ErrorAction Stop
 Returns all groups registered with Azure AD
 .NOTES
-NAME: Get-AADGroup
+NAME: Get-AADGroup -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -346,7 +340,7 @@ $WEGroup_resource = " groups"
 
         }
 
-        elseif($WEGroupName -eq "" -or $WEGroupName -eq $null){
+        elseif($WEGroupName -eq "" -or $null -eq $WEGroupName){
 
         $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)"
         (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -372,9 +366,7 @@ $WEGroup_resource = " groups"
                 $WEGID = $WEGroup.id
 
                 $WEGroup.displayName
-                write-host
-
-                $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
+                Write-Information $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
                 (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
 
                 }
@@ -389,14 +381,13 @@ $WEGroup_resource = " groups"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -406,10 +397,7 @@ $WEGroup_resource = " groups"
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -419,19 +407,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -440,15 +424,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -456,18 +438,18 @@ $global:authToken = Get-AuthToken -User $WEUser
 
 
 
-$WEAppConfigurations = Get-MobileAppConfigurations
+$WEAppConfigurations = Get-MobileAppConfigurations -ErrorAction Stop
 
 if($WEAppConfigurations){
 
     foreach($WEAppConfiguration in $WEAppConfigurations){
 
-        write-host " App Configuration Policy:" $WEAppConfiguration.displayName -f Yellow
+        Write-Information " App Configuration Policy:" $WEAppConfiguration.displayName -f Yellow
         $WEAppConfiguration
 
         if($WEAppConfiguration.assignments){
 
-            write-host " Getting App Configuration Policy assignment..." -f Cyan
+            Write-Information " Getting App Configuration Policy assignment..." -f Cyan
 
             foreach($group in $WEAppConfiguration.assignments){
 
@@ -484,21 +466,15 @@ if($WEAppConfigurations){
 else {
 
     Write-WELog " No Mobile App Configurations found..." " INFO" -ForegroundColor Red
-    Write-Host
+    Write-Information }
 
-}
-
-Write-Host
-
-
-
-$WETargetedManagedAppConfigurations = Get-TargetedManagedAppConfigurations
+Write-Information $WETargetedManagedAppConfigurations = Get-TargetedManagedAppConfigurations -ErrorAction Stop
 
 if($WETargetedManagedAppConfigurations){
 
     foreach($WETargetedManagedAppConfiguration in $WETargetedManagedAppConfigurations){
 
-    write-host " Targeted Managed App Configuration Policy:" $WETargetedManagedAppConfiguration.displayName -f Yellow
+    Write-Information " Targeted Managed App Configuration Policy:" $WETargetedManagedAppConfiguration.displayName -f Yellow
 
    ;  $WEPolicyId = $WETargetedManagedAppConfiguration.id
 
@@ -507,7 +483,7 @@ if($WETargetedManagedAppConfigurations){
 
         if($WEManagedAppConfiguration.assignments){
 
-            write-host " Getting Targetd Managed App Configuration Policy assignment..." -f Cyan
+            Write-Information " Getting Targetd Managed App Configuration Policy assignment..." -f Cyan
 
             foreach($group in $WEManagedAppConfiguration.assignments){
 
@@ -517,18 +493,14 @@ if($WETargetedManagedAppConfigurations){
 
         }
 
-    Write-Host
-
-    }
+    Write-Information }
 
 }
 
 else {
 
     Write-WELog " No Targeted Managed App Configurations found..." " INFO" -ForegroundColor Red
-    Write-Host
-
-}
+    Write-Information }
 
 
 

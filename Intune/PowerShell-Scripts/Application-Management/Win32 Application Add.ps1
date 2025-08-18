@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Win32 Application Add
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -65,7 +66,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -73,10 +75,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -88,7 +90,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -96,20 +98,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -156,14 +156,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -185,10 +185,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -196,10 +194,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -209,8 +206,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
 function WE-CloneObject($object){
 
-; 	$stream = New-Object IO.MemoryStream;
-	$formatter = New-Object Runtime.Serialization.Formatters.Binary.BinaryFormatter;
+; 	$stream = New-Object -ErrorAction Stop IO.MemoryStream;
+	$formatter = New-Object -ErrorAction Stop Runtime.Serialization.Formatters.Binary.BinaryFormatter;
 	$formatter.Serialize($stream, $object);
 	$stream.Position = 0;
 	$formatter.Deserialize($stream);
@@ -227,7 +224,7 @@ function WE-WriteHeaders($authToken){
 			continue;
 		}
 
-		Write-Host -ForegroundColor Gray " $($header.Name): $($header.Value)" ;
+		Write-Information -ForegroundColor Gray " $($header.Name): $($header.Value)" ;
 	}
 }
 
@@ -238,7 +235,7 @@ function WE-MakeGetRequest($collectionPath){
 	$uri = " $baseUrl$collectionPath" ;
 	$request = " GET $uri" ;
 	
-	if ($logRequestUris) { Write-Host $request; }
+	if ($logRequestUris) { Write-Information $request; }
 	if ($logHeaders) { WriteHeaders $authToken; }
 
 	try
@@ -249,8 +246,8 @@ function WE-MakeGetRequest($collectionPath){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 }
@@ -282,9 +279,9 @@ function WE-MakeRequest($verb, $collectionPath, $body){
 	$clonedHeaders[" content-length" ] = $body.Length;
 	$clonedHeaders[" content-type" ] = " application/json" ;
 
-	if ($logRequestUris) { Write-Host $request; }
+	if ($logRequestUris) { Write-Information $request; }
 	if ($logHeaders) { WriteHeaders $clonedHeaders; }
-	if ($logContent) { Write-Host -ForegroundColor Gray $body; }
+	if ($logContent) { Write-Information -ForegroundColor Gray $body; }
 
 	try
 	{
@@ -294,8 +291,8 @@ function WE-MakeRequest($verb, $collectionPath, $body){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 }
@@ -313,7 +310,7 @@ function WE-UploadAzureStorageChunk($sasUri, $id, $body){
 		" x-ms-blob-type" = " BlockBlob"
 	};
 
-	if ($logRequestUris) { Write-Host $request; }
+	if ($logRequestUris) { Write-Information $request; }
 	if ($logHeaders) { WriteHeaders $headers; }
 
 	try
@@ -322,8 +319,8 @@ function WE-UploadAzureStorageChunk($sasUri, $id, $body){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 
@@ -343,8 +340,8 @@ function WE-FinalizeAzureStorageUpload($sasUri, $ids){
 	}
 	$xml = $xml + '</BlockList>';
 
-	if ($logRequestUris) { Write-Host $request; }
-	if ($logContent) { Write-Host -ForegroundColor Gray $xml; }
+	if ($logRequestUris) { Write-Information $request; }
+	if ($logContent) { Write-Information -ForegroundColor Gray $xml; }
 
 	try
 	{
@@ -352,8 +349,8 @@ function WE-FinalizeAzureStorageUpload($sasUri, $ids){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 }
@@ -370,9 +367,9 @@ function WE-UploadFileToAzureStorage($sasUri, $filepath, $fileUri){
 		$sasRenewalTimer = [System.Diagnostics.Stopwatch]::StartNew()
 		
 		# Find the file size and open the file.
-	; 	$fileSize = (Get-Item $filepath).length;
+	; 	$fileSize = (Get-Item -ErrorAction Stop $filepath).length;
 		$chunks = [Math]::Ceiling($fileSize / $chunkSizeInBytes);
-		$reader = New-Object System.IO.BinaryReader([System.IO.File]::Open($filepath, [System.IO.FileMode]::Open));
+		$reader = New-Object -ErrorAction Stop System.IO.BinaryReader([System.IO.File]::Open($filepath, [System.IO.FileMode]::Open));
 		$position = $reader.BaseStream.Seek(0, [System.IO.SeekOrigin]::Begin);
 		
 		# Upload each chunk. Check whether a SAS URI renewal is required after each chunk is uploaded and renew if needed.
@@ -412,7 +409,7 @@ function WE-UploadFileToAzureStorage($sasUri, $filepath, $fileUri){
 
 	finally {
 
-		if ($reader -ne $null) { $reader.Dispose(); }
+		if ($null -ne $reader) { $reader.Dispose(); }
 	
     }
 	
@@ -456,7 +453,7 @@ function WE-WaitForFileProcessing($fileUri, $stage){
 		}
 		elseif ($file.uploadState -ne $pendingState)
 		{
-			Write-Host -ForegroundColor Red $_.Exception.Message;
+			Write-Information -ForegroundColor Red $_.Exception.Message;
             throw " File upload state is not success: $($file.uploadState)" ;
 		}
 
@@ -464,7 +461,7 @@ function WE-WaitForFileProcessing($fileUri, $stage){
 		$attempts--;
 	}
 
-	if ($file -eq $null -or $file.uploadState -ne $successState)
+	if ($null -eq $file -or $file.uploadState -ne $successState)
 	{
 		throw " File request did not complete in the allotted time." ;
 	}
@@ -664,8 +661,7 @@ param(
 
             if(!(test-path " $WESourceFile" )){
 
-            Write-Host
-            Write-WELog " Source File '$sourceFile' doesn't exist..." " INFO" -ForegroundColor Red
+            Write-Information Write-WELog " Source File '$sourceFile' doesn't exist..." " INFO"
             throw
 
             }
@@ -674,9 +670,8 @@ param(
 
     catch {
 
-		Write-Host -ForegroundColor Red $_.Exception.Message;
-        Write-Host
-		break
+		Write-Information -ForegroundColor Red $_.Exception.Message;
+        Write-Information break
 
     }
 
@@ -772,11 +767,9 @@ param(
 
         if(!(Test-Path " $WEScriptFile" )){
             
-            Write-Host
-            Write-WELog " Could not find file '$WEScriptFile'..." " INFO" -ForegroundColor Red
+            Write-Information Write-WELog " Could not find file '$WEScriptFile'..." " INFO"
             Write-WELog " Script can't continue..." " INFO" -ForegroundColor Red
-            Write-Host
-            break
+            Write-Information break
 
         }
         
@@ -893,7 +886,7 @@ $zip.Dispose()
 
 return $WEIntuneWinXML
 
-if($removeitem -eq " true" ){ remove-item " $WEDirectory\$filename" }
+if($removeitem -eq " true" ){ remove-item -ErrorAction Stop " $WEDirectory\$filename" }
 
 }
 
@@ -935,7 +928,7 @@ $fileName,
 
     return " $WEDirectory\$folder\$filename"
 
-    if($removeitem -eq " true" ){ remove-item " $WEDirectory\$filename" }
+    if($removeitem -eq " true" ){ remove-item -ErrorAction Stop " $WEDirectory\$filename" }
 
 }
 
@@ -1030,11 +1023,10 @@ param(
 
         $WEWin32Path = " $WESourceFile"
 
-        Write-Host
-        Write-WELog " Creating JSON data to pass to the service..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating JSON data to pass to the service..." " INFO"
 
         # Funciton to read Win32LOB file
-        $WEDetectionXML = Get-IntuneWinXML " $WESourceFile" -fileName " detection.xml"
+        $WEDetectionXML = Get-IntuneWinXML -ErrorAction Stop " $WESourceFile" -fileName " detection.xml"
 
         # If displayName input don't use Name from detection.xml file
         if($displayName){ $WEDisplayName = $displayName }
@@ -1092,11 +1084,9 @@ param(
 
         if($WEDetectionRules.'@odata.type' -contains " #microsoft.graph.win32LobAppPowerShellScriptDetection" -and @($WEDetectionRules).'@odata.type'.Count -gt 1){
 
-            Write-Host
-            Write-Warning " A Detection Rule can either be 'Manually configure detection rules' or 'Use a custom detection script'"
+            Write-Information Write-Warning " A Detection Rule can either be 'Manually configure detection rules' or 'Use a custom detection script'"
             Write-Warning " It can't include both..."
-            Write-Host
-            break
+            Write-Information break
 
         }
 
@@ -1116,28 +1106,23 @@ param(
 
         else {
 
-            Write-Host
-            Write-Warning " Intunewin file requires ReturnCodes to be specified"
+            Write-Information Write-Warning " Intunewin file requires ReturnCodes to be specified"
             Write-Warning " If you want to use the default ReturnCode run 'Get-DefaultReturnCodes'"
-            Write-Host
-            break
+            Write-Information break
 
         }
 
-        Write-Host
-        Write-WELog " Creating application in Intune..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating application in Intune..." " INFO"
 	; 	$mobileApp = MakePostRequest " mobileApps" ($mobileAppBody | ConvertTo-Json);
 
 		# Get the content version for the new app (this will always be 1 until the new app is committed).
-        Write-Host
-        Write-WELog " Creating Content Version in the service for the application..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating Content Version in the service for the application..." " INFO"
 		$appId = $mobileApp.id;
 		$contentVersionUri = " mobileApps/$appId/$WELOBType/contentVersions" ;
 		$contentVersion = MakePostRequest $contentVersionUri " {}" ;
 
         # Encrypt file and Get File Information
-        Write-Host
-        Write-WELog " Getting Encryption Information for '$WESourceFile'..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Getting Encryption Information for '$WESourceFile'..." " INFO"
 
         $encryptionInfo = @{};
         $encryptionInfo.encryptionKey = $WEDetectionXML.ApplicationInfo.EncryptionInfo.EncryptionKey
@@ -1152,65 +1137,57 @@ param(
         $fileEncryptionInfo.fileEncryptionInfo = $encryptionInfo;
 
         # Extracting encrypted file
-        $WEIntuneWinFile = Get-IntuneWinFile " $WESourceFile" -fileName " $filename"
+        $WEIntuneWinFile = Get-IntuneWinFile -ErrorAction Stop " $WESourceFile" -fileName " $filename"
 
         [int64]$WESize = $WEDetectionXML.ApplicationInfo.UnencryptedContentSize
-       ;  $WEEncrySize = (Get-Item " $WEIntuneWinFile" ).Length
+       ;  $WEEncrySize = (Get-Item -ErrorAction Stop " $WEIntuneWinFile" ).Length
 
 		# Create a new file for the app.
-        Write-Host
-        Write-WELog " Creating a new file entry in Azure for the upload..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating a new file entry in Azure for the upload..." " INFO"
 	; 	$contentVersionId = $contentVersion.id;
 		$fileBody = GetAppFileBody " $WEFileName" $WESize $WEEncrySize $null;
 		$filesUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files" ;
 		$file = MakePostRequest $filesUri ($fileBody | ConvertTo-Json);
 	
 		# Wait for the service to process the new file request.
-        Write-Host
-        Write-WELog " Waiting for the file entry URI to be created..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the file entry URI to be created..." " INFO"
 		$fileId = $file.id;
 		$fileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId" ;
 		$file = WaitForFileProcessing $fileUri " AzureStorageUriRequest" ;
 
 		# Upload the content to Azure Storage.
-        Write-Host
-        Write-WELog " Uploading file to Azure Storage..." " INFO" -f Yellow
+        Write-Information Write-WELog " Uploading file to Azure Storage..." " INFO" -f Yellow
 
 		$sasUri = $file.azureStorageUri;
 		UploadFileToAzureStorage $file.azureStorageUri " $WEIntuneWinFile" $fileUri;
 
         # Need to Add removal of IntuneWin file
         $WEIntuneWinFolder = [System.IO.Path]::GetDirectoryName(" $WEIntuneWinFile" )
-        Remove-Item " -Force $WEIntuneWinFile" -Force
+        Remove-Item -ErrorAction Stop " -Force $WEIntuneWinFile" -Force
 
 		# Commit the file.
-        Write-Host
-        Write-WELog " Committing the file into Azure Storage..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the file into Azure Storage..." " INFO"
 	; 	$commitFileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId/commit" ;
 		MakePostRequest $commitFileUri ($fileEncryptionInfo | ConvertTo-Json);
 
 		# Wait for the service to process the commit file request.
-        Write-Host
-        Write-WELog " Waiting for the service to process the commit file request..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the service to process the commit file request..." " INFO"
 		$file = WaitForFileProcessing $fileUri " CommitFile" ;
 
 		# Commit the app.
-        Write-Host
-        Write-WELog " Committing the file into Azure Storage..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the file into Azure Storage..." " INFO"
 		$commitAppUri = " mobileApps/$appId" ;
 		$commitAppBody = GetAppCommitBody $contentVersionId $WELOBType;
 		MakePatchRequest $commitAppUri ($commitAppBody | ConvertTo-Json);
 
         Write-WELog " Sleeping for $sleep seconds to allow patch completion..." " INFO" -f Magenta
         Start-Sleep $sleep
-        Write-Host
-    
-    }
+        Write-Information }
 	
     catch {
 
 		Write-WELog "" " INFO" ;
-		Write-Host -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
+		Write-Information -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
 	
     }
 }
@@ -1230,36 +1207,31 @@ Function Test-AuthToken(){
 
             if($WETokenExpires -le 0){
 
-            write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-            write-host
+            Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+            Write-Information # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
 
-                # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
-
-                if($WEUser -eq $null -or $WEUser -eq "" ){
+                if($null -eq $WEUser -or $WEUser -eq "" ){
 
                 $WEGlobal:User = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-                Write-Host
+                Write-Information }
 
-                }
-
-            $global:authToken = Get-AuthToken -User $WEUser
+            $script:authToken = Get-AuthToken -User $WEUser
 
             }
     }
 
-    # Authentication doesn't exist, calling Get-AuthToken function
+    # Authentication doesn't exist, calling Get-AuthToken -ErrorAction Stop [CmdletBinding()]
+function
 
     else {
 
-        if($WEUser -eq $null -or $WEUser -eq "" ){
+        if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEGlobal:User = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
-
-        }
+            Write-Information }
 
     # Getting the authorization token
-    $global:authToken = Get-AuthToken -User $WEUser
+    $script:authToken = Get-AuthToken -User $WEUser
 
     }
 }
@@ -1285,7 +1257,7 @@ $sleep = 30
 $WESourceFile = " C:\packages\package.intunewin"
 
 
-$WEDetectionXML = Get-IntuneWinXML " $WESourceFile" -fileName " detection.xml"
+$WEDetectionXML = Get-IntuneWinXML -ErrorAction Stop " $WESourceFile" -fileName " detection.xml"
 
 
 $WEFileRule = New-DetectionRule -File -Path " C:\Program Files\Application" `
@@ -1299,7 +1271,7 @@ $WEMSIRule = New-DetectionRule -MSI -MSIproductCode $WEDetectionXML.ApplicationI
 ; 
 $WEDetectionRule = @($WEFileRule,$WERegistryRule,$WEMSIRule)
 ; 
-$WEReturnCodes = Get-DefaultReturnCodes
+$WEReturnCodes = Get-DefaultReturnCodes -ErrorAction Stop
 
 $WEReturnCodes = $WEReturnCodes + New-ReturnCode -returnCode 302 -type softReboot; 
 $WEReturnCodes = $WEReturnCodes + New-ReturnCode -returnCode 145 -type hardReboot

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Application Lob Add
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -193,8 +189,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
 function WE-CloneObject($object){
 
-; 	$stream = New-Object IO.MemoryStream;
-	$formatter = New-Object Runtime.Serialization.Formatters.Binary.BinaryFormatter;
+; 	$stream = New-Object -ErrorAction Stop IO.MemoryStream;
+	$formatter = New-Object -ErrorAction Stop Runtime.Serialization.Formatters.Binary.BinaryFormatter;
 	$formatter.Serialize($stream, $object);
 	$stream.Position = 0;
 	$formatter.Deserialize($stream);
@@ -211,7 +207,7 @@ function WE-WriteHeaders($authToken){
 			continue;
 		}
 
-		Write-Host -ForegroundColor Gray " $($header.Name): $($header.Value)" ;
+		Write-Information -ForegroundColor Gray " $($header.Name): $($header.Value)" ;
 	}
 }
 
@@ -222,7 +218,7 @@ function WE-MakeGetRequest($collectionPath){
 	$uri = " $baseUrl$collectionPath" ;
 	$request = " GET $uri" ;
 	
-	if ($logRequestUris) { Write-Host $request; }
+	if ($logRequestUris) { Write-Information $request; }
 	if ($logHeaders) { WriteHeaders $authToken; }
 
 	try
@@ -232,8 +228,8 @@ function WE-MakeGetRequest($collectionPath){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 }
@@ -265,9 +261,9 @@ function WE-MakeRequest($verb, $collectionPath, $body){
 	$clonedHeaders[" content-length" ] = $body.Length;
 	$clonedHeaders[" content-type" ] = " application/json" ;
 
-	if ($logRequestUris) { Write-Host $request; }
+	if ($logRequestUris) { Write-Information $request; }
 	if ($logHeaders) { WriteHeaders $clonedHeaders; }
-	if ($logContent) { Write-Host -ForegroundColor Gray $body; }
+	if ($logContent) { Write-Information -ForegroundColor Gray $body; }
 
 	try
 	{
@@ -276,8 +272,8 @@ function WE-MakeRequest($verb, $collectionPath, $body){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 }
@@ -295,7 +291,7 @@ function WE-UploadAzureStorageChunk($sasUri, $id, $body){
 		" x-ms-blob-type" = " BlockBlob"
 	};
 
-	if ($logRequestUris) { Write-Host $request; }
+	if ($logRequestUris) { Write-Information $request; }
 	if ($logHeaders) { WriteHeaders $headers; }
 
 	try
@@ -304,8 +300,8 @@ function WE-UploadAzureStorageChunk($sasUri, $id, $body){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 
@@ -325,8 +321,8 @@ function WE-FinalizeAzureStorageUpload($sasUri, $ids){
 	}
 	$xml = $xml + '</BlockList>';
 
-	if ($logRequestUris) { Write-Host $request; }
-	if ($logContent) { Write-Host -ForegroundColor Gray $xml; }
+	if ($logRequestUris) { Write-Information $request; }
+	if ($logContent) { Write-Information -ForegroundColor Gray $xml; }
 
 	try
 	{
@@ -334,8 +330,8 @@ function WE-FinalizeAzureStorageUpload($sasUri, $ids){
 	}
 	catch
 	{
-		Write-Host -ForegroundColor Red $request;
-		Write-Host -ForegroundColor Red $_.Exception.Message;
+		Write-Information -ForegroundColor Red $request;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
 		throw;
 	}
 }
@@ -348,8 +344,8 @@ function WE-UploadFileToAzureStorage($sasUri, $filepath){
     $chunkSizeInBytes = 1024 * 1024;
 
 	# Read the whole file and find the total chunks.
-	#[byte[]]$bytes = Get-Content $filepath -Encoding byte;
-    # Using ReadAllBytes method as the Get-Content used alot of memory on the machine
+	#[byte[]]$bytes = Get-Content -ErrorAction Stop $filepath -Encoding byte;
+    # Using ReadAllBytes method as the Get-Content -ErrorAction Stop used alot of memory on the machine
     [byte[]]$bytes = [System.IO.File]::ReadAllBytes($filepath);
 	$chunks = [Math]::Ceiling($bytes.Length / $chunkSizeInBytes);
 
@@ -377,32 +373,32 @@ function WE-UploadFileToAzureStorage($sasUri, $filepath){
 
     Write-Progress -Completed -Activity " Uploading File to Azure Storage"
 
-    Write-Host
-
-	# Finalize the upload.
+    Write-Information # Finalize the upload.
 	$uploadResponse = FinalizeAzureStorageUpload $sasUri $ids;
 }
 
 
 
+[CmdletBinding()]
 function WE-GenerateKey{
 
 	try
 	{
 		$aes = [System.Security.Cryptography.Aes]::Create();
-        $aesProvider = New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+        $aesProvider = New-Object -ErrorAction Stop System.Security.Cryptography.AesCryptoServiceProvider;
         $aesProvider.GenerateKey();
         $aesProvider.Key;
 	}
 	finally
 	{
-		if ($aesProvider -ne $null) { $aesProvider.Dispose(); }
-		if ($aes -ne $null) { $aes.Dispose(); }
+		if ($null -ne $aesProvider) { $aesProvider.Dispose(); }
+		if ($null -ne $aes) { $aes.Dispose(); }
 	}
 }
 
 
 
+[CmdletBinding()]
 function WE-GenerateIV{
 
 	try
@@ -412,7 +408,7 @@ function WE-GenerateIV{
 	}
 	finally
 	{
-		if ($aes -ne $null) { $aes.Dispose(); }
+		if ($null -ne $aes) { $aes.Dispose(); }
 	}
 }
 
@@ -426,11 +422,11 @@ function WE-EncryptFileWithIV($sourceFile, $targetFile, $encryptionKey, $hmacKey
 	try
 	{
 		$aes = [System.Security.Cryptography.Aes]::Create();
-		$hmacSha256 = New-Object System.Security.Cryptography.HMACSHA256;
+		$hmacSha256 = New-Object -ErrorAction Stop System.Security.Cryptography.HMACSHA256;
 		$hmacSha256.Key = $hmacKey;
 		$hmacLength = $hmacSha256.HashSize / 8;
 
-		$buffer = New-Object byte[] $bufferBlockSize;
+		$buffer = New-Object -ErrorAction Stop byte[] $bufferBlockSize;
 		$bytesRead = 0;
 
 		$targetStream = [System.IO.File]::Open($targetFile, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write, [System.IO.FileShare]::Read);
@@ -440,7 +436,7 @@ function WE-EncryptFileWithIV($sourceFile, $targetFile, $encryptionKey, $hmacKey
 		{
 			$encryptor = $aes.CreateEncryptor($encryptionKey, $initializationVector);
 			$sourceStream = [System.IO.File]::Open($sourceFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read);
-			$cryptoStream = New-Object System.Security.Cryptography.CryptoStream -ArgumentList @($targetStream, $encryptor, [System.Security.Cryptography.CryptoStreamMode]::Write);
+			$cryptoStream = New-Object -ErrorAction Stop System.Security.Cryptography.CryptoStream -ArgumentList @($targetStream, $encryptor, [System.Security.Cryptography.CryptoStreamMode]::Write);
 
 			$targetStream = $null;
 			while (($bytesRead = $sourceStream.Read($buffer, 0, $bufferBlockSize)) -gt 0)
@@ -452,9 +448,9 @@ function WE-EncryptFileWithIV($sourceFile, $targetFile, $encryptionKey, $hmacKey
 		}
 		finally
 		{
-			if ($cryptoStream -ne $null) { $cryptoStream.Dispose(); }
-			if ($sourceStream -ne $null) { $sourceStream.Dispose(); }
-			if ($encryptor -ne $null) { $encryptor.Dispose(); }	
+			if ($null -ne $cryptoStream) { $cryptoStream.Dispose(); }
+			if ($null -ne $sourceStream) { $sourceStream.Dispose(); }
+			if ($null -ne $encryptor) { $encryptor.Dispose(); }	
 		}
 
 		try
@@ -473,13 +469,13 @@ function WE-EncryptFileWithIV($sourceFile, $targetFile, $encryptionKey, $hmacKey
 		}
 		finally
 		{
-			if ($finalStream -ne $null) { $finalStream.Dispose(); }
+			if ($null -ne $finalStream) { $finalStream.Dispose(); }
 		}
 	}
 	finally
 	{
-		if ($targetStream -ne $null) { $targetStream.Dispose(); }
-        if ($aes -ne $null) { $aes.Dispose(); }
+		if ($null -ne $targetStream) { $targetStream.Dispose(); }
+        if ($null -ne $aes) { $aes.Dispose(); }
 	}
 
 	$computedMac;
@@ -497,8 +493,8 @@ function WE-EncryptFile($sourceFile, $targetFile){
 	$mac = EncryptFileWithIV $sourceFile $targetFile $encryptionKey $hmacKey $initializationVector;
 
 	# Compute the SHA256 hash of the source file and convert the result to bytes.
-	$fileDigest = (Get-FileHash $sourceFile -Algorithm SHA256).Hash;
-	$fileDigestBytes = New-Object byte[] ($fileDigest.Length / 2);
+	$fileDigest = (Get-FileHash -ErrorAction Stop $sourceFile -Algorithm SHA256).Hash;
+	$fileDigestBytes = New-Object -ErrorAction Stop byte[] ($fileDigest.Length / 2);
     for ($i = 0; $i -lt $fileDigest.Length; $i = $i + 2)
 	{
         $fileDigestBytes[$i / 2] = [System.Convert]::ToByte($fileDigest.Substring($i, 2), 16);
@@ -551,7 +547,7 @@ function WE-WaitForFileProcessing($fileUri, $stage){
 		$attempts--;
 	}
 
-	if ($file -eq $null)
+	if ($null -eq $file)
 	{
 		throw " File request did not complete in the allotted time." ;
 	}
@@ -573,7 +569,7 @@ function WE-GetAndroidAppBody($displayName, $publisher, $description, $filename,
 	$body.identityName = $identityName;
 	$body.identityVersion = $identityVersion;
 	
-    if ($minimumSupportedOperatingSystem -eq $null){
+    if ($null -eq $minimumSupportedOperatingSystem){
 
 		$body.minimumSupportedOperatingSystem = @{ " v4_4" = $true };
 	
@@ -610,7 +606,7 @@ function WE-GetiOSAppBody($displayName, $publisher, $description, $filename, $bu
 	$body.fileName = $filename;
 	$body.bundleId = $bundleId;
 	$body.identityVersion = $identityVersion;
-	if ($minimumSupportedOperatingSystem -eq $null)
+	if ($null -eq $minimumSupportedOperatingSystem)
 	{
 		$body.minimumSupportedOperatingSystem = @{ " v9_0" = $true };
 	}
@@ -759,9 +755,8 @@ param(
 
     catch {
 
-		Write-Host -ForegroundColor Red $_.Exception.Message;
-        Write-Host
-		break;
+		Write-Information -ForegroundColor Red $_.Exception.Message;
+        Write-Information break;
 
     }
 
@@ -769,7 +764,8 @@ param(
 
 
 
-Function Get-ApkInformation {
+[CmdletBinding()]
+Function Get-ApkInformation -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -780,7 +776,7 @@ This function is used to get information about an Android APK file using the And
 Get-ApkInformation -sourceFile c:\source\application.apk
 Function will return two object, object[0] is the identityName and object[1] is the identityVersion
 .NOTES
-NAME: Get-ApkInformation
+NAME: Get-ApkInformation -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -796,11 +792,9 @@ param(
 
     if(!(test-path $WEAndroidSDK)){
 
-    Write-Host
-    Write-WELog " Android SDK isn't installed..." " INFO" -ForegroundColor Red
+    Write-Information Write-WELog " Android SDK isn't installed..." " INFO"
     Write-WELog " Please install Android Studio and install the SDK from https://developer.android.com/studio/index.html" " INFO"
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -834,9 +828,9 @@ $WEPackageInfo[1].Split(" '" )[1]
 $WEPackageInfo[2].Split(" '" )[1]
 $WEPackageInfo[3].Split(" '" )[1]
 
-if ($logContent) { Write-Host -ForegroundColor Gray $WEPackageInfo[1].Split(" '" )[1]; }
-if ($logContent) { Write-Host -ForegroundColor Gray $WEPackageInfo[2].Split(" '" )[1]; }
-if ($logContent) { Write-Host -ForegroundColor Gray $WEPackageInfo[3].Split(" '" )[1]; }
+if ($logContent) { Write-Information -ForegroundColor Gray $WEPackageInfo[1].Split(" '" )[1]; }
+if ($logContent) { Write-Information -ForegroundColor Gray $WEPackageInfo[2].Split(" '" )[1]; }
+if ($logContent) { Write-Information -ForegroundColor Gray $WEPackageInfo[3].Split(" '" )[1]; }
 
 }
 
@@ -923,8 +917,7 @@ param(
 
             if(!$identityName){
 
-            Write-Host
-            Write-WELog " Opening APK file to get identityName to pass to the service..." " INFO" -ForegroundColor Yellow
+            Write-Information Write-WELog " Opening APK file to get identityName to pass to the service..." " INFO"
 
             $WEAPKInformation = Get-ApkInformation -AndroidSDK $WEAndroidSDKLocation -sourceFile " $WESourceFile"
 
@@ -934,8 +927,7 @@ param(
 
             if(!$identityVersion){
 
-            Write-Host
-            Write-WELog " Opening APK file to get identityVersion to pass to the service..." " INFO" -ForegroundColor Yellow
+            Write-Information Write-WELog " Opening APK file to get identityVersion to pass to the service..." " INFO"
 
             $WEAPKInformation = Get-ApkInformation -AndroidSDK $WEAndroidSDKLocation -sourceFile " $WESourceFile"
 
@@ -945,8 +937,7 @@ param(
 
             if(!$versionName){
 
-            Write-Host
-            Write-WELog " Opening APK file to get versionName to pass to the service..." " INFO" -ForegroundColor Yellow
+            Write-Information Write-WELog " Opening APK file to get versionName to pass to the service..." " INFO"
 
             $WEAPKInformation = Get-ApkInformation -AndroidSDK $WEAndroidSDKLocation -sourceFile " $WESourceFile"
 
@@ -968,30 +959,25 @@ param(
             }
 
         # Create a new Android LOB app.
-        Write-Host
-        Write-WELog " Creating JSON data to pass to the service..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating JSON data to pass to the service..." " INFO"
 	; 	$mobileAppBody = GetAndroidAppBody " $displayName" " $WEPublisher" " $WEDescription" " $filename" " $identityName" " $identityVersion" " $versionName" ;
 		
-        Write-Host
-        Write-WELog " Creating application in Intune..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating application in Intune..." " INFO"
         $mobileApp = MakePostRequest " mobileApps" ($mobileAppBody | ConvertTo-Json);
 
 		# Get the content version for the new app (this will always be 1 until the new app is committed).
-        Write-Host
-        Write-WELog " Creating Content Version in the service for the application..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating Content Version in the service for the application..." " INFO"
 		$appId = $mobileApp.id;
 		$contentVersionUri = " mobileApps/$appId/$WELOBType/contentVersions" ;
 		$contentVersion = MakePostRequest $contentVersionUri " {}" ;
 
         # Encrypt file and Get File Information
-        Write-Host
-        Write-WELog " Ecrypting the file '$WESourceFile'..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Ecrypting the file '$WESourceFile'..." " INFO"
         $encryptionInfo = EncryptFile " $sourceFile" " $tempFile" ;
-        $WESize = (Get-Item " $sourceFile" ).Length
-        $WEEncrySize = (Get-Item " $tempFile" ).Length
+        $WESize = (Get-Item -ErrorAction Stop " $sourceFile" ).Length
+        $WEEncrySize = (Get-Item -ErrorAction Stop " $tempFile" ).Length
 
-        Write-Host
-        Write-WELog " Creating the manifest file used to install the application on the device..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating the manifest file used to install the application on the device..." " INFO"
 
         [xml]$manifestXML = '<?xml version=" 1.0" encoding=" utf-8" ?><AndroidManifestProperties xmlns:xsd=" http://www.w3.org/2001/XMLSchema" xmlns:xsi=" http://www.w3.org/2001/XMLSchema-instance" ><Package>com.leadapps.android.radio.ncp</Package><PackageVersionCode>10</PackageVersionCode><PackageVersionName>1.0.5.4</PackageVersionName><ApplicationName>A_Online_Radio_1.0.5.4.apk</ApplicationName><MinSdkVersion>3</MinSdkVersion><AWTVersion></AWTVersion></AndroidManifestProperties>'
 
@@ -1006,58 +992,48 @@ param(
        ;  $WEEncodedText =[Convert]::ToBase64String($WEBytes)
 
 		# Create a new file for the app.
-        Write-Host
-        Write-WELog " Creating a new file entry in Azure for the upload..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating a new file entry in Azure for the upload..." " INFO"
 	; 	$contentVersionId = $contentVersion.id;
 		$fileBody = GetAppFileBody " $filename" $WESize $WEEncrySize " $WEEncodedText" ;
 		$filesUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files" ;
 		$file = MakePostRequest $filesUri ($fileBody | ConvertTo-Json);
 	
 		# Wait for the service to process the new file request.
-        Write-Host
-        Write-WELog " Waiting for the file entry URI to be created..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the file entry URI to be created..." " INFO"
 		$fileId = $file.id;
 		$fileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId" ;
 		$file = WaitForFileProcessing $fileUri " AzureStorageUriRequest" ;
 
         # Upload the content to Azure Storage.
-        Write-Host
-        Write-WELog " Uploading file to Azure Storage URI..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Uploading file to Azure Storage URI..." " INFO"
 		
         $sasUri = $file.azureStorageUri;
 		UploadFileToAzureStorage $file.azureStorageUri $tempFile;
 
 		# Commit the file.
-        Write-Host
-        Write-WELog " Committing the file into Azure Storage..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the file into Azure Storage..." " INFO"
 		$commitFileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId/commit" ;
 		MakePostRequest $commitFileUri ($encryptionInfo | ConvertTo-Json);
 
 		# Wait for the service to process the commit file request.
-        Write-Host
-        Write-WELog " Waiting for the service to process the commit file request..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the service to process the commit file request..." " INFO"
 		$file = WaitForFileProcessing $fileUri " CommitFile" ;
 
 		# Commit the app.
-        Write-Host
-        Write-WELog " Committing the application to the Intune Service..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the application to the Intune Service..." " INFO"
 		$commitAppUri = " mobileApps/$appId" ;
 		$commitAppBody = GetAppCommitBody $contentVersionId $WELOBType;
 		MakePatchRequest $commitAppUri ($commitAppBody | ConvertTo-Json);
 
         Write-WELog " Removing Temporary file '$tempFile'..." " INFO" -f Gray
         Remove-Item -Path " $tempFile" -Force
-        Write-Host
-
-        Write-WELog " Sleeping for $sleep seconds to allow patch completion..." " INFO" -f Magenta
+        Write-Information Write-WELog " Sleeping for $sleep seconds to allow patch completion..." " INFO" -f Magenta
         Start-Sleep $sleep
-        Write-Host
-
-	}
+        Write-Information }
 	catch
 	{
 		Write-WELog "" " INFO" ;
-		Write-Host -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
+		Write-Information -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
 	}
 }
 
@@ -1154,7 +1130,7 @@ param(
         # Checking expirationdatetime of SourceFile to check if it can be uploaded
         [datetimeoffset]$WEExpiration = $expirationDateTime
 
-        $WEDate = get-date
+        $WEDate = get-date -ErrorAction Stop
 
             if($WEExpiration -lt $WEDate){
 
@@ -1170,31 +1146,26 @@ param(
        ;  $filename = [System.IO.Path]::GetFileName(" $WESourceFile" )
 
         # Create a new iOS LOB app.
-        Write-Host
-        Write-WELog " Creating JSON data to pass to the service..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating JSON data to pass to the service..." " INFO"
 	; 	$mobileAppBody = GetiOSAppBody " $displayName" " $WEPublisher" " $WEDescription" " $filename" " $bundleId" " $identityVersion" " $versionNumber" " $expirationDateTime" ;
 
-        Write-Host
-        Write-WELog " Creating application in Intune..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating application in Intune..." " INFO"
 
 		$mobileApp = MakePostRequest " mobileApps" ($mobileAppBody | ConvertTo-Json);
 
 		# Get the content version for the new app (this will always be 1 until the new app is committed).
-        Write-Host
-        Write-WELog " Creating Content Version in the service for the application..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating Content Version in the service for the application..." " INFO"
 		$appId = $mobileApp.id;
 		$contentVersionUri = " mobileApps/$appId/$WELOBType/contentVersions" ;
 		$contentVersion = MakePostRequest $contentVersionUri " {}" ;
 
         # Encrypt file and Get File Information
-        Write-Host
-        Write-WELog " Ecrypting the file '$WESourceFile'..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Ecrypting the file '$WESourceFile'..." " INFO"
         $encryptionInfo = EncryptFile $sourceFile $tempFile;
-        $WESize = (Get-Item " $sourceFile" ).Length
-        $WEEncrySize = (Get-Item " $tempFile" ).Length
+        $WESize = (Get-Item -ErrorAction Stop " $sourceFile" ).Length
+        $WEEncrySize = (Get-Item -ErrorAction Stop " $tempFile" ).Length
 
-        Write-Host
-        Write-WELog " Creating the manifest file used to install the application on the device..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating the manifest file used to install the application on the device..." " INFO"
 
         [string]$manifestXML = '<?xml version=" 1.0" encoding=" UTF-8" ?><!DOCTYPE plist PUBLIC " -//Apple//DTD PLIST 1.0//EN" " http://www.apple.com/DTDs/PropertyList-1.0.dtd" ><plist version=" 1.0" ><dict><key>items</key><array><dict><key>assets</key><array><dict><key>kind</key><string>software-package</string><key>url</key><string>{UrlPlaceHolder}</string></dict></array><key>metadata</key><dict><key>AppRestrictionPolicyTemplate</key> <string>http://management.microsoft.com/PolicyTemplates/AppRestrictions/iOS/v1</string><key>AppRestrictionTechnology</key><string>Windows Intune Application Restrictions Technology for iOS</string><key>IntuneMAMVersion</key><string></string><key>CFBundleSupportedPlatforms</key><array><string>iPhoneOS</string></array><key>MinimumOSVersion</key><string>9.0</string><key>bundle-identifier</key><string>bundleid</string><key>bundle-version</key><string>bundleversion</string><key>kind</key><string>software</string><key>subtitle</key><string>LaunchMeSubtitle</string><key>title</key><string>bundletitle</string></dict></dict></array></dict></plist>'
 
@@ -1206,58 +1177,48 @@ param(
        ;  $WEEncodedText =[Convert]::ToBase64String($WEBytes)
 
 		# Create a new file for the app.
-        Write-Host
-        Write-WELog " Creating a new file entry in Azure for the upload..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating a new file entry in Azure for the upload..." " INFO"
 	; 	$contentVersionId = $contentVersion.id;
 		$fileBody = GetAppFileBody " $filename" $WESize $WEEncrySize " $WEEncodedText" ;
 		$filesUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files" ;
 		$file = MakePostRequest $filesUri ($fileBody | ConvertTo-Json);
 	
 		# Wait for the service to process the new file request.
-        Write-Host
-        Write-WELog " Waiting for the file entry URI to be created..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the file entry URI to be created..." " INFO"
 		$fileId = $file.id;
 		$fileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId" ;
 		$file = WaitForFileProcessing $fileUri " AzureStorageUriRequest" ;
 
         # Upload the content to Azure Storage.
-        Write-Host
-        Write-WELog " Uploading file to Azure Storage..." " INFO" -f Yellow
+        Write-Information Write-WELog " Uploading file to Azure Storage..." " INFO" -f Yellow
 
 		$sasUri = $file.azureStorageUri;
 		UploadFileToAzureStorage $file.azureStorageUri $tempFile;
 
 		# Commit the file.
-        Write-Host
-        Write-WELog " Committing the file into Azure Storage..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the file into Azure Storage..." " INFO"
 		$commitFileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId/commit" ;
 		MakePostRequest $commitFileUri ($encryptionInfo | ConvertTo-Json);
 
 		# Wait for the service to process the commit file request.
-        Write-Host
-        Write-WELog " Waiting for the service to process the commit file request..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the service to process the commit file request..." " INFO"
 		$file = WaitForFileProcessing $fileUri " CommitFile" ;
 
 		# Commit the app.
-        Write-Host
-        Write-WELog " Committing the file into Azure Storage..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the file into Azure Storage..." " INFO"
 		$commitAppUri = " mobileApps/$appId" ;
 		$commitAppBody = GetAppCommitBody $contentVersionId $WELOBType;
 		MakePatchRequest $commitAppUri ($commitAppBody | ConvertTo-Json);
 
         Write-WELog " Removing Temporary file '$tempFile'..." " INFO" -f Gray
         Remove-Item -Path " $tempFile" -Force
-        Write-Host
-
-        Write-WELog " Sleeping for $sleep seconds to allow patch completion..." " INFO" -f Magenta
+        Write-Information Write-WELog " Sleeping for $sleep seconds to allow patch completion..." " INFO" -f Magenta
         Start-Sleep $sleep
-        Write-Host
-
-	}
+        Write-Information }
 	catch
 	{
 		Write-WELog "" " INFO" ;
-		Write-Host -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
+		Write-Information -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
 	}
 }
 
@@ -1315,8 +1276,7 @@ param(
         # Creating temp file name from Source File path
         $tempFile = [System.IO.Path]::GetDirectoryName(" $WESourceFile" ) + " \" + [System.IO.Path]::GetFileNameWithoutExtension(" $WESourceFile" ) + " _temp.bin"
 
-        Write-Host
-        Write-WELog " Creating JSON data to pass to the service..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating JSON data to pass to the service..." " INFO"
 
         $WEFileName = [System.IO.Path]::GetFileName(" $WEMSIPath" )
 
@@ -1328,26 +1288,22 @@ param(
 		# Create a new MSI LOB app.
 	; 	$mobileAppBody = GetMSIAppBody -displayName " $WEPN" -publisher " $publisher" -description " $description" -filename " $WEFileName" -identityVersion " $WEPV" -ProductCode " $WEPC"
         
-        Write-Host
-        Write-WELog " Creating application in Intune..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating application in Intune..." " INFO"
 	; 	$mobileApp = MakePostRequest " mobileApps" ($mobileAppBody | ConvertTo-Json);
 
 		# Get the content version for the new app (this will always be 1 until the new app is committed).
-        Write-Host
-        Write-WELog " Creating Content Version in the service for the application..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating Content Version in the service for the application..." " INFO"
 		$appId = $mobileApp.id;
 		$contentVersionUri = " mobileApps/$appId/$WELOBType/contentVersions" ;
 		$contentVersion = MakePostRequest $contentVersionUri " {}" ;
 
         # Encrypt file and Get File Information
-        Write-Host
-        Write-WELog " Ecrypting the file '$WESourceFile'..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Ecrypting the file '$WESourceFile'..." " INFO"
         $encryptionInfo = EncryptFile $sourceFile $tempFile;
-        $WESize = (Get-Item " $sourceFile" ).Length
-        $WEEncrySize = (Get-Item " $tempFile" ).Length
+        $WESize = (Get-Item -ErrorAction Stop " $sourceFile" ).Length
+        $WEEncrySize = (Get-Item -ErrorAction Stop " $tempFile" ).Length
 
-        Write-Host
-        Write-WELog " Creating the manifest file used to install the application on the device..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating the manifest file used to install the application on the device..." " INFO"
 
         [xml]$manifestXML = '<MobileMsiData MsiExecutionContext=" Any" MsiRequiresReboot=" false" MsiUpgradeCode="" MsiIsMachineInstall=" true" MsiIsUserInstall=" false" MsiIncludesServices=" false" MsiContainsSystemRegistryKeys=" false" MsiContainsSystemFolders=" false" ></MobileMsiData>'
 
@@ -1359,59 +1315,49 @@ param(
        ;  $WEEncodedText =[Convert]::ToBase64String($WEBytes)
 
 		# Create a new file for the app.
-        Write-Host
-        Write-WELog " Creating a new file entry in Azure for the upload..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Creating a new file entry in Azure for the upload..." " INFO"
 	; 	$contentVersionId = $contentVersion.id;
 		$fileBody = GetAppFileBody " $WEFileName" $WESize $WEEncrySize " $WEEncodedText" ;
 		$filesUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files" ;
 		$file = MakePostRequest $filesUri ($fileBody | ConvertTo-Json);
 	
 		# Wait for the service to process the new file request.
-        Write-Host
-        Write-WELog " Waiting for the file entry URI to be created..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the file entry URI to be created..." " INFO"
 		$fileId = $file.id;
 		$fileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId" ;
 		$file = WaitForFileProcessing $fileUri " AzureStorageUriRequest" ;
 
 		# Upload the content to Azure Storage.
-        Write-Host
-        Write-WELog " Uploading file to Azure Storage..." " INFO" -f Yellow
+        Write-Information Write-WELog " Uploading file to Azure Storage..." " INFO" -f Yellow
 
 		$sasUri = $file.azureStorageUri;
 		UploadFileToAzureStorage $file.azureStorageUri $tempFile;
 
 		# Commit the file.
-        Write-Host
-        Write-WELog " Committing the file into Azure Storage..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the file into Azure Storage..." " INFO"
 		$commitFileUri = " mobileApps/$appId/$WELOBType/contentVersions/$contentVersionId/files/$fileId/commit" ;
 		MakePostRequest $commitFileUri ($encryptionInfo | ConvertTo-Json);
 
 		# Wait for the service to process the commit file request.
-        Write-Host
-        Write-WELog " Waiting for the service to process the commit file request..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Waiting for the service to process the commit file request..." " INFO"
 		$file = WaitForFileProcessing $fileUri " CommitFile" ;
 
 		# Commit the app.
-        Write-Host
-        Write-WELog " Committing the file into Azure Storage..." " INFO" -ForegroundColor Yellow
+        Write-Information Write-WELog " Committing the file into Azure Storage..." " INFO"
 		$commitAppUri = " mobileApps/$appId" ;
 		$commitAppBody = GetAppCommitBody $contentVersionId $WELOBType;
 		MakePatchRequest $commitAppUri ($commitAppBody | ConvertTo-Json);
 
         Write-WELog " Removing Temporary file '$tempFile'..." " INFO" -f Gray
         Remove-Item -Path " $tempFile" -Force
-        Write-Host
-
-        Write-WELog " Sleeping for $sleep seconds to allow patch completion..." " INFO" -f Magenta
+        Write-Information Write-WELog " Sleeping for $sleep seconds to allow patch completion..." " INFO" -f Magenta
         Start-Sleep $sleep
-        Write-Host
-
-	}
+        Write-Information }
 	
     catch {
 
 		Write-WELog "" " INFO" ;
-		Write-Host -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
+		Write-Information -ForegroundColor Red " Aborting with exception: $($_.Exception.ToString())" ;
 	
     }
 
@@ -1421,10 +1367,7 @@ param(
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -1434,19 +1377,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
 
-            # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -1455,15 +1394,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Appledepprofile Assign
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -207,6 +203,7 @@ NAME: Test-JSON
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -226,7 +223,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -261,7 +258,8 @@ $WEJSON
 
 
 
-Function Get-DEPOnboardingSettings {
+[CmdletBinding()]
+Function Get-DEPOnboardingSettings -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -269,10 +267,10 @@ This function retrieves the DEP onboarding settings for your tenant. DEP Onboard
 .DESCRIPTION
 The function connects to the Graph API Interface and gets a retrieves the DEP onboarding settings.
 .EXAMPLE
-Get-DEPOnboardingSettings
+Get-DEPOnboardingSettings -ErrorAction Stop
 Gets all DEP Onboarding Settings for each DEP token present in the tenant
 .NOTES
-NAME: Get-DEPOnboardingSettings
+NAME: Get-DEPOnboardingSettings -ErrorAction Stop
 
     
 [cmdletbinding()]
@@ -310,14 +308,13 @@ param(
     
         $ex = $_.Exception
         $errorResponse = $ex.Response.GetResponseStream()
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -333,10 +330,10 @@ This function is used to get a list of DEP profiles by DEP Token
 .DESCRIPTION
 The function connects to the Graph API Interface and gets a list of DEP profiles based on DEP token
 .EXAMPLE
-Get-DEPProfiles
+Get-DEPProfiles -ErrorAction Stop
 Gets all DEP profiles
 .NOTES
-NAME: Get-DEPProfiles
+NAME: Get-DEPProfiles -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -360,17 +357,15 @@ $WEResource = " deviceManagement/depOnboardingSettings/$id/enrollmentProfiles"
 
     catch {
 
-    Write-Host
-    $ex = $_.Exception
+    Write-Information $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -421,23 +416,19 @@ $WEResource = " deviceManagement/depOnboardingSettings/$id/enrollmentProfiles('$
 
         Write-WELog " Success: " " INFO" -f Green -NoNewline
         Write-WELog " Device assigned!" " INFO"
-        Write-Host
-
-    }
+        Write-Information }
 
     catch {
 
-        Write-Host
-        $ex = $_.Exception
+        Write-Information $ex = $_.Exception
         $errorResponse = $ex.Response.GetResponseStream()
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
 
     }
 
@@ -447,10 +438,7 @@ $WEResource = " deviceManagement/depOnboardingSettings/$id/enrollmentProfiles('$
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -460,19 +448,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -481,15 +465,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
- $global:authToken = Get-AuthToken -User $WEUser
+ $script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -506,13 +488,10 @@ if($tokens){
 $tokencount = @($tokens).count
 
 Write-WELog " DEP tokens found: $tokencount" " INFO"
-Write-Host
+Write-Information if ($tokencount -gt 1){
 
-    if ($tokencount -gt 1){
-
-    write-host " Listing DEP tokens..." -ForegroundColor Yellow
-    Write-Host
-   ;  $WEDEP_Tokens = $tokens.tokenName | Sort-Object -Unique
+    Write-Information " Listing DEP tokens..."
+    Write-Information ;  $WEDEP_Tokens = $tokens.tokenName | Sort-Object -Unique
 
    ;  $menu = @{}
 
@@ -520,12 +499,9 @@ Write-Host
     { Write-WELog " $i. $($WEDEP_Tokens[$i-1])" " INFO" 
     $menu.Add($i,($WEDEP_Tokens[$i-1]))}
 
-    Write-Host
-    [int]$ans = Read-Host 'Select the token you wish you to use (numerical value)'
+    Write-Information [int]$ans = Read-Host 'Select the token you wish you to use (numerical value)'
     $selection = $menu.Item($ans)
-    Write-Host
-
-        if ($selection){
+    Write-Information if ($selection){
 
         $WESelectedToken = $tokens | Where-Object { $_.TokenName -eq " $WESelection" }
 
@@ -547,8 +523,7 @@ Write-Host
 else {
     
     Write-Warning " No DEP tokens found!"
-    Write-Host
-    break
+    Write-Information break
 
 }
 
@@ -564,8 +539,7 @@ $WEDeviceSerialNumber = $WEDeviceSerialNumber.replace(" " ,"" )
 if(!($WEDeviceSerialNumber)){
     
     Write-WELog " Error: No serial number entered!" " INFO" -ForegroundColor Red
-    Write-Host
-    break
+    Write-Information break
     
 }
 
@@ -578,8 +552,7 @@ $WESearchResult = (Invoke-RestMethod -Uri $uri –Headers $authToken –Method G
 if (!($WESearchResult)){
 
     Write-warning " Can't find device $WEDeviceSerialNumber."
-    Write-Host
-    break
+    Write-Information break
 
 }
 
@@ -589,10 +562,8 @@ $WEProfiles = (Get-DEPProfiles -id $id).value
 
 if($WEProfiles){
                 
-Write-Host
-Write-WELog " Listing DEP Profiles..." " INFO" -ForegroundColor Yellow
-Write-Host
-; 
+Write-Information Write-WELog " Listing DEP Profiles..." " INFO"
+Write-Information ; 
 $enrollmentProfiles = $WEProfiles.displayname | Sort-Object -Unique
 ; 
 $menu = @{}
@@ -601,8 +572,7 @@ for ($i=1;$i -le $enrollmentProfiles.count; $i++)
 { Write-WELog " $i. $($enrollmentProfiles[$i-1])" " INFO" 
 $menu.Add($i,($enrollmentProfiles[$i-1]))}
 
-Write-Host
-$ans = Read-Host 'Select the profile you wish to assign (numerical value)'
+Write-Information $ans = Read-Host 'Select the profile you wish to assign (numerical value)'
 
     # Checking if read-host of DEP Profile is an integer
     if(($ans -match " ^[\d\.]+$" ) -eq $true){
@@ -621,10 +591,8 @@ $ans = Read-Host 'Select the profile you wish to assign (numerical value)'
 
     else {
 
-        Write-Host
-        Write-Warning " DEP Profile selection invalid. Exiting..."
-        Write-Host
-        break
+        Write-Information Write-Warning " DEP Profile selection invalid. Exiting..."
+        Write-Information break
 
     }
 
@@ -632,8 +600,7 @@ $ans = Read-Host 'Select the profile you wish to assign (numerical value)'
 
 else {
     
-    Write-Host
-    Write-Warning " No DEP profiles found!"
+    Write-Information Write-Warning " No DEP profiles found!"
     break
 
 }

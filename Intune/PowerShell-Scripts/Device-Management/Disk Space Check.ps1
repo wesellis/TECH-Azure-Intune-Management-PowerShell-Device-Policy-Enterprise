@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Disk Space Check
 
@@ -83,6 +83,7 @@ param(
 $WELogPath = " $env:TEMP\IntuneRemediation_DiskSpaceDetection.log"
 $WETimeStamp = Get-Date -Format " yyyy-MM-dd HH:mm:ss"
 
+[CmdletBinding()]
 function WE-Write-LogEntry {
     param([Parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Auth Apponly
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -91,20 +92,18 @@ param(
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -147,10 +146,10 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority, $false
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority, $false
 
     # turn this on for app only auth
-    $WEClientCred = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.ClientCredential" -ArgumentList $clientId, $WEClientSecret
+    $WEClientCred = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.ClientCredential" -ArgumentList $clientId, $WEClientSecret
    
     # turn this on for app only auth
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI, $WEClientCred)
@@ -171,10 +170,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -182,7 +180,7 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
 
 
-$global:authToken = Get-AuthToken -Tenant " tenantname.onmicrosoft.com" -ClientId " ClientId/ApplicationId" -ClientSecret " ClientSecret"
+$script:authToken = Get-AuthToken -Tenant " tenantname.onmicrosoft.com" -ClientId " ClientId/ApplicationId" -ClientSecret " ClientSecret"
 
 
 

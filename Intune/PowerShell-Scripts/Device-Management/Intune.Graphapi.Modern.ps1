@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune.Graphapi.Modern
 
@@ -64,6 +64,7 @@ $script:RequiredScopes = @(
 
 
 
+[CmdletBinding()]
 function WE-Connect-IntuneGraph {
     <#
     .SYNOPSIS
@@ -114,7 +115,7 @@ $ErrorActionPreference = " Stop"
         
         Connect-MgGraph @connectParams
         
-        $context = Get-MgContext
+        $context = Get-MgContext -ErrorAction Stop
         Write-Information " Connected to tenant: $($context.TenantId)" -InformationAction Continue
         Write-Information " Scopes: $($context.Scopes -join ', ')" -InformationAction Continue
         
@@ -129,7 +130,8 @@ $ErrorActionPreference = " Stop"
 
 
 
-function WE-Get-IntuneManagedDevices {
+[CmdletBinding()]
+function WE-Get-IntuneManagedDevices -ErrorAction Stop {
     <#
     .SYNOPSIS
         Get all Intune managed devices with advanced filtering
@@ -221,6 +223,7 @@ $ErrorActionPreference = " Stop"
     return $devices
 }
 
+[CmdletBinding()]
 function WE-Invoke-IntuneSyncDevice {
     <#
     .SYNOPSIS
@@ -269,7 +272,8 @@ function WE-Invoke-IntuneSyncDevice {
     }
 }
 
-function WE-Set-IntuneDeviceCompliance {
+[CmdletBinding()]
+function WE-Set-IntuneDeviceCompliance -ErrorAction Stop {
     <#
     .SYNOPSIS
         Manage device compliance actions
@@ -320,7 +324,8 @@ function WE-Set-IntuneDeviceCompliance {
 
 
 
-function WE-Get-IntuneApps {
+[CmdletBinding()]
+function WE-Get-IntuneApps -ErrorAction Stop {
     <#
     .SYNOPSIS
         Get Intune mobile apps
@@ -370,7 +375,8 @@ $ErrorActionPreference = " Stop"
     return $apps
 }
 
-function WE-New-IntuneAppAssignment {
+[CmdletBinding()]
+function WE-New-IntuneAppAssignment -ErrorAction Stop {
     <#
     .SYNOPSIS
         Create app assignment
@@ -436,7 +442,8 @@ function WE-New-IntuneAppAssignment {
 
 
 
-function WE-Get-IntuneDeviceConfigurations {
+[CmdletBinding()]
+function WE-Get-IntuneDeviceConfigurations -ErrorAction Stop {
     <#
     .SYNOPSIS
         Get device configuration profiles
@@ -477,7 +484,8 @@ $ErrorActionPreference = " Stop"
     return $configurations
 }
 
-function WE-New-IntuneDeviceConfiguration {
+[CmdletBinding()]
+function WE-New-IntuneDeviceConfiguration -ErrorAction Stop {
     <#
     .SYNOPSIS
         Create device configuration profile
@@ -549,7 +557,8 @@ function WE-New-IntuneDeviceConfiguration {
 
 
 
-function WE-Get-IntuneComplianceReport {
+[CmdletBinding()]
+function WE-Get-IntuneComplianceReport -ErrorAction Stop {
     <#
     .SYNOPSIS
         Generate comprehensive compliance report
@@ -575,7 +584,7 @@ $ErrorActionPreference = " Stop"
     )
     
     # Get all devices
-    $devices = Get-IntuneManagedDevices
+    $devices = Get-IntuneManagedDevices -ErrorAction Stop
     
     # Get compliance policies
     $uri = " https://graph.microsoft.com/$script:GraphVersion/deviceManagement/deviceCompliancePolicies"
@@ -583,7 +592,7 @@ $ErrorActionPreference = " Stop"
     
     # Build report data
     $reportData = @{
-        GeneratedOn = Get-Date
+        GeneratedOn = Get-Date -ErrorAction Stop
         TotalDevices = $devices.Count
         CompliantDevices = ($devices | Where-Object { $_.complianceState -eq 'compliant' }).Count
         NonCompliantDevices = ($devices | Where-Object { $_.complianceState -ne 'compliant' }).Count
@@ -684,7 +693,8 @@ $ErrorActionPreference = " Stop"
 
 
 
-function WE-Get-AutopilotDevices {
+[CmdletBinding()]
+function WE-Get-AutopilotDevices -ErrorAction Stop {
     <#
     .SYNOPSIS
         Get Windows Autopilot devices
@@ -737,6 +747,7 @@ $ErrorActionPreference = " Stop"
     return $devices
 }
 
+[CmdletBinding()]
 function WE-Import-AutopilotDevice {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Configure Mdatpintunesecadminrole
 
@@ -110,11 +110,11 @@ param(
 
 if ($WESecurityGroupList){
 
-    $WESecurityGroupList = Get-Content " $WESecurityGroupList"
+    $WESecurityGroupList = Get-Content -ErrorAction Stop " $WESecurityGroupList"
 
 }
 
-$WEAADEnvironment = (New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEAdminUser).Host
+$WEAADEnvironment = (New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEAdminUser).Host
 
 $WERBACRoleName    = " MDATP SecAdmin"  
 $WESecurityGroup   = " MDATP SecAdmin SG"  
@@ -122,7 +122,8 @@ $WEUser = $WEAdminUser
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
   <#
   .SYNOPSIS
@@ -130,10 +131,10 @@ function WE-Get-AuthToken {
   .DESCRIPTION
   The function authenticate with the Graph API Interface with the tenant name
   .EXAMPLE
-  Get-AuthToken
+  Get-AuthToken -ErrorAction Stop
   Authenticates you with the Graph API interface
   .NOTES
-  NAME: Get-AuthToken
+  NAME: Get-AuthToken -ErrorAction Stop
   #>
   
   [cmdletbinding()]
@@ -143,7 +144,7 @@ function WE-Get-AuthToken {
       $WEUser
   )
   
-  $userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+  $userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
   
   $tenant = $userUpn.Host
   
@@ -151,20 +152,18 @@ function WE-Get-AuthToken {
   
       $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
   
-      if ($WEAadModule -eq $null) {
+      if ($null -eq $WEAadModule) {
   
           Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
           $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
   
       }
   
-      if ($WEAadModule -eq $null) {
-          Write-Host
-          Write-WELog " AzureAD Powershell module not installed..." " INFO" -f Red
+      if ($null -eq $WEAadModule) {
+          Write-Information Write-WELog " AzureAD Powershell module not installed..." " INFO" -f Red
           Write-WELog " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" " INFO" -f Yellow
           Write-WELog " Script can't continue..." " INFO" -f Red
-          Write-Host
-          exit
+          Write-Information exit
       }
   
   # Getting path to ActiveDirectory Assemblies
@@ -213,14 +212,14 @@ function WE-Get-AuthToken {
   
       try {
   
-      $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+      $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
   
       # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
       # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
   
-      $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+      $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
   
-      $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+      $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
   
       $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
   
@@ -242,10 +241,8 @@ function WE-Get-AuthToken {
   
           else {
   
-          Write-Host
-          Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-          Write-Host
-          break
+          Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+          Write-Information break
   
           }
   
@@ -253,10 +250,9 @@ function WE-Get-AuthToken {
   
       catch {
   
-      Write-Host $_.Exception.Message -f Red
-      Write-Host $_.Exception.ItemName -f Red
-      Write-Host
-      break
+      Write-Information $_.Exception.Message -f Red
+      Write-Information $_.Exception.ItemName -f Red
+      Write-Information break
   
       }
   
@@ -280,6 +276,7 @@ NAME: Test-JSON
     
 
 
+[CmdletBinding()]
 function Write-WELog {
     param(
         [Parameter(Mandatory=$false)]
@@ -297,7 +294,7 @@ function Write-WELog {
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 param(
@@ -338,10 +335,10 @@ Function Get-AADGroup(){
   .DESCRIPTION
   The function connects to the Graph API Interface and gets any Groups registered with AAD
   .EXAMPLE
-  Get-AADGroup
+  Get-AADGroup -ErrorAction Stop
   Returns all users registered with Azure AD
   .NOTES
-  NAME: Get-AADGroup
+  NAME: Get-AADGroup -ErrorAction Stop
   #>
   
   [cmdletbinding()]
@@ -365,7 +362,7 @@ Function Get-AADGroup(){
 
       }
       
-      elseif($WEGroupName -eq "" -or $WEGroupName -eq $null){
+      elseif($WEGroupName -eq "" -or $null -eq $WEGroupName){
       
       $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)"
       (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -391,9 +388,7 @@ Function Get-AADGroup(){
               $WEGID = $WEGroup.id
 
               $WEGroup.displayName
-              Write-Host
-
-              $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
+              Write-Information $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
               (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
 
               }
@@ -408,14 +403,13 @@ Function Get-AADGroup(){
 
   $ex = $_.Exception
   $errorResponse = $ex.Response.GetResponseStream()
- ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+ ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
   $reader.BaseStream.Position = 0
   $reader.DiscardBufferedData()
  ;  $responseBody = $reader.ReadToEnd();
   Write-WELog " Response content:`n$responseBody" " INFO" -f Red
   Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-  Write-Host
-  break
+  Write-Information break
 
   }
   
@@ -465,14 +459,13 @@ $WEResource = " deviceManagement/roleDefinitions"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -488,10 +481,10 @@ Function Get-RBACRole(){
   .DESCRIPTION
   The function connects to the Graph API Interface and gets any RBAC Role Definitions
   .EXAMPLE
-  Get-RBACRole
+  Get-RBACRole -ErrorAction Stop
   Returns any RBAC Role Definitions configured in Intune
   .NOTES
-  NAME: Get-RBACRole
+  NAME: Get-RBACRole -ErrorAction Stop
   #>
   
   [cmdletbinding()]
@@ -526,14 +519,13 @@ Function Get-RBACRole(){
   
       $ex = $_.Exception
       $errorResponse = $ex.Response.GetResponseStream()
-     ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+     ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
       $reader.BaseStream.Position = 0
       $reader.DiscardBufferedData()
      ;  $responseBody = $reader.ReadToEnd();
       Write-WELog " Response content:`n$responseBody" " INFO" -f Red
       Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-      Write-Host
-      break
+      Write-Information break
   
       }
   
@@ -618,14 +610,13 @@ $WEJSON = @"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -635,10 +626,7 @@ $WEJSON = @"
 
 
   
-Write-Host
-  
-
-if($global:authToken){
+Write-Information if($global:authToken){
   
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -649,18 +637,14 @@ if($global:authToken){
         if($WETokenExpires -le 0){
   
         Write-WELog " Authentication Token expired" " INFO" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        Write-Host
+        Write-Information # Defining User Principal Name if not present
   
-            # Defining User Principal Name if not present
-  
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
   
             $WEUser = Read-Host -Prompt " Please specify your Global Admin user for Azure Authentication (e.g. globaladmin@myenvironment.onmicrosoft.com):"
-            Write-Host
+            Write-Information }
   
-            }
-  
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
   
         }
 }
@@ -669,15 +653,13 @@ if($global:authToken){
   
 else {
   
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
   
     $WEUser = Read-Host -Prompt " Please specify your Global Admin user for Azure Authentication (e.g. globaladmin@myenvironment.onmicrosoft.com):"
-    Write-Host
-  
-    }
+    Write-Information }
   
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
   
 }
   
@@ -714,43 +696,33 @@ $WEJSON = @"
 
 
 Write-WELog " Configuring MDATP Intune SecAdmin Role..." " INFO" -ForegroundColor Cyan
-Write-Host
-Write-WELog " Connecting to Azure AD environment: $WEAADEnvironment..." " INFO" -ForegroundColor Yellow
-Write-Host
-
-$WERBAC_Roles = Get-RBACRole
+Write-Information Write-WELog " Connecting to Azure AD environment: $WEAADEnvironment..." " INFO"
+Write-Information $WERBAC_Roles = Get-RBACRole -ErrorAction Stop
 
 
 if($WERBAC_Roles | Where-Object { $_.displayName -eq " $WERBACRoleName" }){
 
     Write-WELog " Intune Role already exists with name '$WERBACRoleName'..." " INFO" -ForegroundColor Red
     Write-WELog " Script can't continue..." " INFO" -ForegroundColor Red
-    Write-Host
-    break
+    Write-Information break
 
 }
 
 
 Write-WELog " Adding new RBAC Role: $WERBACRoleName..." " INFO" -ForegroundColor Yellow
 Write-WELog " JSON:" " INFO"
-Write-Host $WEJSON
-Write-Host
-
-$WENewRBACRole = Add-RBACRole -JSON $WEJSON
+Write-Information $WEJSON
+Write-Information $WENewRBACRole = Add-RBACRole -JSON $WEJSON
 $WENewRBACRoleID = $WENewRBACRole.id
 
 
 Write-WELog " Getting Id for new role..." " INFO" -ForegroundColor Yellow
-$WEUpdated_RBAC_Roles = Get-RBACRole
+$WEUpdated_RBAC_Roles = Get-RBACRole -ErrorAction Stop
 
 $WENewRBACRoleID = ($WEUpdated_RBAC_Roles | Where-Object {$_.displayName -eq " $WERBACRoleName" }).id
 
 Write-WELog " $WENewRBACRoleID" " INFO"
-Write-Host
-
-
-
-if($WESecAdminGroup){
+Write-Information if($WESecAdminGroup){
 
   # Verify group exists
   Write-WELog " Verifying group '$WESecAdminGroup' exists..." " INFO" -ForegroundColor Yellow
@@ -769,9 +741,7 @@ if($WESecAdminGroup){
 
       [System.Guid]::Parse($WEValidatedSecAdminGroup) | Out-Null
       Write-WELog " ObjectId: $WEValidatedSecAdminGroup" " INFO" -ForegroundColor Green
-      Write-Host
-
-    }
+      Write-Information }
     
     catch {
     
@@ -791,8 +761,7 @@ if($WESecAdminGroup){
   else {
 
     Write-WELog " Group '$WESecAdminGroup' does not exist. Please run script again and specify a valid group." " INFO" -ForegroundColor Red
-    Write-Host
-    break
+    Write-Information break
   
   }
 
@@ -841,30 +810,18 @@ if($WESecurityGroupList){
 
 
 Write-WELog " Retrieving permissions for new role: $WERBACRoleName..." " INFO" -ForegroundColor Yellow
-Write-Host
-; 
-$WERBAC_Role = Get-RBACRole | Where-Object { $_.displayName -eq " $WERBACRoleName" }
+Write-Information ; 
+$WERBAC_Role = Get-RBACRole -ErrorAction Stop | Where-Object { $_.displayName -eq " $WERBACRoleName" }
 
-Write-Host $WERBAC_Role.displayName -ForegroundColor Green
-Write-Host $WERBAC_Role.id -ForegroundColor Cyan
+Write-Information $WERBAC_Role.displayName -ForegroundColor Green
+Write-Information $WERBAC_Role.id -ForegroundColor Cyan
 $WERBAC_Role.RolePermissions.resourceActions.allowedResourceActions
-Write-Host
+Write-Information Write-WELog " Members of RBAC Role '$WERBACRoleName' should now have access to Security Baseline and" " INFO"
+Write-Information " Onboarded machines tiles in Microsoft Defender Security Center."
+Write-Information Write-WELog " https://securitycenter.windows.com/configuration-management" " INFO"
+Write-Information Write-WELog " Add users and groups to the new role assignment 'MDATP RBAC Assignment' as needed." " INFO"
 
-
-
-Write-WELog " Members of RBAC Role '$WERBACRoleName' should now have access to Security Baseline and" " INFO" -ForegroundColor Cyan
-write-host " Onboarded machines tiles in Microsoft Defender Security Center." -ForegroundColor Cyan
-Write-Host
-Write-WELog " https://securitycenter.windows.com/configuration-management" " INFO"
-Write-Host
-Write-WELog " Add users and groups to the new role assignment 'MDATP RBAC Assignment' as needed." " INFO" -ForegroundColor Cyan
-
-Write-Host
-Write-WELog " Configuration of MDATP Intune SecAdmin Role complete..." " INFO" -ForegroundColor Green
-Write-Host
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information Write-WELog " Configuration of MDATP Intune SecAdmin Role complete..." " INFO"
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

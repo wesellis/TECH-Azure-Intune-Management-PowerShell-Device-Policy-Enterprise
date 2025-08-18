@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Bitlockerkeyissueremediation
 
@@ -130,9 +130,10 @@ param(
     }
 }
 
+[CmdletBinding()]
 function WE-Invoke-BitLockerKeyRemoval {
     # Get BitLocker recovery keys from manage-bde for all volumes
-    $WEBitLockerKeys = Get-BitLockerVolume | Where-Object { $_.KeyProtector -ne $null } | Select-Object -ExpandProperty KeyProtector
+    $WEBitLockerKeys = Get-BitLockerVolume -ErrorAction Stop | Where-Object { $_.KeyProtector -ne $null } | Select-Object -ExpandProperty KeyProtector
     $WEBitLockerKeyProtectorIds = $WEBitLockerKeys | Where-Object { $_.KeyProtectorType -eq " RecoveryPassword" } | Select-Object -ExpandProperty KeyProtectorId
     # Remove {} from $WEBitLockerKeyProtectors
     $WEBitLockerKeyProtectorIds = $WEBitLockerKeyProtectors -replace '[{}]', ''
@@ -180,7 +181,7 @@ function WE-Invoke-BitLockerKeyRemoval {
                 
                 # Resume the BitLocker encryption process
                 Write-LogEntry -Value " [BitLocker Protection] - Resuming BitLocker encryption on volumes in a degraded state or where protection is disabled." -Severity 1
-                $WEBitLockerVolumes = Get-BitLockerVolume | Where-Object { $_.VolumeStatus -eq " Degraded" -or $_.ProtectionStatus -eq " Off" }
+                $WEBitLockerVolumes = Get-BitLockerVolume -ErrorAction Stop | Where-Object { $_.VolumeStatus -eq " Degraded" -or $_.ProtectionStatus -eq " Off" }
                 if ($WEBitLockerVolumes) {
                     foreach ($WEVolume in $WEBitLockerVolumes) {
                         try {
@@ -195,7 +196,7 @@ function WE-Invoke-BitLockerKeyRemoval {
                 }
 
                 # Check if there are any BitLocker volumes with key protectors
-               ;  $WEBitLockerVolumes = Get-BitLockerVolume | Where-Object { $_.KeyProtector -ne $null }
+               ;  $WEBitLockerVolumes = Get-BitLockerVolume -ErrorAction Stop | Where-Object { $_.KeyProtector -ne $null }
 
                 # Force BitLocker key escrow to Entra
                 if ($WEBitLockerVolumes) {
@@ -239,7 +240,7 @@ Write-LogEntry -Value " - Obtaining certificate for BitLocker key retrieval" -Se
 
 try {
     # Retrieve the MS-Organization-Access certificate
-    $WECertificate = Get-ChildItem Cert:\LocalMachine\My | Where-Object { $_.Issuer -like " *MS-Organization-Access*" } | Select-Object -First 1
+    $WECertificate = Get-ChildItem -ErrorAction Stop Cert:\LocalMachine\My | Where-Object { $_.Issuer -like " *MS-Organization-Access*" } | Select-Object -First 1
 } catch {
     Write-LogEntry -Value " [Certificate Error] - MS-Organization-Access certificate not found. $($_.Exception.Message)]" -Severity 3; exit 1
 }

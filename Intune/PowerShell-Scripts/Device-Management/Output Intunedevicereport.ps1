@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Output Intunedevicereport
 
@@ -65,7 +65,7 @@ ForEach ($module in $modules) {
 }
 
 
-$WEDevices = Get-IntuneManagedDevice | `
+$WEDevices = Get-IntuneManagedDevice -ErrorAction Stop | `
     Select-Object -Property userDisplayName, userPrincipalName, emailAddress, deviceName, enrolledDateTime, `
     manufacturer, model, operatingSystem, osVersion, deviceEnrollmentType, lastSyncDateTime, complianceState, deviceCategoryDisplayName, `
     managedDeviceName, managedDeviceOwnerType, deviceRegistrationState, easActivated, azureADRegistered, exchangeAccessState | `

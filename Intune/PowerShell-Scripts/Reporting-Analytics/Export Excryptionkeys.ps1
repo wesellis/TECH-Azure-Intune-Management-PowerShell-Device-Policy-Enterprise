@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Export Excryptionkeys
 
@@ -69,6 +69,7 @@ param(
     # If this is empty, the encryption file will be saved to the same folder as the intunewin file
     $WEExportFolder)
 
+[CmdletBinding()]
 function WE-Export-IntunewinFileObject
 {
     [CmdletBinding()]
@@ -97,6 +98,7 @@ param($file, $objectName, $toFile)
 
 }
 
+[CmdletBinding()]
 function WE-Export-EncryptionKeys
 {
     [CmdletBinding()]
@@ -132,7 +134,7 @@ param(
             { 
                 throw " Detection.xml not exported"
             }            
-            [xml]$WEDetectionXML = Get-Content $tmpFile
+            [xml]$WEDetectionXML = Get-Content -ErrorAction Stop $tmpFile
         }
         catch
         {

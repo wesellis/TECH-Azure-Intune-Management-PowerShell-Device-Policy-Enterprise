@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install Printer
 
@@ -93,6 +93,7 @@ If ($WEENV:PROCESSOR_ARCHITEW6432 -eq " AMD64" ) {
     }
 }
 
+[CmdletBinding()]
 function WE-Write-LogEntry {
     param(
         [parameter(Mandatory = $true)]

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intunegraph Winreporting Script
 
@@ -60,10 +60,12 @@ $WETARGET_UPDATE_PROFILE = Read-Host " Please enter the display name of your Fea
 Write-WELog " `n" " INFO"
 
 
-function WE-Get-GraphPagedResult
+[CmdletBinding()]
+function WE-Get-GraphPagedResult -ErrorAction Stop
 {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -83,7 +85,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 param ([parameter(Mandatory = $true)]$WEHeaders,[parameter(Mandatory = $true)]$WEUri,[Parameter(Mandatory=$false)][switch]$WEVerb)
@@ -115,6 +117,7 @@ Add-Type -AssemblyName System.Web
 
 
 
+[CmdletBinding()]
 function WE-Connect_To_Graph {
     #App registration
     $tenant = " primary-or-federated-domain"
@@ -123,14 +126,14 @@ function WE-Connect_To_Graph {
     $clientSecret = [System.Web.HttpUtility]::UrlEncode($clientSecret)
 
     #Header and body request variables
-    $headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+    $headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add(" Content-Type" , " application/x-www-form-urlencoded" )
     $body = " grant_type=client_credentials&scope=https://graph.microsoft.com/.default"
     $body = $body + -join(" &client_id=" , $clientId, " &client_secret=" , $clientSecret)
     $response = Invoke-RestMethod " https://login.microsoftonline.com/$tenant/oauth2/v2.0/token" -Method 'POST' -Headers $header -Body $body
     $token = -join(" Bearer " , $response.access_token)
     #Reinstantiate headers
-    $headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+    $headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add(" Authorization" , $token)
     $headers.Add(" Content-Type" , " application/json" )
 
@@ -148,7 +151,7 @@ $clientId = " APPLICATION-ID"
 $WEAccessToken = Get-MsalToken -TenantId $tenant -ClientId $clientId -ForceRefresh
 $authHeader = $WEAccessToken.CreateAuthorizationHeader()
 
-$headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+$headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
 
 $headers.Add(" Content-Type" , " application/json" )
 $headers.Add(" Authorization" , " $($authHeader)" )
@@ -313,7 +316,7 @@ if($WETARGET_UPDATE_PROFILE -eq 'All')
 
         if(Test-Path " $psscriptroot\data\$trimmedProfileName" )
         {
-            Remove-Item " -Force $psscriptroot\data\$trimmedProfileName" -Force -Recurse
+            Remove-Item -ErrorAction Stop " -Force $psscriptroot\data\$trimmedProfileName" -Force -Recurse
         }
 
         New-Item -Path " $psscriptroot\data" -Name " $trimmedProfileName" -ItemType " directory"
@@ -401,7 +404,7 @@ else
 
     if(Test-Path " $psscriptroot\data\$trimmedProfileName" )
     {
-            Remove-Item " -Force $psscriptroot\data\$trimmedProfileName" -Force -Recurse
+            Remove-Item -ErrorAction Stop " -Force $psscriptroot\data\$trimmedProfileName" -Force -Recurse
     }
 
     New-Item -Path " $psscriptroot\data" -Name " $trimmedProfileName" -ItemType " directory"
@@ -629,7 +632,7 @@ foreach($device in $intuneDevices)
     $usersLoggedOn = $device.usersLoggedOn.userId
 
     #Group memberships of device
-    write-host " Getting generic device profile of $deviceSerial..."
+    Write-Information " Getting generic device profile of $deviceSerial..."
     $deviceNormalProfile = (Invoke-RestMethod " https://graph.microsoft.com/beta/devices?`$filter=displayName eq '$($deviceName)'" -Method " GET" -Headers $headers).value
 
     if($null -eq $deviceNormalProfile){
@@ -652,7 +655,7 @@ foreach($device in $intuneDevices)
         $deviceAzureObjId = $deviceNormalProfile.id
     }
 
-    write-host " Getting group memberships of device $deviceSerial..."
+    Write-Information " Getting group memberships of device $deviceSerial..."
     $deviceGroupSearch = Invoke-RestMethod " https://graph.microsoft.com/beta/devices/$($deviceAzureObjId)/memberOf" -Method " GET" -Headers $headers
     $deviceGroupValue = $deviceGroupSearch.value
     $deviceGroups = @()
@@ -677,7 +680,7 @@ foreach($device in $intuneDevices)
     }
 
     # get list of all compliance policies of this particular device
-    write-host " Getting compliance policy for device $deviceSerial ..."
+    Write-Information " Getting compliance policy for device $deviceSerial ..."
     $deviceCompliancePolicy = (Invoke-RestMethod " https://graph.microsoft.com/beta/deviceManagement/managedDevices('$deviceId')/deviceCompliancePolicyStates" -Method " GET" -Headers $headers).value
     $deviceComplianceStatus_Detailed = $null
     $settingArray = @()
@@ -691,7 +694,7 @@ foreach($device in $intuneDevices)
 
             $windowsPolicyFound = $WETrue
            ;  $deviceComplianceId = $policy.id
-            write-host " Getting compliance settings states for device $deviceName..."
+            Write-Information " Getting compliance settings states for device $deviceName..."
            ;  $deviceComplianceStatus_Detailed = (Invoke-RestMethod " https://graph.microsoft.com/beta/deviceManagement/managedDevices('$deviceId')/deviceCompliancePolicyStates('$deviceComplianceId')/settingStates" -Method " GET" -Headers $headers).value
             $deviceComplianceStatus_Detailed | Select @{n = 'deviceName'; e = { $deviceName } }, state, setting
 
@@ -733,7 +736,7 @@ foreach($device in $intuneDevices)
         {
             $defaultPolicyFound = $true
            ;  $deviceComplianceId = $policy.id
-            write-host " Getting compliance settings states for device $deviceName..."
+            Write-Information " Getting compliance settings states for device $deviceName..."
            ;  $deviceComplianceStatus_Detailed = (Invoke-RestMethod " https://graph.microsoft.com/beta/deviceManagement/managedDevices('$deviceId')/deviceCompliancePolicyStates('$deviceComplianceId')/settingStates" -Method " GET" -Headers $headers).value
             $deviceComplianceStatus_Detailed | Select @{n = 'deviceName'; e = { $deviceName } }, state, setting
 
@@ -847,7 +850,7 @@ foreach($device in $intuneDevices)
         'Health Attestation Support' = $deviceHealthAttestationSupportStatus
     }
 
-    $outarray = $outarray + New-Object PsObject -property $record
+    $outarray = $outarray + New-Object -ErrorAction Stop PsObject -property $record
 
     #Each device sets off 6 calls.  1500 devices is 9000 calls.  Rest for 10 seconds.  Process time for one device is estimated at 1-2 seconds.
     #This means 1500 devices take approximately 1500 seconds, or 25 minutes.  Graph limit window is 10,000 calls per 10 minutes.  Resting is to make the window absolute and to not interfere in company business.

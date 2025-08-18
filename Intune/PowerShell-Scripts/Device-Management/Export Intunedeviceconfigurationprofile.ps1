@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Export Intunedeviceconfigurationprofile
 
@@ -145,7 +145,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
             $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
@@ -196,7 +196,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Get-ErrorResponseBody {
+    [CmdletBinding()]
+function WE-Get-ErrorResponseBody -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -207,7 +208,7 @@ param(
 
         # Read the error stream
         $WEErrorResponseStream = $WEException.Response.GetResponseStream()
-        $WEStreamReader = New-Object System.IO.StreamReader($WEErrorResponseStream)
+        $WEStreamReader = New-Object -ErrorAction Stop System.IO.StreamReader($WEErrorResponseStream)
         $WEStreamReader.BaseStream.Position = 0
         $WEStreamReader.DiscardBufferedData()
         $WEResponseBody = $WEStreamReader.ReadToEnd()
@@ -216,7 +217,8 @@ param(
         return $WEResponseBody
     }
 
-    function WE-Invoke-IntuneGraphRequest {
+    [CmdletBinding()]
+function WE-Invoke-IntuneGraphRequest {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -230,7 +232,7 @@ param(
 
             # Call Graph API and get JSON response
             $WEGraphResponse = Invoke-RestMethod -Uri $WEURI -Headers $WEAuthToken -Method Get -ErrorAction Stop -Verbose:$false
-            if ($WEGraphResponse -ne $null) {
+            if ($null -ne $WEGraphResponse) {
                 if ($WEGraphResponse.value -ne $null) {
                     foreach ($WEResponse in $WEGraphResponse.value) {
                         $WEResponseList.Add($WEResponse) | Out-Null
@@ -254,7 +256,8 @@ param(
         }
     }    
 
-    function WE-Export-JSON {
+    [CmdletBinding()]
+function WE-Export-JSON {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -307,7 +310,8 @@ param(
         }
     }
 
-    function WE-Get-IntuneDeviceConfigurationProfile {
+    [CmdletBinding()]
+function WE-Get-IntuneDeviceConfigurationProfile -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -324,7 +328,7 @@ param(
         $WEResponseList = New-Object -TypeName System.Collections.ArrayList
         $WEGraphResponse = Invoke-IntuneGraphRequest -URI $WEGraphURI
 
-        if ($WEGraphResponse -ne $null) {
+        if ($null -ne $WEGraphResponse) {
             foreach ($WEResponseItem in $WEGraphResponse) {
                 switch -Regex ($WEResponseItem.'@odata.type') {
                     " microsoft.graph.androidDeviceOwner" {
@@ -351,7 +355,8 @@ param(
         return $WEResponseList
     }    
 
-    function WE-Get-IntuneAdministrativeTemplateProfiles {
+    [CmdletBinding()]
+function WE-Get-IntuneAdministrativeTemplateProfiles -ErrorAction Stop {
         # Construct Graph variables
         $WEGraphVersion = " beta"
         $WEGraphResource = " deviceManagement/groupPolicyConfigurations"
@@ -369,7 +374,8 @@ param(
         return $WEResponseList
     }
 
-    function WE-Get-IntuneAdministrativeTemplateDefinitionValues {
+    [CmdletBinding()]
+function WE-Get-IntuneAdministrativeTemplateDefinitionValues -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -386,7 +392,8 @@ param(
         Invoke-IntuneGraphRequest -URI $WEGraphURI
     }
 
-    function WE-Get-IntuneAdministrativeTemplateDefinitionValuesPresentationValues {
+    [CmdletBinding()]
+function WE-Get-IntuneAdministrativeTemplateDefinitionValuesPresentationValues -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -411,7 +418,8 @@ param(
         Invoke-IntuneGraphRequest -URI $WEGraphURI
     }
 
-    function WE-Get-IntuneAdministrativeTemplateDefinitionValuesDefinition {
+    [CmdletBinding()]
+function WE-Get-IntuneAdministrativeTemplateDefinitionValuesDefinition -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -436,7 +444,8 @@ param(
         Invoke-IntuneGraphRequest -URI $WEGraphURI
     }
 
-    function WE-Get-IntuneAdministrativeTemplateDefinitionsPresentations {
+    [CmdletBinding()]
+function WE-Get-IntuneAdministrativeTemplateDefinitionsPresentations -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -480,7 +489,7 @@ param(
 
         # Retrieve all device configuration administrative templates for current platform
         if ($WEPlatformItem -like " Windows" ) {
-            $WEAdministrativeTemplateProfiles = Get-IntuneAdministrativeTemplateProfiles
+            $WEAdministrativeTemplateProfiles = Get-IntuneAdministrativeTemplateProfiles -ErrorAction Stop
             if (($WEAdministrativeTemplateProfiles | Measure-Object).Count -ge 1) {
                 foreach ($WEAdministrativeTemplateProfile in $WEAdministrativeTemplateProfiles) {
                     Write-Verbose -Message " Exporting administrative template with name: $($WEAdministrativeTemplateProfile.displayName)"

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Getforcednetworkflag
 
@@ -58,7 +58,7 @@ limitations under the License.
 
 <#
 .Synopsis
-   Get-UEFIforcedNetworkFlag is used to get FORCED_NETWORK_FLAG value.
+   Get-UEFIforcedNetworkFlag -ErrorAction Stop is used to get FORCED_NETWORK_FLAG value.
 .DESCRIPTION
    1- Add this script in https://endpoint.microsoft.com/->Home->->Reports->Endpoint Analytics->Proactive Remediation->Create Script Package
    2- output is available in https://endpoint.microsoft.com/->Home->Reports->Endpoint Analytics->script name->Device Status->Pre-remediation detection output(Add Column if not visible)
@@ -83,7 +83,8 @@ $definition = @'
 
 $uefiNative = Add-Type $definition -PassThru
 
-function WE-Get-UEFIforcedNetworkFlag
+[CmdletBinding()]
+function WE-Get-UEFIforcedNetworkFlag -ErrorAction Stop
 {
 
     [cmdletbinding()]  
@@ -114,7 +115,7 @@ param(
     }
     PROCESS {
         $size = 1024
-        $result = New-Object Byte[](1024)
+        $result = New-Object -ErrorAction Stop Byte[](1024)
         $rc = $uefiNative[0]::GetFirmwareEnvironmentVariableA($WEVariableName, $WENamespace, $result, $size)
         if ($rc -eq 0)
         {
@@ -162,7 +163,8 @@ param(
     }
 }
 
-function WE-Set-Privilege
+[CmdletBinding()]
+function WE-Set-Privilege -ErrorAction Stop
 {   
 [cmdletbinding(  
     ConfirmImpact = 'low',
@@ -262,7 +264,7 @@ PROCESS {
 
 END { Write-Verbose " Function ${CmdletName} finished." }
 
-} # end Function Set-Privilege
+} # end Function Set-Privilege -ErrorAction Stop
 
 Write-Host(Get-UEFIforcedNetworkFlag -VariableName FORCED_NETWORK_FLAG -Namespace " {616e2ea6-af89-7eb3-f2ef-4e47368a657b}" -AsByteArray)
 

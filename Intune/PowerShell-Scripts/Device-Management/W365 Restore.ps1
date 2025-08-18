@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     W365 Restore
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -55,6 +56,7 @@ param([Parameter(Mandatory=$false)]
 $WEErrorActionPreference = " Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
+[CmdletBinding()]
 function log
 {
     [CmdletBinding()]
@@ -85,7 +87,7 @@ $WEFileShare = " <FILESHARE NAME>"
 
 
 $WECurrentUser = (Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object UserName).UserName
-$WECurrentUserSID = (New-Object System.Security.Principal.NTAccount($WECurrentUser)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+$WECurrentUserSID = (New-Object -ErrorAction Stop System.Security.Principal.NTAccount($WECurrentUser)).Translate([System.Security.Principal.SecurityIdentifier]).Value
 log " Current user: $($WECurrentUser)"
 log " Current user SID: $($WECurrentUserSID)"
 

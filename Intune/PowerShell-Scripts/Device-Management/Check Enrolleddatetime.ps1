@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Check Enrolleddatetime
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -199,13 +195,13 @@ This function is used to get AAD Users from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any users registered with AAD
 .EXAMPLE
-Get-AADUser
+Get-AADUser -ErrorAction Stop
 Returns all users registered with Azure AD
 .EXAMPLE
 Get-AADUser -userPrincipleName user@domain.com
 Returns specific user by UserPrincipalName registered with Azure AD
 .NOTES
-NAME: Get-AADUser
+NAME: Get-AADUser -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -223,7 +219,7 @@ $WEUser_resource = " users"
     
     try {
         
-        if($userPrincipalName -eq "" -or $userPrincipalName -eq $null){
+        if($userPrincipalName -eq "" -or $null -eq $userPrincipalName){
         
         $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)"
         (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -232,7 +228,7 @@ $WEUser_resource = " users"
 
         else {
             
-            if($WEProperty -eq "" -or $WEProperty -eq $null){
+            if($WEProperty -eq "" -or $null -eq $WEProperty){
 
             $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)/$userPrincipalName"
             Write-Verbose $uri
@@ -256,14 +252,13 @@ $WEUser_resource = " users"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -273,10 +268,7 @@ $WEUser_resource = " users"
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -286,19 +278,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
 
-            # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -307,15 +295,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -332,12 +318,9 @@ $minutesago = " {0:s}" -f (get-date).addminutes(0-$minutes) + " Z"
 
 $WECurrentTime = [System.DateTimeOffset]::Now
 
-write-host " Checking if any Intune Managed Device Enrolled Date is within or equal to $minutes minutes..." -f Yellow
-Write-Host
-write-host " Minutes Ago:" $minutesago -f Magenta
-Write-Host
-
-    try {
+Write-Information " Checking if any Intune Managed Device Enrolled Date is within or equal to $minutes minutes..." -f Yellow
+Write-Information Write-Information " Minutes Ago:" $minutesago -f Magenta
+Write-Information try {
 
     $uri = " https://graph.microsoft.com/beta/deviceManagement/managedDevices?`$filter=enrolledDateTime ge $minutesago"
 
@@ -355,30 +338,26 @@ Write-Host
 
         $WEDevices | foreach { $_.deviceName + " - " + ($_.managementAgent).toupper() + " - " + $_.userPrincipalName + " - " + $_.enrolledDateTime }
 
-        Write-Host
-
-            # Looping through all the devices returned
+        Write-Information # Looping through all the devices returned
                        
             foreach($WEDevice in $WEDevices){
 
-            write-host " ------------------------------------------------------------------"
-            Write-Host
-
-            $WEDeviceID = $WEDevice.id
+            Write-Information " ------------------------------------------------------------------"
+            Write-Information $WEDeviceID = $WEDevice.id
             $WELSD = $WEDevice.lastSyncDateTime
             $WEEDT = $WEDevice.enrolledDateTime
 
-            write-host " Device Name:" $WEDevice.deviceName -f Green
-            write-host " Management State:" $WEDevice.managementState
-            write-host " Operating System:" $WEDevice.operatingSystem
-            write-host " Device Type:" $WEDevice.deviceType
-            write-host " Last Sync Date Time:" $WEDevice.lastSyncDateTime
-            write-host " Enrolled Date Time:" $WEDevice.enrolledDateTime
-            write-host " Jail Broken:" $WEDevice.jailBroken
-            write-host " Compliance State:" $WEDevice.complianceState
-            write-host " Enrollment Type:" $WEDevice.enrollmentType
-            write-host " AAD Registered:" $WEDevice.aadRegistered
-            write-host " Management Agent:" $WEDevice.managementAgent
+            Write-Information " Device Name:" $WEDevice.deviceName -f Green
+            Write-Information " Management State:" $WEDevice.managementState
+            Write-Information " Operating System:" $WEDevice.operatingSystem
+            Write-Information " Device Type:" $WEDevice.deviceType
+            Write-Information " Last Sync Date Time:" $WEDevice.lastSyncDateTime
+            Write-Information " Enrolled Date Time:" $WEDevice.enrolledDateTime
+            Write-Information " Jail Broken:" $WEDevice.jailBroken
+            Write-Information " Compliance State:" $WEDevice.complianceState
+            Write-Information " Enrollment Type:" $WEDevice.enrollmentType
+            Write-Information " AAD Registered:" $WEDevice.aadRegistered
+            Write-Information " Management Agent:" $WEDevice.managementAgent
 
             $WEEnrolledTime = [datetimeoffset]::Parse($WEEDT)
 
@@ -386,37 +365,29 @@ Write-Host
 
             $WETotalMinutes = ($WETimeDifference.TotalMinutes).tostring().split(" ." )[0]
 
-            write-host
-            write-host " Date Time difference is" $WETotalMinutes " minutes from current date time..." -ForegroundColor Yellow
-            Write-Host
-
-            }
+            Write-Information Write-Information " Date Time difference is" $WETotalMinutes " minutes from current date time..."
+            Write-Information }
 
         }
 
         else {
 
-        write-host " No Devices not checked in the last $minutes minutes found..." -f green
-        Write-Host
-
-        }
+        Write-Information " No Devices not checked in the last $minutes minutes found..." -f green
+        Write-Information }
 
     }
 
     catch {
 
-    Write-Host
-    $ex = $_.Exception
+    Write-Information $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    Write-Host
-
-    break
+    Write-Information break
 
     }
 

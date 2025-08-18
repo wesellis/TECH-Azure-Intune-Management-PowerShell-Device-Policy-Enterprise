@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Update Scepcertificate
 
@@ -59,7 +59,8 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
 
 Process {
     # Functions
-    function WE-Write-CMLogEntry {
+    [CmdletBinding()]
+function WE-Write-CMLogEntry {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -126,10 +127,11 @@ param(
         }
     }
 
-    function WE-Get-SCEPCertificate {
+    [CmdletBinding()]
+function WE-Get-SCEPCertificate -ErrorAction Stop {
         do {
             $WESCEPCertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" | Where-Object { ($_.Subject -match " CN=DESKTOP" ) -or ($_.Subject -match " CN=LAPTOP" ) -or ($_.Subject -match " CN=WIN" ) }
-            if ($WESCEPCertificate -eq $null) {
+            if ($null -eq $WESCEPCertificate) {
                 Write-CMLogEntry -Value " Unable to locate SCEP certificate, waiting 10 seconds before checking again" -Severity 2
                 Start-Sleep -Seconds 10
             }
@@ -138,10 +140,11 @@ param(
                 return $WESCEPCertificate
             }
         }
-        until ($WESCEPCertificate -ne $null)
+        until ($null -ne $WESCEPCertificate)
     }
 
-    function WE-Remove-SCEPCertificate {
+    [CmdletBinding()]
+function WE-Remove-SCEPCertificate -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -154,7 +157,8 @@ param(
         Remove-Item -Path $WEInputObject.PSPath -Force
     }
 
-    function WE-Test-SCEPCertificate {
+    [CmdletBinding()]
+function WE-Test-SCEPCertificate {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -164,20 +168,20 @@ param(
         )
         # Force a manual MDM policy sync
         Write-CMLogEntry -Value " Triggering manual MDM policy sync" -Severity 1
-        Get-ScheduledTask | Where-Object { $_.TaskName -eq " PushLaunch" } | Start-ScheduledTask
+        Get-ScheduledTask -ErrorAction Stop | Where-Object { $_.TaskName -eq " PushLaunch" } | Start-ScheduledTask
 
         # Check if new SCEP issued certificate was successfully installed
         Write-CMLogEntry -Value " Attempting to check if SCEP certificate was successfully installed after a manual MDM policy sync" -Severity 1
         do {
             $WESCEPCertificateInstallEvent = Get-WinEvent -LogName " Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider/Admin" | Where-Object { ($_.Id -like " 39" ) -and ($_.TimeCreated -ge (Get-Date).AddMinutes(-1)) }
         }
-        until ($WESCEPCertificateInstallEvent -ne $null)
+        until ($null -ne $WESCEPCertificateInstallEvent)
         Write-CMLogEntry -Value " SCEP certificate was successfully installed after a manual MDM policy sync, proceeding to validate it's subject name" -Severity 1
 
         # Attempt to locate SCEP issued certificate where the subject name matches either 'DESKTOP', 'LAPTOP' or 'WIN'
         $WESubjectNames = $WESubject -join " |"
         $WESCEPCertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" | Where-Object { $_.Subject -match $WESubjectNames }
-        if ($WESCEPCertificate -eq $null) {
+        if ($null -eq $WESCEPCertificate) {
             Write-CMLogEntry -Value " SCEP certificate subject name does not match, returning failure" -Severity 3
             return $false
         }
@@ -191,8 +195,8 @@ param(
     $WESubjectNames = @(" CN=CL" , " CN=CORP" )
 
     # Attempt to locate and wait for SCEP issued certificate where the subject name matches either 'DESKTOP', 'LAPTOP' or 'WIN'
-   ;  $WESCEPCertificateItem = Get-SCEPCertificate
-    if ($WESCEPCertificateItem -ne $null) {
+   ;  $WESCEPCertificateItem = Get-SCEPCertificate -ErrorAction Stop
+    if ($null -ne $WESCEPCertificateItem) {
         # Remove existing SCEP issues certificate with subject name matching either 'DESKTOP', 'LAPTOP' or 'WIN'
         Remove-SCEPCertificate -InputObject $WESCEPCertificateItem
 

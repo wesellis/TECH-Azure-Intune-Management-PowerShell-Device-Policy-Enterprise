@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install Msintunendesserver
 
@@ -150,7 +150,7 @@ Begin {
     # Get Server Authentication certificate for IIS binding
     try {
        ;  $WEServerAuthenticationCertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" -ErrorAction Stop | Where-Object { ($_.Subject -match $WENDESExternalFQDN) -and ($_.Extensions[" 2.5.29.37" ].EnhancedKeyUsages.FriendlyName.Contains(" Server Authentication" )) }
-        if ($WEServerAuthenticationCertificate -eq $null) {
+        if ($null -eq $WEServerAuthenticationCertificate) {
             Write-Warning -Message " Unable to locate required Server Authentication certificate matching external NDES FQDN" ; break
         }
         else {
@@ -164,7 +164,7 @@ Begin {
     # Get Client Authentication certifcate for Intune Certificate Connector
     try {
         $WEClientAuthenticationCertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" -ErrorAction Stop | Where-Object { ($_.Subject -match $WEServerFQDN) -and ($_.Extensions[" 2.5.29.37" ].EnhancedKeyUsages.FriendlyName.Contains(" Client Authentication" )) }
-        if ($WEClientAuthenticationCertificate -eq $null) {
+        if ($null -eq $WEClientAuthenticationCertificate) {
             Write-Warning -Message " Unable to locate required Client Authentication certificate matching internal NDES server FQDN" ; break
         }
         else {
@@ -180,7 +180,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Test-PSCredential {
+    [CmdletBinding()]
+function WE-Test-PSCredential {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -193,7 +194,7 @@ param(
             try {
                 Add-Type -AssemblyName System.DirectoryServices.AccountManagement -ErrorAction Stop
                 $WEContextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
-                $WEPrincipalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $WEContextType, $env:USERDNSDOMAIN.ToLower()
+                $WEPrincipalContext = New-Object -ErrorAction Stop System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $WEContextType, $env:USERDNSDOMAIN.ToLower()
                 $WEContextOptions = [System.DirectoryServices.AccountManagement.ContextOptions]::Negotiate            
                 if (-not($WEPrincipalContext.ValidateCredentials($WECredential.GetNetworkCredential().UserName, $WECredential.GetNetworkCredential().Password)) -eq $true) {
                     return $false
@@ -262,7 +263,7 @@ param(
 
         # Check if existing ACL exist matching computer account with read permissions
         $WEServerAccessRule = $WEClientAuthenticationACL.Access | Where-Object { ($_.IdentityReference -like $WEServerNTAccountName) -and ($_.FileSystemRights -match " Read" ) }
-        if ($WEServerAccessRule -eq $null) {
+        if ($null -eq $WEServerAccessRule) {
             Write-Verbose -Message " - Could not find existing access rule for computer account with read permission on private key, attempting to delegate permissions"
            ;  $WENTAccountUser = New-Object -TypeName System.Security.Principal.NTAccount($WEServerNTAccountName) -ErrorAction Stop
            ;  $WEFileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule($WENTAccountUser, " Read" , " None" , " None" , " Allow" ) -ErrorAction Stop
@@ -327,7 +328,7 @@ param(
     try {
         Write-Verbose -Message " - Checking if NDES service account is a member of the IIS_IUSRS group"
        ;  $WEIISIUSRSMembers = Get-LocalGroupMember -Group " IIS_IUSRS" -Member $WENDESServiceAccountName -ErrorAction SilentlyContinue
-        if ($WEIISIUSRSMembers -eq $null) {
+        if ($null -eq $WEIISIUSRSMembers) {
             Write-Verbose -Message " - Attempting to add NDES service account to the IIS_IUSRS group"
             Add-LocalGroupMember -Group " IIS_IUSRS" -Member $WENDESServiceAccountName -ErrorAction Stop
             Write-Verbose -Message " - Successfully added NDES service account to the IIS_IUSRS group"
@@ -417,7 +418,7 @@ param(
     try {
         Write-Verbose -Message " - Attempting to create new HTTPS binding for Default Web Site"
         $WEHTTPSWebBinding = Get-WebBinding -Name " Default Web Site" -IPAddress " *" -Port 443 -ErrorAction Stop
-        if ($WEHTTPSWebBinding -eq $null) {
+        if ($null -eq $WEHTTPSWebBinding) {
             New-WebBinding -Name " Default Web Site" -IPAddress " *" -Port 443 -Protocol Https -ErrorAction Stop | Out-Null
             Write-Verbose -Message " - Successfully creating new HTTPS binding for Default Web Site"
             Write-Verbose -Message " - Attempting to set Server Authentication certificate for HTTPS binding"

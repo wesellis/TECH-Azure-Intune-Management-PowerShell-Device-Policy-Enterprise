@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Azure Security Center Compliance Scanner
 
@@ -80,13 +80,13 @@ try {
     Write-ProgressStep -StepNumber 2 -TotalSteps 5 -StepName " Compliance Assessment" -Status " Gathering compliance data"
     
     # Get security assessments
-    $assessments = Get-AzSecurityAssessment
+    $assessments = Get-AzSecurityAssessment -ErrorAction Stop
     
     # Get policy compliance
-    $policyStates = Get-AzPolicyState
+    $policyStates = Get-AzPolicyState -ErrorAction Stop
     
     # Get security score
-    $securityScore = Get-AzSecurityScore
+    $securityScore = Get-AzSecurityScore -ErrorAction Stop
 
     Write-ProgressStep -StepNumber 3 -TotalSteps 5 -StepName " Analysis" -Status " Analyzing compliance status"
     

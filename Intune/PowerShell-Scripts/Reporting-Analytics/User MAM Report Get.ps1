@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     User Mam Report Get
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -199,13 +195,13 @@ This function is used to get AAD Users from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any users registered with AAD
 .EXAMPLE
-Get-AADUser
+Get-AADUser -ErrorAction Stop
 Returns all users registered with Azure AD
 .EXAMPLE
 Get-AADUser -userPrincipleName user@domain.com
 Returns specific user by UserPrincipalName registered with Azure AD
 .NOTES
-NAME: Get-AADUser
+NAME: Get-AADUser -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -223,7 +219,7 @@ $WEUser_resource = " users"
     
     try {
         
-        if($userPrincipalName -eq "" -or $userPrincipalName -eq $null){
+        if($userPrincipalName -eq "" -or $null -eq $userPrincipalName){
         
         $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)"
         (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -232,7 +228,7 @@ $WEUser_resource = " users"
 
         else {
             
-            if($WEProperty -eq "" -or $WEProperty -eq $null){
+            if($WEProperty -eq "" -or $null -eq $WEProperty){
 
             $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)/$userPrincipalName"
             Write-Verbose $uri
@@ -256,14 +252,13 @@ $WEUser_resource = " users"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -279,10 +274,10 @@ This function is used to get AAD Groups from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any Groups registered with AAD
 .EXAMPLE
-Get-AADGroup
+Get-AADGroup -ErrorAction Stop
 Returns all users registered with Azure AD
 .NOTES
-NAME: Get-AADGroup
+NAME: Get-AADGroup -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -308,7 +303,7 @@ $WEGroup_resource = " groups"
 
         }
         
-        elseif($WEGroupName -eq "" -or $WEGroupName -eq $null){
+        elseif($WEGroupName -eq "" -or $null -eq $WEGroupName){
         
         $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)"
         (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -334,9 +329,7 @@ $WEGroup_resource = " groups"
                 $WEGID = $WEGroup.id
 
                 $WEGroup.displayName
-                write-host
-
-                $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
+                Write-Information $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
                 (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
 
                 }
@@ -351,14 +344,13 @@ $WEGroup_resource = " groups"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -374,10 +366,10 @@ This function is used to get managed app policies (AppConfig) from the Graph API
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any managed app policies
 .EXAMPLE
-Get-ManagedAppPolicy
+Get-ManagedAppPolicy -ErrorAction Stop
 Returns any managed app policies configured in Intune
 .NOTES
-NAME: Get-ManagedAppPolicy
+NAME: Get-ManagedAppPolicy -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -403,14 +395,13 @@ $WEResource = " deviceAppManagement/managedAppPolicies"
     
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
     
     }
     
@@ -433,7 +424,7 @@ Returns a managed app protection policy for iOS configured in Intune
 Get-ManagedAppProtection -id $id -OS " WIP_WE"
 Returns a managed app protection policy for Windows 10 without enrollment configured in Intune
 .NOTES
-NAME: Get-ManagedAppProtection
+NAME: Get-ManagedAppProtection -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -449,20 +440,19 @@ $graphApiVersion = " Beta"
 
     try {
     
-        if($id -eq "" -or $id -eq $null){
+        if($id -eq "" -or $null -eq $id){
     
-        write-host " No Managed App Policy id specified, please provide a policy id..." -f Red
+        Write-Information " No Managed App Policy id specified, please provide a policy id..." -f Red
         break
     
         }
     
         else {
     
-            if($WEOS -eq "" -or $WEOS -eq $null){
+            if($WEOS -eq "" -or $null -eq $WEOS){
     
-            write-host " No OS parameter specified, please provide an OS. Supported values are Android,iOS, and Windows..." -f Red
-            Write-Host
-            break
+            Write-Information " No OS parameter specified, please provide an OS. Supported values are Android,iOS, and Windows..." -f Red
+            Write-Information break
     
             }
     
@@ -502,14 +492,13 @@ $graphApiVersion = " Beta"
     
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
     
     }
 
@@ -525,10 +514,10 @@ This function is used to get an application assignment from the Graph API REST i
 .DESCRIPTION
 The function connects to the Graph API Interface and gets an application assignment
 .EXAMPLE
-Get-ApplicationAssignment
+Get-ApplicationAssignment -ErrorAction Stop
 Returns an Application Assignment configured in Intune
 .NOTES
-NAME: Get-ApplicationAssignment
+NAME: Get-ApplicationAssignment -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -546,7 +535,7 @@ $WEResource = " deviceAppManagement/mobileApps/$WEApplicationId/assignments"
 
         if(!$WEApplicationId){
 
-        write-host " No Application Id specified, specify a valid Application Id" -f Red
+        Write-Information " No Application Id specified, specify a valid Application Id" -f Red
         break
 
         }
@@ -564,14 +553,13 @@ $WEResource = " deviceAppManagement/mobileApps/$WEApplicationId/assignments"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -587,10 +575,10 @@ This function is used to get all Mobile App Configuration Policies (managed devi
 .DESCRIPTION
 The function connects to the Graph API Interface and gets all Mobile App Configuration Policies from the itunes store
 .EXAMPLE
-Get-MobileAppConfigurations
+Get-MobileAppConfigurations -ErrorAction Stop
 Gets all Mobile App Configuration Policies configured in the Intune Service
 .NOTES
-NAME: Get-MobileAppConfigurations
+NAME: Get-MobileAppConfigurations -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -611,14 +599,13 @@ $WEResource = " deviceAppManagement/mobileAppConfigurations?`$expand=assignments
     
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
     
     }
     
@@ -634,10 +621,10 @@ This function is used to get all Targeted Managed App Configuration Policies usi
 .DESCRIPTION
 The function connects to the Graph API Interface and gets all Targeted Managed App Configuration Policies from the itunes store
 .EXAMPLE
-Get-TargetedManagedAppConfigurations
+Get-TargetedManagedAppConfigurations -ErrorAction Stop
 Gets all Targeted Managed App Configuration Policies configured in the Intune Service
 .NOTES
-NAME: Get-TargetedManagedAppConfigurations
+NAME: Get-TargetedManagedAppConfigurations -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -675,14 +662,13 @@ $graphApiVersion = " Beta"
     
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
     
     }
     
@@ -698,10 +684,10 @@ This function is used to get applications from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any applications added
 .EXAMPLE
-Get-IntuneApplication
+Get-IntuneApplication -ErrorAction Stop
 Returns any applications configured in Intune
 .NOTES
-NAME: Get-IntuneApplication
+NAME: Get-IntuneApplication -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -747,14 +733,13 @@ $WEResource = " deviceAppManagement/mobileApps"
     $ex = $_.Exception
     Write-WELog " Request to $WEUri failed with HTTP Status $([int]$ex.Response.StatusCode) $($ex.Response.StatusDescription)" " INFO" -f Red
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -770,10 +755,10 @@ This function is used to get MAM applications from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any MAM applications
 .EXAMPLE
-Get-IntuneMAMApplication
+Get-IntuneMAMApplication -ErrorAction Stop
 Returns any MAM applications configured in Intune
 .NOTES
-NAME: Get-IntuneMAMApplication
+NAME: Get-IntuneMAMApplication -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -817,14 +802,13 @@ $WEResource = " deviceAppManagement/mobileApps"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -834,10 +818,7 @@ $WEResource = " deviceAppManagement/mobileApps"
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -847,19 +828,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
 
-            # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -868,15 +845,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -884,21 +859,17 @@ $global:authToken = Get-AuthToken -User $WEUser
 
 
 
-write-host " This script outputs the Intune app protection policies and application configuration policies assigned to a user."
-Write-Host
+Write-Information " This script outputs the Intune app protection policies and application configuration policies assigned to a user."
+Write-Information Write-Warning " This script doesn't support configurations applied to nested group members"
 
-Write-Warning " This script doesn't support configurations applied to nested group members"
-
-Write-Host
-write-host " Enter the UPN:" -f Yellow
+Write-Information write-host " Enter the UPN:" -f Yellow
 $WEUPN = Read-Host
 
-if($WEUPN -eq $null -or $WEUPN -eq "" ){
+if($null -eq $WEUPN -or $WEUPN -eq "" ){
 
-    write-host " User Principal Name is Null..." -ForegroundColor Red
+    Write-Information " User Principal Name is Null..."
     Write-WELog " Script can't continue..." " INFO" -ForegroundColor Red
-    Write-Host
-    break
+    Write-Information break
 
 }
 
@@ -908,18 +879,11 @@ if(!$WEUser){ break }
 
 $WEUserID = $WEUser.id
 
-write-host
-write-host " -------------------------------------------------------------------"
-Write-Host
-write-host " Display Name:" $WEUser.displayName
-write-host " User Principal Name:" $WEUser.userPrincipalName
-Write-Host
-write-host " -------------------------------------------------------------------"
-write-host
-
-
-
-$WEOSChoices = " Android" ," iOS"
+Write-Information Write-Information " -------------------------------------------------------------------"
+Write-Information Write-Information " Display Name:" $WEUser.displayName
+Write-Information " User Principal Name:" $WEUser.userPrincipalName
+Write-Information Write-Information " -------------------------------------------------------------------"
+Write-Information $WEOSChoices = " Android" ," iOS"
 
 
 ; 
@@ -931,14 +895,12 @@ $WEOSChoicesCount = " 2"
     { Write-WELog " $i. $($WEOSChoices[$i-1])" " INFO" 
     $menu.Add($i,($WEOSChoices[$i-1]))}
 
-    Write-Host
-    $ans = Read-Host 'Choose an OS (numerical value)'
+    Write-Information $ans = Read-Host 'Choose an OS (numerical value)'
 
-    if($ans -eq "" -or $ans -eq $null){
+    if($ans -eq "" -or $null -eq $ans){
 
     Write-WELog " OS choice can't be null, please specify a valid OS..." " INFO" -ForegroundColor Red
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -955,8 +917,7 @@ $WEOSChoicesCount = " 2"
         else {
 
             Write-WELog " OS choice selection invalid, please specify a valid OS..." " INFO" -ForegroundColor Red
-            Write-Host
-            break
+            Write-Information break
 
         }
 
@@ -965,16 +926,11 @@ $WEOSChoicesCount = " 2"
     else {
 
         Write-WELog " OS choice not an integer, please specify a valid OS..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information break
 
     }
 
-    Write-Host
-
-
-
-$WEMemberOf = Get-AADUser -userPrincipalName $WEUPN -Property MemberOf
+    Write-Information $WEMemberOf = Get-AADUser -userPrincipalName $WEUPN -Property MemberOf
 
 $WEAADGroups = $WEMemberOf | ? { $_.'@odata.type' -eq " #microsoft.graph.group" }
 
@@ -982,14 +938,10 @@ $WEAADGroups = $WEMemberOf | ? { $_.'@odata.type' -eq " #microsoft.graph.group" 
 
 
 
-write-host " -------------------------------------------------------------------"
-Write-Host
-Write-WELog " App Protection Policies: $WEOS" " INFO" -ForegroundColor Cyan
-Write-Host
-write-host " -------------------------------------------------------------------"
-Write-Host
-
-$WEManagedAppPolicies = Get-ManagedAppPolicy | ? {$_.'@odata.type' -like " *$os*" }
+Write-Information " -------------------------------------------------------------------"
+Write-Information Write-WELog " App Protection Policies: $WEOS" " INFO"
+Write-Information Write-Information " -------------------------------------------------------------------"
+Write-Information $WEManagedAppPolicies = Get-ManagedAppPolicy -ErrorAction Stop | ? {$_.'@odata.type' -like " *$os*" }
 
 if($WEManagedAppPolicies){
 
@@ -1028,10 +980,10 @@ $WEAssignmentCount = 0
 
                             }
 
-                    write-host " Policy name: " -NoNewline
-                    write-host $WEAndroidManagedAppProtection.displayname -ForegroundColor Green
-                    write-host " Group assigned: " -NoNewline
-                    write-host (get-aadgroup -id $WEGroupID).displayname
+                    Write-Information " Policy name: " -NoNewline
+                    Write-Information $WEAndroidManagedAppProtection.displayname -ForegroundColor Green
+                    Write-Information " Group assigned: " -NoNewline
+                    Write-Information (get-aadgroup -id $WEGroupID).displayname
 
                     if($WEGroupTargetType -eq " exclusionGroupAssignmentTarget" ){
                     
@@ -1047,8 +999,7 @@ $WEAssignmentCount = 0
                     
                     }
 
-                    Write-Host
-                    Write-WELog " Targeted Apps:" " INFO" -ForegroundColor Yellow
+                    Write-Information Write-WELog " Targeted Apps:" " INFO"
 
                     foreach($WEMAMApp in $WEMAMApps){
 
@@ -1059,21 +1010,17 @@ $WEAssignmentCount = 0
 
                     }
 
-                    Write-Host
-                    Write-WELog " Configuration Settings:" " INFO" -ForegroundColor Yellow
+                    Write-Information Write-WELog " Configuration Settings:" " INFO"
                     Write-WELog " Targeted management type: $WEManagementType" " INFO"
                     Write-WELog " Jailbroken/rooted devices blocked: $($WEAndroidManagedAppProtection.deviceComplianceRequired)" " INFO"
                     Write-WELog " Min OS version: $($WEAndroidManagedAppProtection.minimumRequiredOsVersion)" " INFO"
                     Write-WELog " Min patch version: $($WEAndroidManagedAppProtection.minimumRequiredPatchVersion)" " INFO"
                     Write-WELog " Allowed device manufacturer(s): $($WEAndroidManagedAppProtection.allowedAndroidDeviceManufacturers)" " INFO"
-                    write-host " Require managed browser: $($WEAndroidManagedAppProtection.managedBrowserToOpenLinksRequired)"
+                    Write-Information " Require managed browser: $($WEAndroidManagedAppProtection.managedBrowserToOpenLinksRequired)"
                     Write-WELog " Contact sync blocked: $($WEAndroidManagedAppProtection.contactSyncBlocked)" " INFO"
                     Write-WELog " Printing blocked: $($WEAndroidManagedAppProtection.printblocked)" " INFO"
-                    Write-Host
-                    write-host " -------------------------------------------------------------------"
-                    write-host
-                    
-                    }
+                    Write-Information Write-Information " -------------------------------------------------------------------"
+                    Write-Information }
                 
                 }
 
@@ -1112,10 +1059,10 @@ $WEAssignmentCount = 0
 
                             }
 
-                    write-host " Policy name: " -NoNewline
-                    write-host $iOSManagedAppProtection.displayname -ForegroundColor Green
-                    write-host " Group assigned: " -NoNewline
-                    write-host (get-aadgroup -id $WEGroupID).displayname
+                    Write-Information " Policy name: " -NoNewline
+                    Write-Information $iOSManagedAppProtection.displayname -ForegroundColor Green
+                    Write-Information " Group assigned: " -NoNewline
+                    Write-Information (get-aadgroup -id $WEGroupID).displayname
 
                     if($WEGroupTargetType -eq " exclusionGroupAssignmentTarget" ){
                     
@@ -1131,8 +1078,7 @@ $WEAssignmentCount = 0
                     
                     }
 
-                    Write-Host
-                    Write-WELog " Targeted Apps:" " INFO" -ForegroundColor Yellow
+                    Write-Information Write-WELog " Targeted Apps:" " INFO"
 
                     foreach($WEMAMApp in $WEMAMApps){
 
@@ -1143,21 +1089,17 @@ $WEAssignmentCount = 0
 
                     }
 
-                    Write-Host
-                    Write-WELog " Configuration Settings:" " INFO" -ForegroundColor Yellow
+                    Write-Information Write-WELog " Configuration Settings:" " INFO"
                     Write-WELog " Targeted management type: $WEManagementType" " INFO"
                     Write-WELog " Jailbroken/rooted devices blocked: $($iOSManagedAppProtection.deviceComplianceRequired)" " INFO"
                     Write-WELog " Min OS version: $($iOSManagedAppProtection.minimumRequiredOsVersion)" " INFO"
                     Write-WELog " Allowed device model(s): $($iOSManagedAppProtection.allowedIosDeviceModels)" " INFO"
-                    write-host " Require managed browser: $($iOSManagedAppProtection.managedBrowserToOpenLinksRequired)"
+                    Write-Information " Require managed browser: $($iOSManagedAppProtection.managedBrowserToOpenLinksRequired)"
                     Write-WELog " Contact sync blocked: $($iOSManagedAppProtection.contactSyncBlocked)" " INFO"
                     Write-WELog " FaceId blocked: $($iOSManagedAppProtection.faceIdBlocked)" " INFO"
                     Write-WELog " Printing blocked: $($iOSManagedAppProtection.printblocked)" " INFO"
-                    Write-Host
-                    write-host " -------------------------------------------------------------------"
-                    write-host
-
-                    }
+                    Write-Information Write-Information " -------------------------------------------------------------------"
+                    Write-Information }
 
                 }
 
@@ -1170,22 +1112,16 @@ $WEAssignmentCount = 0
     if($WEAssignmentCount -eq 0){
 
         Write-WELog " No $WEOS App Protection Policies Assigned..." " INFO"
-        Write-Host
-        write-host " -------------------------------------------------------------------"
-        write-host
-
-    }
+        Write-Information Write-Information " -------------------------------------------------------------------"
+        Write-Information }
 
 }
 
 else {
 
     Write-WELog " No $WEOS App Protection Policies Exist..." " INFO"
-    Write-Host
-    write-host " -------------------------------------------------------------------"
-    write-host
-
-}
+    Write-Information Write-Information " -------------------------------------------------------------------"
+    Write-Information }
 
 
 
@@ -1194,11 +1130,8 @@ else {
 
 
 Write-WELog " App Configuration Policies: Managed Apps" " INFO" -ForegroundColor Cyan
-Write-Host
-write-host " -------------------------------------------------------------------"
-Write-Host
-
-$WETargetedManagedAppConfigurations = Get-TargetedManagedAppConfigurations
+Write-Information Write-Information " -------------------------------------------------------------------"
+Write-Information $WETargetedManagedAppConfigurations = Get-TargetedManagedAppConfigurations -ErrorAction Stop
 
 $WETMACAssignmentCount = 0
 
@@ -1225,10 +1158,10 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
                 $WEGroupID = $WEGroup.target.GroupId
                 $WEGroupTargetType = $WEGroup.target.'@odata.type'.split(" ." )[-1]
 
-                write-host " Policy name: " -NoNewline
-                write-host $WEManagedAppConfiguration.displayname -ForegroundColor Green
-                write-host " Group assigned: " -NoNewline
-                write-host (get-aadgroup -id $WEGroupID).displayname
+                Write-Information " Policy name: " -NoNewline
+                Write-Information $WEManagedAppConfiguration.displayname -ForegroundColor Green
+                Write-Information " Group assigned: " -NoNewline
+                Write-Information (get-aadgroup -id $WEGroupID).displayname
 
                 if($WEGroupTargetType -eq " exclusionGroupAssignmentTarget" ){
                     
@@ -1244,8 +1177,7 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
                     
                 }
 
-                Write-Host
-                Write-WELog " Targeted Apps:" " INFO" -ForegroundColor Yellow
+                Write-Information Write-WELog " Targeted Apps:" " INFO"
 
                 foreach($WEMAMApp in $WEMAMApps){
 
@@ -1255,13 +1187,13 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
                         
                         if($WEAppName.'@odata.type' -like " *$WEOS*" ){
 
-                            Write-Host $WEAppName.displayName " -" $WEAppName.'@odata.type' -ForegroundColor Green
+                            Write-Information $WEAppName.displayName " -" $WEAppName.'@odata.type' -ForegroundColor Green
                         
                         }
                         
                         else {
                         
-                            Write-Host $WEAppName.displayName " -" $WEAppName.'@odata.type'
+                            Write-Information $WEAppName.displayName " -" $WEAppName.'@odata.type'
                         
                         }
 
@@ -1273,13 +1205,13 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
                         
                         if($WEAppName.'@odata.type' -like " *$WEOS*" ){
 
-                            Write-Host $WEAppName.displayName " -" $WEAppName.'@odata.type' -ForegroundColor Green
+                            Write-Information $WEAppName.displayName " -" $WEAppName.'@odata.type' -ForegroundColor Green
                         
                         }
                         
                         else {
                         
-                            Write-Host $WEAppName.displayName " -" $WEAppName.'@odata.type'
+                            Write-Information $WEAppName.displayName " -" $WEAppName.'@odata.type'
                         
                         }
                     
@@ -1287,8 +1219,7 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
 
                 }
 
-                Write-Host
-                Write-WELog " Configuration Settings:" " INFO" -ForegroundColor yellow
+                Write-Information Write-WELog " Configuration Settings:" " INFO"
 
                 $WEExcludeGroup = $WEGroup.target.'@odata.type'
                 
@@ -1324,9 +1255,8 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
                                 
                             $value = $WEValue.replace(" |" ," , " )
 
-                            Write-Host
-                            Write-WELog " $($WEName):" " INFO" -ForegroundColor Yellow
-                            Write-Host $($WEValue)
+                            Write-Information Write-WELog " $($WEName):" " INFO"
+                            Write-Information $($WEValue)
                                 
                         }
 
@@ -1338,11 +1268,8 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
 
                     }
 
-                Write-Host
-                write-host " -------------------------------------------------------------------"
-                write-host
-
-                }   
+                Write-Information Write-Information " -------------------------------------------------------------------"
+                Write-Information }   
 
             }
 
@@ -1353,22 +1280,16 @@ $WETMACCount = @($WETargetedManagedAppConfigurations).count
     if($WETMACAssignmentCount -eq 0){
 
         Write-WELog " No $WEOS App Configuration Policies: Managed Apps Assigned..." " INFO"
-        Write-Host
-        write-host " -------------------------------------------------------------------"
-        write-host
-
-    }
+        Write-Information Write-Information " -------------------------------------------------------------------"
+        Write-Information }
 
 }
 
 else {
 
     Write-WELog " No $WEOS App Configuration Policies: Managed Apps Exist..." " INFO"
-    Write-Host
-    write-host " -------------------------------------------------------------------"
-    write-host
-
-}
+    Write-Information Write-Information " -------------------------------------------------------------------"
+    Write-Information }
 
 
 
@@ -1377,11 +1298,8 @@ else {
 
 
 Write-WELog " App Configuration Policies: Managed Devices" " INFO" -ForegroundColor Cyan
-Write-Host
-write-host " -------------------------------------------------------------------"
-Write-Host
-
-$WEAppConfigurations = Get-MobileAppConfigurations | ? { $_.'@odata.type' -like " *$WEOS*" }
+Write-Information Write-Information " -------------------------------------------------------------------"
+Write-Information $WEAppConfigurations = Get-MobileAppConfigurations -ErrorAction Stop | ? { $_.'@odata.type' -like " *$WEOS*" }
 
 $WEMACAssignmentCount = 0
 
@@ -1400,10 +1318,10 @@ if($WEAppConfigurations){
                 $WEGroupID = $WEGroup.target.GroupId
                 $WEGroupTargetType = $WEGroup.target.'@odata.type'.split(" ." )[-1]
 
-                write-host " Policy name: " -NoNewline
-                write-host $WEAppConfiguration.displayname -ForegroundColor Green
-                write-host " Group assigned: " -NoNewline
-                write-host (get-aadgroup -id $WEGroupID).displayname
+                Write-Information " Policy name: " -NoNewline
+                Write-Information $WEAppConfiguration.displayname -ForegroundColor Green
+                Write-Information " Group assigned: " -NoNewline
+                Write-Information (get-aadgroup -id $WEGroupID).displayname
 
                 if($WEGroupTargetType -eq " exclusionGroupAssignmentTarget" ){
                     
@@ -1420,11 +1338,9 @@ if($WEAppConfigurations){
                 }
 
                 $WETargetedApp = Get-IntuneApplication -id $WEAppConfiguration.targetedMobileApps
-                Write-Host
-                Write-WELog " Targeted Mobile App:" " INFO" -ForegroundColor Yellow
-                Write-Host $WETargetedApp.displayName " -" $WETargetedApp.'@odata.type'
-                Write-Host
-                Write-WELog " Configuration Settings:" " INFO" -ForegroundColor yellow
+                Write-Information Write-WELog " Targeted Mobile App:" " INFO"
+                Write-Information $WETargetedApp.displayName " -" $WETargetedApp.'@odata.type'
+                Write-Information Write-WELog " Configuration Settings:" " INFO"
 
                 $WEExcludeGroup = $WEGroup.target.'@odata.type'
 
@@ -1498,11 +1414,8 @@ if($WEAppConfigurations){
 
                 }
 
-                Write-Host
-                write-host " -------------------------------------------------------------------"
-                write-host
-
-                }
+                Write-Information Write-Information " -------------------------------------------------------------------"
+                Write-Information }
 
             }            
      
@@ -1513,32 +1426,22 @@ if($WEAppConfigurations){
     if($WEMACAssignmentCount -eq 0){
 
         Write-WELog " No $WEOS App Configuration Policies: Managed Devices Assigned..." " INFO"
-        Write-Host
-        write-host " -------------------------------------------------------------------"
-        write-host
-
-    }
+        Write-Information Write-Information " -------------------------------------------------------------------"
+        Write-Information }
 
 }
 
 else {
 
     Write-WELog " No $WEOS App Configuration Policies: Managed Devices Exist..." " INFO" 
-    Write-Host
-
-}
+    Write-Information }
 
 
 
 
 
 Write-WELog " Evaluation complete..." " INFO" -ForegroundColor Green
-Write-Host
-write-host " -------------------------------------------------------------------"
-Write-Host
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information Write-Information " -------------------------------------------------------------------"
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

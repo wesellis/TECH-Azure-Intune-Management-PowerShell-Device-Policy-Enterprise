@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Upload Windowsautopilotdeviceinfo
 
@@ -92,7 +92,7 @@
     
     Version history:
     1.0.0 - (2019-03-21) Script created.
-    1.1.0 - (2019-10-29) Added support for specifying the primary user assigned to the uploaded Autopilot device as well as renaming the OrderIdentifier parameter to GroupTag. Thanks to @Stgrdk for his contributions. Switched from Get-CimSession to Get-CimInstance to get device details from WMI.
+    1.1.0 - (2019-10-29) Added support for specifying the primary user assigned to the uploaded Autopilot device as well as renaming the OrderIdentifier parameter to GroupTag. Thanks to @Stgrdk for his contributions. Switched from Get-CimSession -ErrorAction Stop to Get-CimInstance -ErrorAction Stop to get device details from WMI.
     1.1.1 - (2021-03-24) Script now uses the groupTag property instead of the depcreated OrderIdentifier property. Also removed the code section that attempted to perform an Autopilot sync operation
     1.1.2 - (2021-03-24) Corrected a spelling mistake of 'GroupTag' to 'groupTag'
     1.2.0 - (2023-06-03) Switched from AzureAD and PSIntuneAuth modules to MSAL.PS and MSGraphRequest
@@ -150,7 +150,7 @@ Begin {
         try {
             Write-Verbose -Message " Attempting to locate $($WEModule) module"
             $WEModuleItem = Get-InstalledModule -Name $WEModule -ErrorAction Stop -Verbose:$false
-            if ($WEModuleItem -ne $null) {
+            if ($null -ne $WEModuleItem) {
                 Write-Verbose -Message " $($WEModule) module detected, checking for latest version"
                 $WELatestModuleItemVersion = (Find-Module -Name $WEModule -ErrorAction Stop -Verbose:$false).Version
                 if ($WELatestModuleItemVersion -gt $WEModuleItem.Version) {
@@ -203,7 +203,7 @@ Begin {
         $WEErrorActionPreference = " Stop"
     }
 
-    # Construct table with common parameter input for Get-AccessToken function
+    # Construct table with common parameter input for Get-AccessToken -ErrorAction Stop function
     $WEAccessTokenArguments = @{
         " TenantId" = $WETenantID
         " ClientId" = $WEClientID
@@ -211,7 +211,7 @@ Begin {
         " ErrorAction" = " Stop"
     }
 
-    # Dynamically add parameter input for Get-MsalToken based on parameter set name
+    # Dynamically add parameter input for Get-MsalToken -ErrorAction Stop based on parameter set name
     switch ($WEPSCmdlet.ParameterSetName) {
         " ClientSecret" {
             Write-Verbose " Using clientSecret"
@@ -221,11 +221,12 @@ Begin {
 
     # Retrieve access token
     Write-Verbose -Message " Retrieving access token"
-    $WEGlobal:AccessToken = Get-AccessToken @AccessTokenArguments
+    $WEGlobal:AccessToken = Get-AccessToken -ErrorAction Stop @AccessTokenArguments
 }
 Process {
     # Functions
-    function WE-Get-ErrorResponseBody {
+    [CmdletBinding()]
+function WE-Get-ErrorResponseBody -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -236,7 +237,7 @@ param(
 
         # Read the error stream
         $WEErrorResponseStream = $WEException.Response.GetResponseStream()
-       ;  $WEStreamReader = New-Object System.IO.StreamReader($WEErrorResponseStream)
+       ;  $WEStreamReader = New-Object -ErrorAction Stop System.IO.StreamReader($WEErrorResponseStream)
         $WEStreamReader.BaseStream.Position = 0
         $WEStreamReader.DiscardBufferedData()
        ;  $WEResponseBody = $WEStreamReader.ReadToEnd();

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Scepcertificatedetection
 
@@ -48,9 +48,9 @@ foreach ($WECertificate in $WECertificates) {
     # Pattern matching for validation; 
 # Pattern matching for validation
 $WECertificateTemplateInformation = $WECertificate.Extensions | Where-Object { $_.Oid.FriendlyName -match " Certificate Template Information" }
-    if ($WECertificateTemplateInformation -ne $null) {
+    if ($null -ne $WECertificateTemplateInformation) {
        ;  $WECertificateTemplateName = ($WECertificateTemplateInformation).Format(0) -replace " (.+)?=(.+)\((.+)?" , '$2'
-        if ($WECertificateTemplateName -ne $null) {
+        if ($null -ne $WECertificateTemplateName) {
             if ($WECertificateTemplateName -like $WETemplateName) {
                 return 0
             }

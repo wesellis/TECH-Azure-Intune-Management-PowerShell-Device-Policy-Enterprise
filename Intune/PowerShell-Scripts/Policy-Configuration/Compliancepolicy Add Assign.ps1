@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Compliancepolicy Add Assign
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -207,6 +203,7 @@ NAME: Test-JSON
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -226,7 +223,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -288,9 +285,9 @@ $WEResource = " deviceManagement/deviceCompliancePolicies"
     
     try {
 
-        if($WEJSON -eq "" -or $WEJSON -eq $null){
+        if($WEJSON -eq "" -or $null -eq $WEJSON){
 
-        write-host " No JSON specified, please specify valid JSON for the Android Policy..." -f Red
+        Write-Information " No JSON specified, please specify valid JSON for the Android Policy..." -f Red
 
         }
 
@@ -307,17 +304,15 @@ $WEResource = " deviceManagement/deviceCompliancePolicies"
     
     catch {
 
-    Write-Host
-    $ex = $_.Exception
+    Write-Information $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -355,14 +350,14 @@ $WEResource = " deviceManagement/deviceCompliancePolicies/$WECompliancePolicyId/
 
         if(!$WECompliancePolicyId){
 
-        write-host " No Compliance Policy Id specified, specify a valid Compliance Policy Id" -f Red
+        Write-Information " No Compliance Policy Id specified, specify a valid Compliance Policy Id" -f Red
         break
 
         }
 
         if(!$WETargetGroupId){
 
-        write-host " No Target Group Id specified, specify a valid Target Group Id" -f Red
+        Write-Information " No Target Group Id specified, specify a valid Target Group Id" -f Red
         break
 
         }
@@ -391,14 +386,13 @@ $WEJSON = @"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -414,10 +408,10 @@ This function is used to get AAD Groups from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any Groups registered with AAD
 .EXAMPLE
-Get-AADGroup
+Get-AADGroup -ErrorAction Stop
 Returns all users registered with Azure AD
 .NOTES
-NAME: Get-AADGroup
+NAME: Get-AADGroup -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -443,7 +437,7 @@ $WEGroup_resource = " groups"
 
         }
         
-        elseif($WEGroupName -eq "" -or $WEGroupName -eq $null){
+        elseif($WEGroupName -eq "" -or $null -eq $WEGroupName){
         
         $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)"
         (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -469,9 +463,7 @@ $WEGroup_resource = " groups"
                 $WEGID = $WEGroup.id
 
                 $WEGroup.displayName
-                write-host
-
-                $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
+                Write-Information $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
                 (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
 
                 }
@@ -486,14 +478,13 @@ $WEGroup_resource = " groups"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -503,10 +494,7 @@ $WEGroup_resource = " groups"
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -516,19 +504,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -537,15 +521,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -610,49 +592,33 @@ $WEAADGroup = Read-Host -Prompt " Enter the Azure AD Group name where policies w
 
 $WETargetGroupId = (get-AADGroup -GroupName " $WEAADGroup" ).id
 
-    if($WETargetGroupId -eq $null -or $WETargetGroupId -eq "" ){
+    if($null -eq $WETargetGroupId -or $WETargetGroupId -eq "" ){
 
     Write-WELog " AAD Group - '$WEAADGroup' doesn't exist, please specify a valid AAD Group..." " INFO" -ForegroundColor Red
-    Write-Host
-    exit
+    Write-Information exit
 
     }
 
-Write-Host
-
-
-
-Write-WELog " Adding Android Compliance Policy from JSON..." " INFO" -ForegroundColor Yellow
+Write-Information Write-WELog " Adding Android Compliance Policy from JSON..." " INFO"
 
 $WECreateResult_Android = Add-DeviceCompliancePolicy -JSON $WEJSON_Android
 
 Write-WELog " Compliance Policy created as" " INFO" $WECreateResult_Android.id
-write-host
-write-host " Assigning Compliance Policy to AAD Group '$WEAADGroup'" -f Cyan
+Write-Information write-host " Assigning Compliance Policy to AAD Group '$WEAADGroup'" -f Cyan
 
 $WEAssign_Android = Add-DeviceCompliancePolicyAssignment -CompliancePolicyId $WECreateResult_Android.id -TargetGroupId $WETargetGroupId
 
 Write-WELog " Assigned '$WEAADGroup' to $($WECreateResult_Android.displayName)/$($WECreateResult_Android.id)" " INFO"
-Write-Host
-
-
-
-Write-WELog " Adding iOS Compliance Policy from JSON..." " INFO" -ForegroundColor Yellow
-Write-Host
-; 
+Write-Information Write-WELog " Adding iOS Compliance Policy from JSON..." " INFO"
+Write-Information ; 
 $WECreateResult_iOS = Add-DeviceCompliancePolicy -JSON $WEJSON_iOS
 
 Write-WELog " Compliance Policy created as" " INFO" $WECreateResult_iOS.id
-write-host
-write-host " Assigning Compliance Policy to AAD Group '$WEAADGroup'" -f Cyan
+Write-Information write-host " Assigning Compliance Policy to AAD Group '$WEAADGroup'" -f Cyan
 ; 
 $WEAssign_iOS = Add-DeviceCompliancePolicyAssignment -CompliancePolicyId $WECreateResult_iOS.id -TargetGroupId $WETargetGroupId
 
 Write-WELog " Assigned '$WEAADGroup' to $($WECreateResult_iOS.displayName)/$($WECreateResult_iOS.id)" " INFO"
-Write-Host
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

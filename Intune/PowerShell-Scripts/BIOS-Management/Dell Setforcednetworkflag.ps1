@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Setforcednetworkflag
 
@@ -61,13 +61,13 @@ limitations under the License.
 
 <#
 .Synopsis
-   Set-UEFIforcedNetworkFlag is used to set FORCED_NETWORK_FLAG value.
+   Set-UEFIforcedNetworkFlag -ErrorAction Stop is used to set FORCED_NETWORK_FLAG value.
    UnComment Last three lines or add EXAMPLE lines at bottom to run the script.
 .DESCRIPTION
    FORCED_NETWORK_FLAG is set to 1 using this script.
 
 .EXAMPLE
-$bytes = New-Object Byte[](4)
+$bytes = New-Object -ErrorAction Stop Byte[](4)
 $bytes[0]=1
 Set-UEFIforcedNetworkFlag -VariableName FORCED_NETWORK_FLAG -Namespace " {616e2ea6-af89-7eb3-f2ef-4e47368a657b}" -ByteArray $bytes
 
@@ -90,7 +90,8 @@ $definition = @'
 $uefiNative = Add-Type $definition -PassThru
 
 
-function WE-Set-UEFIforcedNetworkFlag
+[CmdletBinding()]
+function WE-Set-UEFIforcedNetworkFlag -ErrorAction Stop
 {
     [cmdletbinding()]  
     [CmdletBinding()]
@@ -151,7 +152,8 @@ param(
 }
 
 
-function WE-Set-Privilege
+[CmdletBinding()]
+function WE-Set-Privilege -ErrorAction Stop
 {   
 [cmdletbinding(  
     ConfirmImpact = 'low',
@@ -251,7 +253,7 @@ PROCESS {
 
 END { Write-Verbose " Function ${CmdletName} finished." }
 
-} # end Function Set-Privilege
+} # end Function Set-Privilege -ErrorAction Stop
 
 
 

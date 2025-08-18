@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Hpdriverupdate
 
@@ -67,7 +67,7 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
     1.0.0 - (2020-08-12) Script created
     1.0.1 - (2020-09-15) Added a fix for registering default PSGallery repository if not already registered
     1.0.2 - (2020-09-28) Added a new parameter HPIAAction that controls whether to Download or Install applicable drivers
-    1.0.3 - (2021-04-07) Replaced Get-Softpaq cmdlet with a hard-coded softpaq number with the newly added Install-HPImageAssistant cmdlet in the HPCMSL module
+    1.0.3 - (2021-04-07) Replaced Get-Softpaq -ErrorAction Stop cmdlet with a hard-coded softpaq number with the newly added Install-HPImageAssistant cmdlet in the HPCMSL module
 
 [CmdletBinding(SupportsShouldProcess = $true)]
 [CmdletBinding()]
@@ -93,7 +93,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Write-LogEntry {
+    [CmdletBinding()]
+function WE-Write-LogEntry {
 		[CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -156,7 +157,8 @@ param(
 		}
     }
     
-    function WE-Set-RegistryValue {
+    [CmdletBinding()]
+function WE-Set-RegistryValue -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -182,7 +184,7 @@ param(
         )
         try {
             $WERegistryValue = Get-ItemProperty -Path $WEPath -Name $WEName -ErrorAction SilentlyContinue
-            if ($WERegistryValue -ne $null) {
+            if ($null -ne $WERegistryValue) {
                 Set-ItemProperty -Path $WEPath -Name $WEName -Value $WEValue -Force -ErrorAction Stop
             }
             else {
@@ -197,7 +199,8 @@ param(
         }
     }
 
-    function WE-Invoke-Executable {
+    [CmdletBinding()]
+function WE-Invoke-Executable {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -241,7 +244,8 @@ param(
         return $WEInvocation.ExitCode
     }
 
-    function WE-Start-PowerShellSysNative {
+    [CmdletBinding()]
+function WE-Start-PowerShellSysNative {
         [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -318,12 +322,12 @@ param(
                     # Attempt to get the installed PowerShellGet module
                     Write-LogEntry -Value " Attempting to locate installed PowerShellGet module" -Severity 1
                    ;  $WEPowerShellGetInstalledModule = Get-InstalledModule -Name " PowerShellGet" -ErrorAction SilentlyContinue -Verbose:$false
-                    if ($WEPowerShellGetInstalledModule -ne $null) {
+                    if ($null -ne $WEPowerShellGetInstalledModule) {
                         try {
                             # Attempt to locate the latest available version of the PowerShellGet module from repository
                             Write-LogEntry -Value " Attempting to request the latest PowerShellGet module version from repository" -Severity 1
                            ;  $WEPowerShellGetLatestModule = Find-Module -Name " PowerShellGet" -ErrorAction Stop -Verbose:$false
-                            if ($WEPowerShellGetLatestModule -ne $null) {
+                            if ($null -ne $WEPowerShellGetLatestModule) {
                                 if ($WEPowerShellGetInstalledModule.Version -lt $WEPowerShellGetLatestModule.Version) {
                                     try {
                                         # Newer module detected, attempt to update

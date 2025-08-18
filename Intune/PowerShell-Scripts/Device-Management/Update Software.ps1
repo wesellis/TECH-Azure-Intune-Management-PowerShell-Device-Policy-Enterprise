@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Update Software
 
@@ -49,9 +49,10 @@ param(
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
 
 
+[CmdletBinding()]
 function WE-Test-WingetAvailability {
     try {
-        $winget = Get-Command winget -ErrorAction Stop
+        $winget = Get-Command -ErrorAction Stop winget -ErrorAction Stop
         Write-Output " Winget is available at: $($winget.Source)"
         return $true
     } catch {
@@ -61,7 +62,8 @@ function WE-Test-WingetAvailability {
 }
 
 
-function WE-Get-OutdatedPackages {
+[CmdletBinding()]
+function WE-Get-OutdatedPackages -ErrorAction Stop {
     try {
         Write-Output " Checking for available software updates..."
         $upgrades = winget upgrade --accept-source-agreements 2>$null | Out-String
@@ -101,7 +103,8 @@ $lines = $upgrades -split " `n" | Where-Object { $_ -match " ^[^-]+\s+[^-]+\s+[^
 }
 
 
-function WE-Get-FilteredPackages {
+[CmdletBinding()]
+function WE-Get-FilteredPackages -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -145,6 +148,7 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Update-SoftwarePackages {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -193,6 +197,7 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Test-SystemRequirements {
     try {
         # Check Windows version (Winget requires Windows 10 1709 or later)
@@ -246,7 +251,7 @@ try {
     }
     
     # Get list of outdated packages
-    $outdatedPackages = Get-OutdatedPackages
+    $outdatedPackages = Get-OutdatedPackages -ErrorAction Stop
     
     if ($outdatedPackages.Count -eq 0) {
         Write-Output " All software packages are up to date"

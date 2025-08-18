@@ -1,5 +1,6 @@
-# Create a log file
+﻿# Create a log file
 $logFile = Join-Path -Path $env:TEMP -ChildPath "OneStartRemoval_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+[CmdletBinding()]
 function Write-Log {
     param(
         [string]$message,
@@ -11,10 +12,10 @@ function Write-Log {
     $logMessage | Out-File -FilePath $logFile -Append
     
     switch ($level) {
-        'INFO'    { Write-Host $logMessage -ForegroundColor White }
-        'WARNING' { Write-Host $logMessage -ForegroundColor Yellow }
-        'ERROR'   { Write-Host $logMessage -ForegroundColor Red }
-        'SUCCESS' { Write-Host $logMessage -ForegroundColor Green }
+        'INFO'    { Write-Information $logMessage -ForegroundColor White }
+        'WARNING' { Write-Information $logMessage -ForegroundColor Yellow }
+        'ERROR'   { Write-Information $logMessage -ForegroundColor Red }
+        'SUCCESS' { Write-Information $logMessage -ForegroundColor Green }
     }
 }
 
@@ -64,7 +65,7 @@ $filePaths = @(
 )
 $directoriesFound = $false
 
-foreach ($userFolder in Get-ChildItem C:\Users -Directory) {
+foreach ($userFolder in Get-ChildItem -ErrorAction Stop C:\Users -Directory) {
     $userDirectoriesFound = $false
     
     foreach ($path in $filePaths) {
@@ -118,7 +119,7 @@ if (-not $directoriesFound) {
 Write-Log "Removing OneStart registry entries..." 'INFO'
 $registryKeysFound = $false
 
-foreach ($registryHive in Get-ChildItem Registry::HKEY_USERS) {
+foreach ($registryHive in Get-ChildItem -ErrorAction Stop Registry::HKEY_USERS) {
     $userSID = Split-Path $registryHive.Name -Leaf
     $userKeysFound = $false
     
@@ -242,7 +243,7 @@ foreach ($task in $scheduledTasks) {
 }
 
 try {
-    $additionalTasks = Get-ScheduledTask | Where-Object { $_.TaskName -like "*OneStart*" -or $_.TaskPath -like "*OneStart*" } -ErrorAction SilentlyContinue
+    $additionalTasks = Get-ScheduledTask -ErrorAction Stop | Where-Object { $_.TaskName -like "*OneStart*" -or $_.TaskPath -like "*OneStart*" } -ErrorAction SilentlyContinue
     
     if ($additionalTasks) {
         $tasksFound = $true

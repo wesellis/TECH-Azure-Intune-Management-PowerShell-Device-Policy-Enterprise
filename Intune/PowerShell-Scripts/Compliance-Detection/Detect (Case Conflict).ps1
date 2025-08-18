@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Detect (Case Conflict)
 
@@ -35,6 +35,7 @@ try {
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"

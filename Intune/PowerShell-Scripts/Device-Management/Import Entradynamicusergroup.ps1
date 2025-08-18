@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Import Entradynamicusergroup
 
@@ -110,7 +110,7 @@ process {
             if ($WEPSCmdlet.ShouldProcess($group.DisplayName , " Create group." )) {
                 Write-Verbose -Message " Created group '$($group.DisplayName)' with membership rule '$($group.MembershipRule)'."
 
-                # Construct the parameters for New-MgGroup
+                # Construct the parameters for New-MgGroup -ErrorAction Stop
                 $params = @{
                     DisplayName                   = $group.DisplayName
                     Description                   = $group.Description
@@ -123,7 +123,7 @@ process {
                     MailNickname                  = (New-Guid)
                     ErrorAction                   = " Stop"
                 }
-               ;  $WENewGroup = New-MgGroup @params
+               ;  $WENewGroup = New-MgGroup -ErrorAction Stop @params
                 Write-Output -InputObject $WENewGroup
 
                 # Add a photo to the group

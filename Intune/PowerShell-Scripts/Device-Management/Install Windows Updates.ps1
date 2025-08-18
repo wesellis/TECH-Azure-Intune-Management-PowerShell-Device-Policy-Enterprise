@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install Windows Updates
 
@@ -62,7 +62,8 @@ try {
 }
 
 
-function WE-Get-AvailableUpdates {
+[CmdletBinding()]
+function WE-Get-AvailableUpdates -ErrorAction Stop {
     try {
         $updates = Get-WUList -Verbose:$false
         return $updates
@@ -73,6 +74,7 @@ function WE-Get-AvailableUpdates {
 }
 
 
+[CmdletBinding()]
 function WE-Install-WindowsUpdates {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -81,7 +83,7 @@ param(
     )
     
     try {
-        $updates = Get-AvailableUpdates
+        $updates = Get-AvailableUpdates -ErrorAction Stop
         
         if ($null -eq $updates -or $updates.Count -eq 0) {
             Write-Output " No updates available"

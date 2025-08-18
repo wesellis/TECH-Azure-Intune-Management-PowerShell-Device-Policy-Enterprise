@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Memory Usage Detection
 
@@ -83,6 +83,7 @@ param(
 $WELogPath = " $env:TEMP\IntuneRemediation_MemoryUsageDetection.log"
 $WETimeStamp = Get-Date -Format " yyyy-MM-dd HH:mm:ss"
 
+[CmdletBinding()]
 function WE-Write-LogEntry {
     param([Parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -120,7 +121,7 @@ try {
         Write-LogEntry " WARNING: Memory usage ($WEMemoryUsagePercent%) exceeds threshold ($WEMaxMemoryUsagePercent%)" " WARNING"
         
         # Get top memory consuming processes for additional context
-       ;  $WETopProcesses = Get-Process | Sort-Object WorkingSet -Descending | Select-Object -First 5
+       ;  $WETopProcesses = Get-Process -ErrorAction Stop | Sort-Object WorkingSet -Descending | Select-Object -First 5
         Write-LogEntry " Top 5 memory consuming processes:"
         foreach ($WEProcess in $WETopProcesses) {
            ;  $WEProcessMemoryMB = [math]::Round($WEProcess.WorkingSet / 1MB, 2)

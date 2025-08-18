@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Bios Password
 
@@ -58,7 +58,7 @@ limitations under the License.
 
 <#
 .Synopsis
-   Set-DellBIOSPassword cmdlet used to set, change or clear BIOS passwords (system or setup(admin))
+   Set-DellBIOSPassword -ErrorAction Stop cmdlet used to set, change or clear BIOS passwords (system or setup(admin))
    IMPORTANT: Make sure you are using latest Powershell version 5 or newer to execute this cmdlet. Execute " Get-Host" to check the version.
    IMPORTANT: Make sure direct WMI capabilities are supported on the system.
 .DESCRIPTION
@@ -105,6 +105,7 @@ limitations under the License.
 
 
 
+[CmdletBinding()]
 Function Is-DellBIOSPasswordSet
 {
     [CmdletBinding()]
@@ -120,8 +121,8 @@ param(
 	try
 	{
 		$WEIsPasswordSet = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject | Where-Object NameId -EQ $WEPwdType | Select-Object -ExpandProperty IsPasswordSet -ErrorAction stop
-		if(1 -eq $WEIsPasswordSet) { Write-Host  $WEPwdType " password is set on the system" }
-		else { Write-Host  $WEPwdType " password is not set on the system" }
+		if(1 -eq $WEIsPasswordSet) { Write-Information $WEPwdType " password is set on the system" }
+		else { Write-Information $WEPwdType " password is not set on the system" }
 		return $WEIsPasswordSet
 	}
 	Catch
@@ -136,7 +137,8 @@ param(
 }
 
 
-Function Set-DellBIOSPassword
+[CmdletBinding()]
+Function Set-DellBIOSPassword -ErrorAction Stop
 {
     [CmdletBinding()]; 
 $ErrorActionPreference = " Stop"
@@ -181,7 +183,7 @@ param(
 		$WEIsBIOSAdminPasswordSet = Is-DellBIOSPasswordSet -PwdType " Admin" -EA stop
 		
 		#Get encoder for encoding password
-		$encoder = New-Object System.Text.UTF8Encoding
+		$encoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
 		
 		#Get SecurityInterface Class Object
 		$WESI = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName SecurityInterface -EA stop
@@ -317,13 +319,13 @@ param(
 	catch
 	{
 	; 	$WEException = $_
-		Write-Host $WEException
+		Write-Information $WEException
 	}
 	Finally
 	{
 		
-		Write-Host $result
-		Write-WELog " Function Set-Password Executed" " INFO"
+		Write-Information $result
+		Write-WELog " Function Set-Password -ErrorAction Stop Executed" " INFO"
 	}
 }
 

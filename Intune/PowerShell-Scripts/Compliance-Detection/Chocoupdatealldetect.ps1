@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Chocoupdatealldetect
 
@@ -42,7 +42,7 @@ Write-WELog " Checking if Chocolatey is installed on $($env:COMPUTERNAME)..." " 
 if(!(Test-Path $choco))
 {
     Write-WELog " Chocolatey was not found; installing..." " INFO"
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) 
+    Invoke-Expression ((New-Object -ErrorAction Stop System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) 
     Write-WELog " Chocolatey was successfully installed." " INFO"
 }
 else

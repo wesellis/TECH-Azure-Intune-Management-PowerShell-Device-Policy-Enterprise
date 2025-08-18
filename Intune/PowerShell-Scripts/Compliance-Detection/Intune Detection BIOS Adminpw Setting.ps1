@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Detection Bios Adminpw Setting
 
@@ -77,14 +77,14 @@ try{
     # Check BIOS AttributName AdminPW is set
     $WEBIOSAdminPW = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject -Filter " NameId='Admin'" | Select-Object -ExpandProperty IsPasswordSet
     
-    if($WEBIOSAdminPW -eq $null)
+    if($null -eq $WEBIOSAdminPW)
 	{
 		Write-Error -Category ResourceUnavailable -CategoryTargetName " root/dcim/sysman/wmisecurity" -CategoryTargetType " PasswordObject" -Message " Unable to get the 'Admin' object in class 'PasswordObject' in the Namespace 'root/dcim/sysman/wmisecurity'" 
 		exit 1
 	}
     elseif ($WEBIOSAdminPW -match " 1" )
         {
-            write-host " BIOS Admin password is set on this machine."
+            Write-Information " BIOS Admin password is set on this machine."
     	    exit 0  
         }
     else

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Bios Persistence
 
@@ -58,7 +58,7 @@ limitations under the License.
 
 <#
 .Synopsis
-   Set-DellBIOSAttributeAbsolute cmdlet used to configure Absolute Dell BIOS Attribute.
+   Set-DellBIOSAttributeAbsolute -ErrorAction Stop cmdlet used to configure Absolute Dell BIOS Attribute.
    IMPORTANT: Make sure you are using latest Powershell version 5 or newer to execute this cmdlet. Execute " Get-Host" to check the version.
    IMPORTANT: Make sure direct WMI capabilities are supported on the system.
 .DESCRIPTION
@@ -79,6 +79,7 @@ limitations under the License.
 
 
 
+[CmdletBinding()]
 Function Is-DellBIOSPasswordSet
 {
     [CmdletBinding()]
@@ -94,8 +95,8 @@ param(
 	try
 	{
 		$WEIsPasswordSet = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject | Where-Object NameId -EQ $WEPwdType | Select-Object -ExpandProperty IsPasswordSet -ErrorAction stop
-		if(1 -eq $WEIsPasswordSet) { Write-Host  $WEPwdType " password is set on the system" }
-		else { Write-Host  $WEPwdType " password is not set on the system" }
+		if(1 -eq $WEIsPasswordSet) { Write-Information $WEPwdType " password is set on the system" }
+		else { Write-Information $WEPwdType " password is not set on the system" }
 		return $WEIsPasswordSet
 	}
 	Catch
@@ -110,7 +111,8 @@ param(
 }
 
 
-Function Get-DellBIOSAttributes
+[CmdletBinding()]
+Function Get-DellBIOSAttributes -ErrorAction Stop
 {
     try
 	{
@@ -135,12 +137,13 @@ Function Get-DellBIOSAttributes
     }
     Finally
     {
-        Write-WELog " Function Get-DellBIOSAttribute Executed" " INFO"
+        Write-WELog " Function Get-DellBIOSAttribute -ErrorAction Stop Executed" " INFO"
     }
 }
 
 
-Function Set-DellBIOSAttributeAbsolute
+[CmdletBinding()]
+Function Set-DellBIOSAttributeAbsolute -ErrorAction Stop
 {
     #Configures Absolute
 
@@ -191,7 +194,7 @@ param(
                     if(!([String]::IsNullOrEmpty($WEAdminPwd)))
 			        {
 				        #Get encoder for encoding password
-	                    $encoder = New-Object System.Text.UTF8Encoding
+	                    $encoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
    
                         #encode the password
                        ;  $WEAdminBytes = $encoder.GetBytes($WEAdminPwd)
@@ -250,12 +253,12 @@ param(
     catch
     {
        ;  $WEException = $_
-		Write-Host $WEException
+		Write-Information $WEException
     }
     finally
     {
-        Write-Host $result
-		Write-WELog " Function Set-DellBIOSAttributeAbsolute Executed" " INFO"
+        Write-Information $result
+		Write-WELog " Function Set-DellBIOSAttributeAbsolute -ErrorAction Stop Executed" " INFO"
     }
 }
 

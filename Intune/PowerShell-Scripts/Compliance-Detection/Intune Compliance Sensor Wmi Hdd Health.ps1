@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Compliance Sensor Wmi Hdd Health
 
@@ -76,12 +76,12 @@ limitations under the License.
 
 
 
-$health = Get-PhysicalDisk | select FriendlyName,MediaType,HealthStatus
+$health = Get-PhysicalDisk -ErrorAction Stop | select FriendlyName,MediaType,HealthStatus
 $errorcheck = 0
 
-if($health -eq $null)
+if($null -eq $health)
 {
- write-host " No HDD's Found in the System - System Does not have any Hard Drives"
+ Write-Information " No HDD's Found in the System - System Does not have any Hard Drives"
  exit 1
 }
 else
@@ -95,11 +95,11 @@ foreach($x in 0..($instances.count - 1))
 if ($health[$x].HealthStatus -eq " Healthy" )
 
 { 
-Write-host " PASS- HDD Helath Status is Good for" ,$health[$x].FriendlyName
+Write-Information " PASS- HDD Helath Status is Good for" ,$health[$x].FriendlyName
 }
 else
 {
-Write-host " FAIL- HDD Heath Status is BAD for" ,$health[$x].FriendlyName
+Write-Information " FAIL- HDD Heath Status is BAD for" ,$health[$x].FriendlyName
 $errorcheck=1
 }
 }

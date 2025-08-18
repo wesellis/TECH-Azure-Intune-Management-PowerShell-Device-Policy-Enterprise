@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Intunebiosupdate Detect
 
@@ -90,6 +90,7 @@ $WEScript:BIOSUpdateTime = $null
 $WEScript:BIOSDeployedVersion = $null
 
 
+[CmdletBinding()]
 function WE-Test-BIOSVersionHP{
 [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -106,7 +107,7 @@ param(
     Import-Module HP.ClientManagement
 
     # Obtain current BIOS verison
-    [version]$WECurrentBIOSVersion = Get-HPBIOSVersion
+    [version]$WECurrentBIOSVersion = Get-HPBIOSVersion -ErrorAction Stop
 
     # Inform current BIOS deployment state
     if ($WEBIOSApprovedVersion -gt $WECurrentBIOSVersion){
@@ -129,6 +130,7 @@ param(
 
     Return $WEOutput
 }#endfunction
+[CmdletBinding()]
 function WE-Test-BiosVersionDell{
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -145,6 +147,7 @@ param(
     }
     Return $WEOutput
     }#endfunction
+[CmdletBinding()]
 function WE-Test-BiosVersionLenovo{
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -174,12 +177,12 @@ $WEBIOSPackageDetails = $WEBIOSPackages.ArrayOfCMPackage.CMPackage
 switch -Wildcard ($WEManufacturer) { 
     {($WEPSItem -match " HP" ) -or ($WEPSItem -match " Hewlett-Packard" )}{
         Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " Validated HP hardware check"
-        $WEHPPreReq = [boolean](Get-InstalledModule | Where-Object {$_.Name -match " HPCMSL" } -ErrorAction SilentlyContinue -Verbose:$false)
+        $WEHPPreReq = [boolean](Get-InstalledModule -ErrorAction Stop | Where-Object {$_.Name -match " HPCMSL" } -ErrorAction SilentlyContinue -Verbose:$false)
         if ($WEHPPreReq){
             # Import module
             Import-Module HP.ClientManagement
             # Get matching identifier from baseboard
-            $WESystemID = Get-HPDeviceProductID
+            $WESystemID = Get-HPDeviceProductID -ErrorAction Stop
             $WESupportedModel = $WEBIOSPackageDetails | Where-Object {$_.Description -match $WESystemID}
             if (-not ([string]::IsNullOrEmpty($WESupportedModel))) {
                 [version]$WEBIOSApprovedVersion = ($WEBIOSPackageDetails | Where-Object {$_.Description -match $WESystemID} | Sort-Object Version -Descending  | Select-Object -First 1 -Unique -ExpandProperty Version).Split(" " )[0] 
@@ -266,7 +269,7 @@ if ($WEBiosUpdateinProgress -ne 0){
     Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " BIOS Update is in Progress"
     # Check if computer has restarted since last try 
     [DateTime]$WEBIOSUpdateTime = Get-ItemPropertyValue -Path " $WERegPath" -Name 'BIOSUpdateTime'
-    $WELastBootime = Get-Date (Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime)
+    $WELastBootime = Get-Date -ErrorAction Stop (Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime)
     if ($WEBIOSUpdateTime -gt $WELastBootime){
         # Computer not restarted - Invoke remediation to notify user to reboot
         Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " BIOSUpdateTime is newer than last reboot, pending first reboot"

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Detect Dell Powershell Provider
 
@@ -44,7 +44,7 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
 try {        
     if (Get-InstalledModule -Name " DellBIOSProvider" ){
         #Exit 0 for Intune if NO error
-       ;  $version = Get-InstalledModule dellbiosprovider
+       ;  $version = Get-InstalledModule -ErrorAction Stop dellbiosprovider
 
         if($version.Version -ge [System.Version]" 2.4.0" ) {
             # Exit 0 for InTune: Installed and updated

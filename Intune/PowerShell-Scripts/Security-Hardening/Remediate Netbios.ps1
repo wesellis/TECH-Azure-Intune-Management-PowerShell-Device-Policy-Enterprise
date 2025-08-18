@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Remediate Netbios
 
@@ -54,7 +54,7 @@ $changedEntries = @()
 
 try {
     # Change the value of the " NetbiosOptions" registry key for each interface
-    $child_items = Get-ChildItem $reg_path
+    $child_items = Get-ChildItem -ErrorAction Stop $reg_path
     foreach ($child_item in $child_items) {
         $interface_name = $child_item.PSChildName
         $interface_path = $child_item.PSPath
@@ -69,17 +69,17 @@ try {
             $outcome = " $interface_name - Netbios is Disabled!"
             $results = $results + $outcome
             $changedEntries = $changedEntries + $interface_name
-            Write-Host $outcome
-        } elseif ($regentry.$reg_key -eq $null) {
+            Write-Information $outcome
+        } elseif ($regentry.$null -eq $reg_key) {
             # Outcome if registry key does not exist
             $outcome = " $interface_name - Yousa registry key does not exist!"
             $results = $results + $outcome
-            Write-Host $outcome
+            Write-Information $outcome
         } else {
             # Outcome if not disabled
             $outcome = " $interface_name - Netbios is not disabled. Mesa running again!"
             $results = $results + $outcome
-            Write-Host $outcome
+            Write-Information $outcome
         }
     }
 

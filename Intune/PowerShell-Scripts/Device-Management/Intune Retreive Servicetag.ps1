@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Retreive Servicetag
 
@@ -80,7 +80,7 @@ limitations under the License.
 
 $WEServiceTag= Get-CimInstance -Namespace root\dcim\sysman -ClassName DCIM_Chassis | Select -ExpandProperty Tag
 
-if($WEServiceTag -ne $null)
+if($null -ne $WEServiceTag)
 {
 ; 	$hash = @{ ServiceTag = $WEServiceTag }
 

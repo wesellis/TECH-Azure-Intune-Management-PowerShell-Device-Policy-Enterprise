@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Interface
 
@@ -76,7 +76,7 @@ Add-Type -AssemblyName PresentationFramework
 </Window>
 " @
 ; 
-$reader = (New-Object System.Xml.XmlNodeReader $xaml); 
+$reader = (New-Object -ErrorAction Stop System.Xml.XmlNodeReader $xaml); 
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
 $window.ShowDialog()

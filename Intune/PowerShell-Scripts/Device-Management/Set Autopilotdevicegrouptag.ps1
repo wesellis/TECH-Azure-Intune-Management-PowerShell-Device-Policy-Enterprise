@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Autopilotdevicegrouptag
 
@@ -108,16 +108,17 @@ param(
 Begin {}
 Process {
     # Functions
-    function WE-New-AuthenticationHeader {
+    [CmdletBinding()]
+function WE-New-AuthenticationHeader -ErrorAction Stop {
         <#
         .SYNOPSIS
-            Construct a required header hash-table based on the access token from Get-MsalToken cmdlet.
+            Construct a required header hash-table based on the access token from Get-MsalToken -ErrorAction Stop cmdlet.
 
         .DESCRIPTION
-            Construct a required header hash-table based on the access token from Get-MsalToken cmdlet.
+            Construct a required header hash-table based on the access token from Get-MsalToken -ErrorAction Stop cmdlet.
 
         .PARAMETER AccessToken
-            Pass the AuthenticationResult object returned from Get-MsalToken cmdlet.
+            Pass the AuthenticationResult object returned from Get-MsalToken -ErrorAction Stop cmdlet.
 
         .NOTES
             Author:      Nickolaj Andersen
@@ -131,7 +132,7 @@ Process {
         [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
-            [parameter(Mandatory = $true, HelpMessage = " Pass the AuthenticationResult object returned from Get-MsalToken cmdlet." )]
+            [parameter(Mandatory = $true, HelpMessage = " Pass the AuthenticationResult object returned from Get-MsalToken -ErrorAction Stop cmdlet." )]
             [ValidateNotNullOrEmpty()]
             [Microsoft.Identity.Client.AuthenticationResult]$WEAccessToken
         )
@@ -152,7 +153,8 @@ param(
         }
     }
 
-    function WE-Invoke-MSGraphOperation {
+    [CmdletBinding()]
+function WE-Invoke-MSGraphOperation {
         <#
         .SYNOPSIS
             Perform a specific call to Intune Graph API, either as GET, POST, PATCH or DELETE methods.
@@ -331,7 +333,7 @@ param(
     
                     # Read the response stream
                     $WEStreamReader = New-Object -TypeName " System.IO.StreamReader" -ArgumentList @($WEExceptionItem.Exception.Response.GetResponseStream()) -ErrorAction SilentlyContinue
-                    if ($WEStreamReader -ne $null) {
+                    if ($null -ne $WEStreamReader) {
                         $WEStreamReader.BaseStream.Position = 0
                         $WEStreamReader.DiscardBufferedData()
                         $WEResponseBody = ($WEStreamReader.ReadToEnd() | ConvertFrom-Json)
@@ -340,7 +342,7 @@ param(
                             # Detected throttling based from response status code
                             $WERetryInSeconds = $WEExceptionItem.Exception.Response.Headers[" Retry-After" ]
         
-                            if ($WERetryInSeconds -ne $null) {
+                            if ($null -ne $WERetryInSeconds) {
                                 # Wait for given period of time specified in response headers
                                 Write-Verbose -Message " Graph is throttling the request, will retry in '$($WERetryInSeconds)' seconds"
                                 Start-Sleep -Seconds $WERetryInSeconds
@@ -388,7 +390,8 @@ param(
         }
     }
     
-    function WE-Get-AutopilotDevice {
+    [CmdletBinding()]
+function WE-Get-AutopilotDevice -ErrorAction Stop {
     <#
         .SYNOPSIS
             Retrieve an Autopilot device identity based on serial number.
@@ -426,7 +429,8 @@ param(
         }    
     }
     
-    function WE-Set-AutopilotDevice {
+    [CmdletBinding()]
+function WE-Set-AutopilotDevice -ErrorAction Stop {
         <#
         .SYNOPSIS
             Update the GroupTag for an Autopilot device identity.
@@ -504,7 +508,7 @@ param(
                 foreach ($WESerialNumberItem in $WESerialNumber) {
                     Write-Verbose -Message " Attempting to get Autopilot device with serial number: $($WESerialNumberItem)"
                     $WEAutopilotDevice = Get-AutopilotDevice -SerialNumber $WESerialNumberItem -ErrorAction Stop
-                    if ($WEAutopilotDevice -ne $null) {
+                    if ($null -ne $WEAutopilotDevice) {
                         $WEAutopilotDevices.Add($WEAutopilotDevice) | Out-Null
                     }
                     else {

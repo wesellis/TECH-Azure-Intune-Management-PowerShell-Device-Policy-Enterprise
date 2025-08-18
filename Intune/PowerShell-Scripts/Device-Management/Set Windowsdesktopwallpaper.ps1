@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Windowsdesktopwallpaper
 
@@ -84,7 +84,7 @@ Begin {
     foreach ($WEModule in $WEModules) {
         try {
             $WECurrentModule = Get-InstalledModule -Name $WEModule -ErrorAction Stop -Verbose:$false
-            if ($WECurrentModule -ne $null) {
+            if ($null -ne $WECurrentModule) {
                 $WELatestModuleVersion = (Find-Module -Name $WEModule -ErrorAction Stop -Verbose:$false).Version
                 if ($WELatestModuleVersion -gt $WECurrentModule.Version) {
                     $WEUpdateModuleInvocation = Update-Module -Name $WEModule -Force -ErrorAction Stop -Confirm:$false -Verbose:$false
@@ -118,7 +118,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Write-LogEntry {
+    [CmdletBinding()]
+function WE-Write-LogEntry {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -167,7 +168,8 @@ param(
         }
     }
 
-    function WE-Get-AzureBlobContent {
+    [CmdletBinding()]
+function WE-Get-AzureBlobContent -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -190,7 +192,7 @@ param(
             try {
                 # Retrieve content from storage account blob
                 $WEStorageBlobContents = Get-AzStorageBlob -Container $WEContainerName -Context $WEStorageAccountContext -ErrorAction Stop
-                if ($WEStorageBlobContents -ne $null) {
+                if ($null -ne $WEStorageBlobContents) {
                     foreach ($WEStorageBlobContent in $WEStorageBlobContents) {
                         Write-LogEntry -Value " Adding content file from Azure Storage Blob to return list: $($WEStorageBlobContent.Name)" -Severity 1
                         $WEBlobList.Add($WEStorageBlobContent) | Out-Null
@@ -209,7 +211,8 @@ param(
         }
     }
 
-    function WE-Invoke-WallpaperFileDownload {
+    [CmdletBinding()]
+function WE-Invoke-WallpaperFileDownload {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -266,7 +269,8 @@ param(
         }
     }
 
-    function WE-Remove-WallpaperFile {
+    [CmdletBinding()]
+function WE-Remove-WallpaperFile -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -277,7 +281,7 @@ param(
         try {
             # Take ownership of the wallpaper file
             Write-LogEntry -Value " Determining if ownership needs to be changed for file: $($WEFilePath)" -Severity 1
-            $WECurrentOwner = Get-Item -Path $WEFilePath | Get-NTFSOwner
+            $WECurrentOwner = Get-Item -Path $WEFilePath | Get-NTFSOwner -ErrorAction Stop
             if ($WECurrentOwner.Owner -notlike $WELocalAdministratorsPrincipal) {
                 Write-LogEntry -Value " Amending owner as '$($WELocalAdministratorsPrincipal)' temporarily for: $($WEFilePath)" -Severity 1
                 Set-NTFSOwner -Path $WEFilePath -Account $WELocalAdministratorsPrincipal -ErrorAction Stop
@@ -310,10 +314,10 @@ param(
 
     # Check if desktop wallpaper content exists on the specified storage account
     $WEAzureStorageBlobContent = Get-AzureBlobContent -StorageAccountName $WEStorageAccountName -ContainerName $WEContainerName
-    if ($WEAzureStorageBlobContent -ne $null) {
+    if ($null -ne $WEAzureStorageBlobContent) {
         # Replace default wallpaper content locally with item from storage account
         $WEDefaultWallpaperBlobFile = $WEAzureStorageBlobContent | Where-Object { $WEPSItem.Name -like " img0.jpg" }
-        if ($WEDefaultWallpaperBlobFile -ne $null) {
+        if ($null -ne $WEDefaultWallpaperBlobFile) {
             Write-LogEntry -Value " Detected default wallpaper file 'img0' in container, will replace local wallpaper file" -Severity 1
 
             # Remove default wallpaper image file
@@ -328,7 +332,7 @@ param(
         # Pattern matching for validation
 # Pattern matching for validation
 $WEWallpaperBlobFiles = $WEAzureStorageBlobContent | Where-Object { $WEPSItem.Name -match " ^img(\d?[1-9]|[1-9]0).jpg$" }
-        if ($WEWallpaperBlobFiles -ne $null) {
+        if ($null -ne $WEWallpaperBlobFiles) {
             Write-LogEntry -Value " Detected theme wallpaper files in container, will replace matching local theme wallpaper files" -Severity 1
 
             # Remove all items in '%windir%\Web\Wallpaper\Theme1' (Windows 10) directory and replace with wallpaper content from storage account
@@ -349,7 +353,7 @@ $WEWallpaperBlobFiles = $WEAzureStorageBlobContent | Where-Object { $WEPSItem.Na
         # Pattern matching for validation
 # Pattern matching for validation
 $WEWallpaperBlob4KFiles = $WEAzureStorageBlobContent | Where-Object { $WEPSItem.Name -match " ^img0_(\d+)x(\d+).*.jpg$" }
-        if ($WEWallpaperBlob4KFiles -ne $null) {
+        if ($null -ne $WEWallpaperBlob4KFiles) {
             Write-LogEntry -Value " Detected 4K wallpaper files in container, will replace matching local wallpaper file" -Severity 1
 
             # Define 4K wallpaper path and retrieve all image files

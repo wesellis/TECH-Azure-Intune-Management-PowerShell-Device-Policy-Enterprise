@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intunepoliciesandassignmentsreport
 
@@ -50,7 +50,7 @@ Connect-MSGraph
 
 
 Write-WELog " ---- App Assignments ----" " INFO"
-$apps = Get-IntuneManagedApplication
+$apps = Get-IntuneManagedApplication -ErrorAction Stop
 
 
 foreach ($app in $apps) {
@@ -77,7 +77,7 @@ foreach ($app in $apps) {
 
 
 Write-WELog " ---- Compliance Policies ----" " INFO"
-$compliancePolicies = Get-IntuneDeviceCompliancePolicy
+$compliancePolicies = Get-IntuneDeviceCompliancePolicy -ErrorAction Stop
 foreach ($policy in $compliancePolicies) {
     Write-WELog " Policy Name: $($policy.displayName)" " INFO"
     Write-WELog " Policy ID: $($policy.id)" " INFO"
@@ -86,7 +86,7 @@ foreach ($policy in $compliancePolicies) {
 
 
 Write-WELog " ---- Configuration Profiles ----" " INFO"; 
-$configProfiles = Get-IntuneDeviceConfigurationPolicy
+$configProfiles = Get-IntuneDeviceConfigurationPolicy -ErrorAction Stop
 foreach ($profile in $configProfiles) {
     Write-WELog " Profile Name: $($profile.displayName)" " INFO"
     Write-WELog " Profile ID: $($profile.id)" " INFO"

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Remediate Real Time Protection Status
 
@@ -43,7 +43,7 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
 
 try {
     Set-MpPreference -DisableRealtimeMonitoring $false
-   ;  $computerstatus = Get-MpComputerStatus
+   ;  $computerstatus = Get-MpComputerStatus -ErrorAction Stop
         
     if ($computerstatus.RealTimeProtectionEnabled -eq $WETrue){
         #Exit 0 for Intune if NO error

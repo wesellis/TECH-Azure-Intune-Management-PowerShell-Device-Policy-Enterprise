@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Azure Privateendpoint Creator
 
@@ -42,6 +42,7 @@ try {
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -61,7 +62,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -109,12 +110,12 @@ param(
 Write-WELog " Creating Private Endpoint: $WEEndpointName" " INFO"
 
 ; 
-$WEPrivateLinkServiceConnection = New-AzPrivateLinkServiceConnection `
+$WEPrivateLinkServiceConnection = New-AzPrivateLinkServiceConnection -ErrorAction Stop `
     -Name " $WEEndpointName-connection" `
     -PrivateLinkServiceId $WETargetResourceId `
     -GroupId $WEGroupId
 ; 
-$WEPrivateEndpoint = New-AzPrivateEndpoint `
+$WEPrivateEndpoint = New-AzPrivateEndpoint -ErrorAction Stop `
     -ResourceGroupName $WEResourceGroupName `
     -Name $WEEndpointName `
     -Location $WELocation `

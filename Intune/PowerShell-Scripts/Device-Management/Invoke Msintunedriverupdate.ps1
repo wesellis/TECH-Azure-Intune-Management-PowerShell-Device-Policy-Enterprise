@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Msintunedriverupdate
 
@@ -163,23 +163,23 @@ $WEHPPlatformXMLFile = $WEHPPlatformCabFile.Trim(" .cab" )
 $WEHPPlatformXMLFile = $WEHPPlatformXMLFile + " .xml"
 
 
-$global:HPModelSoftPaqs = $null
-$global:HPModelXML = $null
-$global:HPPlatformXML = $null
+$script:HPModelSoftPaqs = $null
+$script:HPModelXML = $null
+$script:HPPlatformXML = $null
 
 
 
 
-$global:LenovoXMLSource = " https://download.lenovo.com/cdrt/td/catalog.xml"
+$script:LenovoXMLSource = " https://download.lenovo.com/cdrt/td/catalog.xml"
 
 
-$global:LenovoXMLFile = [string]($global:LenovoXMLSource | Split-Path -Leaf)
+$script:LenovoXMLFile = [string]($global:LenovoXMLSource | Split-Path -Leaf)
 
 
-$global:LenovoModelDrivers = $null
-$global:LenovoModelXML = $null
-$global:LenovoModelType = $null
-$global:LenovoSystemSKU = $null
+$script:LenovoModelDrivers = $null
+$script:LenovoModelXML = $null
+$script:LenovoModelType = $null
+$script:LenovoSystemSKU = $null
 
 
 
@@ -231,7 +231,7 @@ switch -wildcard (Get-CimInstance -Class Win32_OperatingSystem | Select-Object -
 Write-CMLogEntry -Value " Operating system determined as: $WEOSName" -Severity 1
 
 
-switch -wildcard ((Get-CimInstance Win32_operatingsystem).OSArchitecture) {
+switch -wildcard ((Get-CimInstance -ErrorAction Stop Win32_operatingsystem).OSArchitecture) {
 	" 64-*" {
 		$WEOSArchitecture = " 64-Bit"
 	}
@@ -244,6 +244,7 @@ Write-CMLogEntry -Value " Architecture determined as: $WEOSArchitecture" -Severi
 
 $WEWindowsVersion = ($WEOSName).Split(" " )[1]
 
+[CmdletBinding()]
 function WE-DownloadDriverList {
 	global:Write-CMLogEntry -Value " ======== Download Model Link Information ========" -Severity 1
 	if ($WEComputerManufacturer -eq " Hewlett-Packard" ) {
@@ -264,10 +265,10 @@ function WE-DownloadDriverList {
 		# Read XML File
 		if ($global:HPModelSoftPaqs -eq $null) {
 			global:Write-CMLogEntry -Value " Info: Reading driver pack XML file - $WETempDirectory\$WEHPXMLFile" -Severity 1
-			[xml]$global:HPModelXML = Get-Content -Path $WETempDirectory\$WEHPXMLFile
+			[xml]$script:HPModelXML = Get-Content -Path $WETempDirectory\$WEHPXMLFile
 			# Set XML Object
 			$global:HPModelXML.GetType().FullName | Out-Null
-			$global:HPModelSoftPaqs = $WEHPModelXML.NewDataSet.HPClientDriverPackCatalog.ProductOSDriverPackList.ProductOSDriverPack
+			$script:HPModelSoftPaqs = $WEHPModelXML.NewDataSet.HPClientDriverPackCatalog.ProductOSDriverPackList.ProductOSDriverPack
 		}
 	}
 	if ($WEComputerManufacturer -eq " Dell" ) {
@@ -285,7 +286,7 @@ function WE-DownloadDriverList {
 				global:Write-CMLogEntry -Value " Error: $($_.Exception.Message)" -Severity 3
 			}
 		}
-		if ($WEDellModelXML -eq $null) {
+		if ($null -eq $WEDellModelXML) {
 			# Read XML File
 			global:Write-CMLogEntry -Value " Info: Reading driver pack XML file - $WETempDirectory\$WEDellXMLFile" -Severity 1
 			[xml]$WEDellModelXML = (Get-Content -Path $WETempDirectory\$WEDellXMLFile)
@@ -298,7 +299,7 @@ function WE-DownloadDriverList {
 	if ($WEComputerManufacturer -eq " Lenovo" ) {
 		if ($global:LenovoModelDrivers -eq $null) {
 			try {
-				[xml]$global:LenovoModelXML = Invoke-WebRequest -Uri $global:LenovoXMLSource
+				[xml]$script:LenovoModelXML = Invoke-WebRequest -Uri $global:LenovoXMLSource
 			}
 			catch {
 				global:Write-CMLogEntry -Value " Error: $($_.Exception.Message)" -Severity 3
@@ -309,11 +310,12 @@ function WE-DownloadDriverList {
 			
 			# Set XML Object 
 			$global:LenovoModelXML.GetType().FullName | Out-Null
-			$global:LenovoModelDrivers = $global:LenovoModelXML.Products
+			$script:LenovoModelDrivers = $global:LenovoModelXML.Products
 		}
 	}
 }
 
+[CmdletBinding()]
 function WE-FindLenovoDriver {
 	
 <#
@@ -393,7 +395,7 @@ param(
 		}
 	}
 	
-	if ($WEMatchingLink -ne $null) {
+	if ($null -ne $WEMatchingLink) {
 		return $WEMatchingLink
 	}
 	else {
@@ -401,7 +403,8 @@ param(
 	}
 }
 
-function WE-Get-RedirectedUrl {
+[CmdletBinding()]
+function WE-Get-RedirectedUrl -ErrorAction Stop {
 	[CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -421,6 +424,7 @@ param(
 	$WEResponse.Close()
 }
 
+[CmdletBinding()]
 function WE-LenovoModelTypeFinder {
 	[CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -437,13 +441,13 @@ param(
 	)
 	try {
 		if ($global:LenovoModelDrivers -eq $null) {
-			[xml]$global:LenovoModelXML = Invoke-WebRequest -Uri $global:LenovoXMLSource
+			[xml]$script:LenovoModelXML = Invoke-WebRequest -Uri $global:LenovoXMLSource
 			# Read Web Site
 			global:Write-CMLogEntry -Value " Info: Reading driver pack URL - $global:LenovoXMLSource" -Severity 1
 			
 			# Set XML Object
 			$global:LenovoModelXML.GetType().FullName | Out-Null
-			$global:LenovoModelDrivers = $global:LenovoModelXML.Products
+			$script:LenovoModelDrivers = $global:LenovoModelXML.Products
 		}
 	}
 	catch {
@@ -451,22 +455,23 @@ param(
 	}
 	
 	if ($WEComputerModel.Length -gt 0) {
-		$global:LenovoModelType = ($global:LenovoModelDrivers.Product | Where-Object {
+		$script:LenovoModelType = ($global:LenovoModelDrivers.Product | Where-Object {
 				$_.Queries.Version -match " $WEComputerModel"
 			}).Queries.Types | Select -ExpandProperty Type | Select -first 1
-		$global:LenovoSystemSKU = ($global:LenovoModelDrivers.Product | Where-Object {
+		$script:LenovoSystemSKU = ($global:LenovoModelDrivers.Product | Where-Object {
 				$_.Queries.Version -match " $WEComputerModel"
-			}).Queries.Types | select -ExpandProperty Type | Get-Unique
+			}).Queries.Types | select -ExpandProperty Type | Get-Unique -ErrorAction Stop
 	}
 	
 	if ($WEComputerModelType.Length -gt 0) {
-		$global:LenovoModelType = (($global:LenovoModelDrivers.Product.Queries) | Where-Object {
+		$script:LenovoModelType = (($global:LenovoModelDrivers.Product.Queries) | Where-Object {
 				($_.Types | Select -ExpandProperty Type) -match $WEComputerModelType
 			}).Version | Select -first 1
 	}
 	Return $global:LenovoModelType
 }
 
+[CmdletBinding()]
 function WE-InitiateDownloads {
 	
 	$WEProduct = " Intune Driver Automation"
@@ -523,13 +528,13 @@ function WE-InitiateDownloads {
 	
 	if ($WEComputerManufacturer -eq " Dell" ) {
 		global:Write-CMLogEntry -Value " Info: Setting Dell variables" -Severity 1
-		if ($WEDellModelCabFiles -eq $null) {
+		if ($null -eq $WEDellModelCabFiles) {
 			[xml]$WEDellModelXML = Get-Content -Path $WETempDirectory\$WEDellXMLFile
 			# Set XML Object
 			$WEDellModelXML.GetType().FullName | Out-Null
 			$WEDellModelCabFiles = $WEDellModelXML.driverpackmanifest.driverpackage
 		}
-		if ($WESystemSKU -ne $null) {
+		if ($null -ne $WESystemSKU) {
 			global:Write-CMLogEntry -Value " Info: SystemSKU value is present, attempting match based on SKU - $WESystemSKU)" -Severity 1
 			
 			$WEComputerModelURL = $WEDellDownloadBase + " /" + ($WEDellModelCabFiles | Where-Object {
@@ -543,7 +548,7 @@ function WE-InitiateDownloads {
 						((($_.SupportedOperatingSystems).OperatingSystem).osCode -like " *$WEWindowsVersion*" ) -and ($_.SupportedSystems.Brand.Model.SystemID -eq $WESystemSKU)
 					}).path).Split(" /" ) | select -Last 1
 		}
-		elseif ($WESystemSKU -eq $null -or $WEDriverCab -eq $null) {
+		elseif ($null -eq $WESystemSKU -or $null -eq $WEDriverCab) {
 			global:Write-CMLogEntry -Value " Info: Falling back to matching based on model name" -Severity 1
 			
 			$WEComputerModelURL = $WEDellDownloadBase + " /" + ($WEDellModelCabFiles | Where-Object {
@@ -569,12 +574,12 @@ function WE-InitiateDownloads {
 	if ($WEComputerManufacturer -eq " Hewlett-Packard" ) {
 		global:Write-CMLogEntry -Value " Info: Setting HP variables" -Severity 1
 		if ($global:HPModelSoftPaqs -eq $null) {
-			[xml]$global:HPModelXML = Get-Content -Path $WETempDirectory\$WEHPXMLFile
+			[xml]$script:HPModelXML = Get-Content -Path $WETempDirectory\$WEHPXMLFile
 			# Set XML Object
 			$global:HPModelXML.GetType().FullName | Out-Null
-			$global:HPModelSoftPaqs = $global:HPModelXML.NewDataSet.HPClientDriverPackCatalog.ProductOSDriverPackList.ProductOSDriverPack
+			$script:HPModelSoftPaqs = $global:HPModelXML.NewDataSet.HPClientDriverPackCatalog.ProductOSDriverPackList.ProductOSDriverPack
 		}
-		if ($WESystemSKU -ne $null) {
+		if ($null -ne $WESystemSKU) {
 			$WEHPSoftPaqSummary = $global:HPModelSoftPaqs | Where-Object {
 				($_.SystemID -match $WESystemSKU) -and ($_.OSName -like " $WEOSName*$WEOSArchitecture*$WEOSBuild*" )
 			} | Sort-Object -Descending | select -First 1
@@ -584,7 +589,7 @@ function WE-InitiateDownloads {
 				($_.SystemName -match $WEComputerModel) -and ($_.OSName -like " $WEOSName*$WEOSArchitecture*$WEOSBuild*" )
 			} | Sort-Object -Descending | select -First 1
 		}
-		if ($WEHPSoftPaqSummary -ne $null) {
+		if ($null -ne $WEHPSoftPaqSummary) {
 			$WEHPSoftPaq = $WEHPSoftPaqSummary.SoftPaqID
 			$WEHPSoftPaqDetails = $global:HPModelXML.newdataset.hpclientdriverpackcatalog.softpaqlist.softpaq | Where-Object {
 				$_.ID -eq " $WEHPSoftPaq"
@@ -601,15 +606,15 @@ function WE-InitiateDownloads {
 	}
 	if ($WEComputerManufacturer -eq " Lenovo" ) {
 		global:Write-CMLogEntry -Value " Info: Setting Lenovo variables" -Severity 1
-		$global:LenovoModelType = LenovoModelTypeFinder -ComputerModel $WEComputerModel -OS $WEWindowsVersion
+		$script:LenovoModelType = LenovoModelTypeFinder -ComputerModel $WEComputerModel -OS $WEWindowsVersion
 		global:Write-CMLogEntry -Value " Info: $WEComputerManufacturer $WEComputerModel matching model type: $global:LenovoModelType" -Severity 1
 		
 		if ($global:LenovoModelDrivers -ne $null) {
-			[xml]$global:LenovoModelXML = (New-Object System.Net.WebClient).DownloadString(" $global:LenovoXMLSource" )
+			[xml]$script:LenovoModelXML = (New-Object -ErrorAction Stop System.Net.WebClient).DownloadString(" $global:LenovoXMLSource" )
 			# Set XML Object
 			$global:LenovoModelXML.GetType().FullName | Out-Null
-			$global:LenovoModelDrivers = $global:LenovoModelXML.Products
-			if ($WESystemSKU -ne $null) {
+			$script:LenovoModelDrivers = $global:LenovoModelXML.Products
+			if ($null -ne $WESystemSKU) {
 				$WEComputerModelURL = (($global:LenovoModelDrivers.Product | Where-Object {
 							($_.Queries.smbios -match $WESystemSKU -and $_.OS -match $WEWindowsVersion)
 						}).driverPack | Where-Object {
@@ -625,7 +630,7 @@ function WE-InitiateDownloads {
 			}
 			global:Write-CMLogEntry -Value " Info: Model URL determined as $WEComputerModelURL" -Severity 1
 			$WEDriverDownload = FindLenovoDriver -URI $WEComputerModelURL -os $WEWindowsVersion -Architecture $WEOSArchitecture
-			If ($WEDriverDownload -ne $null) {
+			If ($null -ne $WEDriverDownload) {
 				$WEDriverCab = $WEDriverDownload | Split-Path -Leaf
 				$WEDriverRevision = ($WEDriverCab.Split(" _" ) | Select -Last 1).Trim(" .exe" )
 				global:Write-CMLogEntry -Value " Info: Driver cabinet download determined as $WEDriverDownload" -Severity 1
@@ -649,7 +654,7 @@ function WE-InitiateDownloads {
 	global:Write-CMLogEntry -Value " $($WEProduct): Retrieving ConfigMgr driver pack site For $WEComputerManufacturer $WEComputerModel" -Severity 1
 	global:Write-CMLogEntry -Value " $($WEProduct): URL found: $WEComputerModelURL" -Severity 1
 	
-	if (($WEComputerModelURL -ne $null) -and ($WEDriverDownload -ne " badLink" )) {
+	if (($null -ne $WEComputerModelURL) -and ($WEDriverDownload -ne " badLink" )) {
 		# Cater for HP / Model Issue
 		$WEComputerModel = $WEComputerModel -replace '/', '-'
 		$WEComputerModel = $WEComputerModel.Trim()
@@ -663,7 +668,7 @@ function WE-InitiateDownloads {
 			global:Write-CMLogEntry -Value " $($WEProduct): Downloading from URL: $WEDriverDownload" -Severity 1
 			Start-Job -Name " $WEComputerModel-DriverDownload" -ScriptBlock $WEDriverDownloadJob -ArgumentList ($WETempDirectory, $WEComputerModel, $WEDriverCab, $WEDriverDownload)
 			sleep -Seconds 5
-		; 	$WEBitsJob = Get-BitsTransfer | Where-Object {
+		; 	$WEBitsJob = Get-BitsTransfer -ErrorAction Stop | Where-Object {
 				$_.DisplayName -match " $WEComputerModel-DriverDownload"
 			}
 			while (($WEBitsJob).JobState -eq " Connecting" ) {
@@ -678,12 +683,12 @@ function WE-InitiateDownloads {
 				}
 				else {
 					global:Write-CMLogEntry -Value " $($WEProduct): Download issues detected. Cancelling download process" -Severity 2
-					Get-BitsTransfer | Where-Object {
+					Get-BitsTransfer -ErrorAction Stop | Where-Object {
 						$_.DisplayName -eq " $WEComputerModel-DriverDownload"
-					} | Remove-BitsTransfer
+					} | Remove-BitsTransfer -ErrorAction Stop
 				}
 			}
-			Get-BitsTransfer | Where-Object {
+			Get-BitsTransfer -ErrorAction Stop | Where-Object {
 				$_.DisplayName -eq " $WEComputerModel-DriverDownload"
 			} | Complete-BitsTransfer
 			global:Write-CMLogEntry -Value " $($WEProduct): Driver revision: $WEDriverRevision" -Severity 1
@@ -695,7 +700,7 @@ function WE-InitiateDownloads {
 		# Cater for HP / Model Issue
 		$WEComputerModel = $WEComputerModel -replace '/', '-'
 		
-		if (((Test-Path -Path " $($WETempDirectory + '\Driver Cab\' + $WEDriverCab)" ) -eq $true) -and ($WEDriverCab -ne $null)) {
+		if (((Test-Path -Path " $($WETempDirectory + '\Driver Cab\' + $WEDriverCab)" ) -eq $true) -and ($null -ne $WEDriverCab)) {
 			global:Write-CMLogEntry -Value " $($WEProduct): $WEDriverCab File exists - Starting driver update process" -Severity 1
 			# =============== Extract Drivers =================
 			
@@ -726,7 +731,7 @@ function WE-InitiateDownloads {
 				}
 				if ($WEComputerManufacturer -eq " Lenovo" ) {
 					# Driver Silent Extract Switches
-					$global:LenovoSilentSwitches = " /VERYSILENT /DIR=" + '" ' + $WEDriverExtractDest + '" ' + ' /Extract=" Yes" '
+					$script:LenovoSilentSwitches = " /VERYSILENT /DIR=" + '" ' + $WEDriverExtractDest + '" ' + ' /Extract=" Yes" '
 					global:Write-CMLogEntry -Value " $($WEProduct): Using $WEComputerManufacturer silent switches: $global:LenovoSilentSwitches" -Severity 1
 					global:Write-CMLogEntry -Value " $($WEProduct): Extracting $WEComputerManufacturer drivers to $WEDriverExtractDest" -Severity 1
 					Unblock-File -Path $($WETempDirectory + '\Driver Cab\' + $WEDriverCab)
@@ -761,6 +766,7 @@ function WE-InitiateDownloads {
 	}
 }
 
+[CmdletBinding()]
 function WE-Update-Drivers {
 ; 	$WEDriverPackagePath = Join-Path $WETempDirectory " Driver Files"
 	Write-CMLogEntry -Value " Driver package location is $WEDriverPackagePath" -Severity 1

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Check Updatecompliancesetting
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -191,7 +192,7 @@ param(
 )
 
 
-$global:ConnectivityEndpoint = @(
+$script:ConnectivityEndpoint = @(
     " v10c.events.data.microsoft.com"
     " settings-win.data.microsoft.com"
     " adl.windows.com"
@@ -201,13 +202,13 @@ $global:ConnectivityEndpoint = @(
 )
 
 
-$global:osVersion = (Get-CimInstance Win32_OperatingSystem).Version
+$script:osVersion = (Get-CimInstance -ErrorAction Stop Win32_OperatingSystem).Version
 
 
-[int] $global:osBuildNumber = (Get-CimInstance Win32_OperatingSystem).BuildNumber
+[int] $script:osBuildNumber = (Get-CimInstance -ErrorAction Stop Win32_OperatingSystem).BuildNumber
 
 
-$global:operatingSystemName = (Get-CimInstance Win32_OperatingSystem).Name
+$script:operatingSystemName = (Get-CimInstance -ErrorAction Stop Win32_OperatingSystem).Name
 
 
 $WEGlobal:ScriptOut = $WENull
@@ -293,6 +294,7 @@ $main = {
         Exit 1 
     }
 }
+[CmdletBinding()]
 Function Write-Array {
 
     [CmdletBinding()]
@@ -315,6 +317,7 @@ param(
     $WEGlobal:ScriptOut += $WEOutputPass
     $WEOutputPass = $WENull
 }
+[CmdletBinding()]
 function WE-CheckCommercialID {
     $commercialIDValue1ResultFail = $false
     $commercialIDValue2ResultFail = $false
@@ -322,7 +325,7 @@ function WE-CheckCommercialID {
         $commercialIDValue1 = (Get-ItemProperty -Path " HKLM:SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name " CommercialID" -ErrorAction SilentlyContinue).CommercialID 
         $commercialIDValue2 = (Get-ItemProperty -Path " HKLM:SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection" -Name " CommercialID" -ErrorAction SilentlyContinue).CommercialID 
         
-        If (($commercialIDValue1 -eq $null) -or ($commercialIDValue1 -eq [string]::Empty)) {
+        If (($null -eq $commercialIDValue1) -or ($commercialIDValue1 -eq [string]::Empty)) {
             Write-Array -Status " Info" -Test " CheckCommercialIDValue1" -Result " CommercialID value is empty"
             $commercialIDValue1ResultFail = $true
         } 
@@ -330,7 +333,7 @@ function WE-CheckCommercialID {
             Write-Array -Status " Passed" -Test " CheckCommercialIDValue1" -Result " Valid GUID found in registry key value"
         }
 
-        If (($commercialIDValue2 -eq $null) -or ($commercialIDValue2 -eq [string]::Empty)) {
+        If (($null -eq $commercialIDValue2) -or ($commercialIDValue2 -eq [string]::Empty)) {
             Write-Array -Status " Info" -Test " CheckCommercialIDValue2" -Result " CommercialID value is empty"
             $commercialIDValue2ResultFail = $true
         }
@@ -358,10 +361,11 @@ function WE-CheckCommercialID {
     }  
 }
 
+[CmdletBinding()]
 function WE-CheckSqmID {
     Try {
         $WESQMID = (Get-ItemProperty -Path " HKLM:\SOFTWARE\Microsoft\SQMClient" -Name MachineId).MachineId
-        if (($WESQMID -eq $null) -or ($WESQMID -eq [string]::Empty)) {
+        if (($null -eq $WESQMID) -or ($WESQMID -eq [string]::Empty)) {
             Write-Array -Status " Failed" -Test " CheckSqmID" -Result " SQMID Not found"
         }
         else {
@@ -373,6 +377,7 @@ function WE-CheckSqmID {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckTelemetryOptIn {
     $vAllowTelemetryPath1 = " HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
     $vAllowTelemetryPath2 = " HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection"
@@ -387,7 +392,7 @@ function WE-CheckTelemetryOptIn {
         $allowTelemetryProperty2 = (Get-ItemProperty -Path $vAllowTelemetryPath2 -Name AllowTelemetry -ErrorAction SilentlyContinue).AllowTelemetry
         $allowTelemetryProperty3 = (Get-ItemProperty -Path $vAllowTelemetryPath1 -Name AllowTelemetry_PolicyManager -ErrorAction SilentlyContinue).AllowTelemetry_PolicyManager
         
-        if (($allowTelemetryProperty1 -ne $null) -or ($allowTelemetryProperty1 -eq [string]::Empty)) {
+        if (($null -ne $allowTelemetryProperty1) -or ($allowTelemetryProperty1 -eq [string]::Empty)) {
 
             if ($allowTelemetryProperty1 -isnot [Int32]) {
                 Write-Array -Status " Info" -Test " CheckTelemetryOptIn1" -Result " Invalid value for AllowTelemetry" 
@@ -406,7 +411,7 @@ function WE-CheckTelemetryOptIn {
             $vAllowTelemetryPath1ResultFail = $true
         }
 
-        if (($allowTelemetryProperty2 -ne $null) -or ($allowTelemetryProperty2 -eq [string]::Empty)) {
+        if (($null -ne $allowTelemetryProperty2) -or ($allowTelemetryProperty2 -eq [string]::Empty)) {
 
             if ($allowTelemetryProperty2 -isnot [Int32]) {
                 Write-Array -Status " Info" -Test " CheckTelemetryOptIn2" -Result " Invalid value for AllowTelemetry" 
@@ -425,7 +430,7 @@ function WE-CheckTelemetryOptIn {
             $vAllowTelemetryPath2ResultFail = $true
         }
 
-        if (($allowTelemetryProperty3 -ne $null) -or ($allowTelemetryProperty3 -eq [string]::Empty)) {
+        if (($null -ne $allowTelemetryProperty3) -or ($allowTelemetryProperty3 -eq [string]::Empty)) {
 
             if ($allowTelemetryProperty3 -isnot [Int32]) {
                 Write-Array -Status " Info" -Test " CheckTelemetryOptIn3" -Result " Invalid value for AllowTelemetry_PolicyManager" 
@@ -461,6 +466,7 @@ function WE-CheckTelemetryOptIn {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckConnectivity {
     $i = 0
     $WECheckConnectivityOverallStatus = $false
@@ -498,6 +504,7 @@ function WE-CheckConnectivity {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckUtcCsp {
     Try {
         $WEClassName = " MDM_Win32CompatibilityAppraiser_UniversalTelemetryClient01"
@@ -519,6 +526,7 @@ function WE-CheckUtcCsp {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckDiagtrackService {
 
     Try {
@@ -584,9 +592,10 @@ function WE-CheckDiagtrackService {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckMSAService {
     Try {
-        $serviceInfo = Get-CimInstance win32_service -Filter " Name='wlidsvc'"
+        $serviceInfo = Get-CimInstance -ErrorAction Stop win32_service -Filter " Name='wlidsvc'"
         $serviceStartMode = $serviceInfo.StartMode
         $serviceStatus = $serviceInfo.State
 
@@ -611,6 +620,7 @@ function WE-CheckMSAService {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckAllowDeviceNameInTelemetry {
     $vAllowDeviceNamePath = " HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
     
@@ -618,7 +628,7 @@ function WE-CheckAllowDeviceNameInTelemetry {
         
         $allowDeviceNameProperty = (Get-ItemProperty -Path $vAllowDeviceNamePath -Name AllowDeviceNameInTelemetry -ErrorAction SilentlyContinue).AllowDeviceNameInTelemetry
        
-        if (($allowDeviceNameProperty -ne $null) -or ($allowDeviceNameProperty -eq [string]::Empty)) {
+        if (($null -ne $allowDeviceNameProperty) -or ($allowDeviceNameProperty -eq [string]::Empty)) {
 
             if ($allowDeviceNameProperty -isnot [Int32]) {
                 Write-Array -Status " Warning" -Test " CheckAllowDeviceName" -Result " Invalid value for AllowDeviceNameInTelemetry"   
@@ -640,6 +650,7 @@ function WE-CheckAllowDeviceNameInTelemetry {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckAllowUpdateComplianceProcessing {
     $vAllowUpdateComplianceProcessingPath = " HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\System"
     
@@ -647,7 +658,7 @@ function WE-CheckAllowUpdateComplianceProcessing {
         
         $allowUpdateComplianceProcessingProperty = (Get-ItemProperty -Path $vAllowUpdateComplianceProcessingPath -Name AllowUpdateComplianceProcessing -ErrorAction SilentlyContinue).AllowUpdateComplianceProcessing
        
-        if (($allowUpdateComplianceProcessingProperty -ne $null) -or ($allowUpdateComplianceProcessingProperty -eq [string]::Empty)) {
+        if (($null -ne $allowUpdateComplianceProcessingProperty) -or ($allowUpdateComplianceProcessingProperty -eq [string]::Empty)) {
 
             if ($allowUpdateComplianceProcessingProperty -isnot [Int32]) {
                 Write-Array -Status " Warning" -Test " CheckAllowUpdateComplianceProcessing" -Result " Invalid value for AllowUpdateComplianceProcessing" 
@@ -669,6 +680,7 @@ function WE-CheckAllowUpdateComplianceProcessing {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckAllowWUfBCloudProcessing {
     $vAllowWUfBCloudProcessingPath = " HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\System"
     
@@ -676,7 +688,7 @@ function WE-CheckAllowWUfBCloudProcessing {
         
         $WEAllowWUfBCloudProcessingProperty = (Get-ItemProperty -Path $vAllowWUfBCloudProcessingPath -Name AllowWUfBCloudProcessing -ErrorAction SilentlyContinue).AllowWUfBCloudProcessing
        
-        if (($WEAllowWUfBCloudProcessingProperty -ne $null) -or ($WEAllowWUfBCloudProcessingProperty -eq [string]::Empty)) {
+        if (($null -ne $WEAllowWUfBCloudProcessingProperty) -or ($WEAllowWUfBCloudProcessingProperty -eq [string]::Empty)) {
 
             if ($WEAllowWUfBCloudProcessingProperty -isnot [Int32]) {
                 Write-Array -Status " Warning" -Test " CheckAllowWUfBCloudProcessing" -Result " Invalid value for AllowWUfBCloudProcessing"   
@@ -698,6 +710,7 @@ function WE-CheckAllowWUfBCloudProcessing {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckConfigureTelemetryOptInChangeNotification {
     $vConfigureTelemetryOptInChangeNotificationPath = " HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\System"
     
@@ -705,7 +718,7 @@ function WE-CheckConfigureTelemetryOptInChangeNotification {
         
         $WEConfigureTelemetryOptInChangeNotificationProperty = (Get-ItemProperty -Path $vConfigureTelemetryOptInChangeNotificationPath -Name ConfigureTelemetryOptInChangeNotification -ErrorAction SilentlyContinue).ConfigureTelemetryOptInChangeNotification
        
-        if (($WEConfigureTelemetryOptInChangeNotificationProperty -ne $null) -or ($WEConfigureTelemetryOptInChangeNotificationProperty -eq [string]::Empty)) {
+        if (($null -ne $WEConfigureTelemetryOptInChangeNotificationProperty) -or ($WEConfigureTelemetryOptInChangeNotificationProperty -eq [string]::Empty)) {
 
             if ($WEConfigureTelemetryOptInChangeNotificationProperty -isnot [Int32]) {
                 Write-Array -Status " Warning" -Test " CheckConfigureTelemetryOptInChangeNotification" -Result " Invalid value for ConfigureTelemetryOptInChangeNotification"   
@@ -727,6 +740,7 @@ function WE-CheckConfigureTelemetryOptInChangeNotification {
     }
 }
 
+[CmdletBinding()]
 function WE-CheckConfigureTelemetryOptInSettingsUx {
    ;  $vConfigureTelemetryOptInChangeNotificationPath = " HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\System"
     
@@ -734,7 +748,7 @@ function WE-CheckConfigureTelemetryOptInSettingsUx {
         
        ;  $WEConfigureTelemetryOptInChangeNotificationProperty = (Get-ItemProperty -Path $vConfigureTelemetryOptInChangeNotificationPath -Name ConfigureTelemetryOptInSettingsUx -ErrorAction SilentlyContinue).ConfigureTelemetryOptInSettingsUx
        
-        if (($WEConfigureTelemetryOptInChangeNotificationProperty -ne $null) -or ($WEConfigureTelemetryOptInChangeNotificationProperty -eq [string]::Empty)) {
+        if (($null -ne $WEConfigureTelemetryOptInChangeNotificationProperty) -or ($WEConfigureTelemetryOptInChangeNotificationProperty -eq [string]::Empty)) {
 
             if ($WEConfigureTelemetryOptInChangeNotificationProperty -isnot [Int32]) {
                 Write-Array -Status " Warning" -Test " CheckConfigureTelemetryOptInSettingsUx" -Result " Invalid value for ConfigureTelemetryOptInSettingsUx"   

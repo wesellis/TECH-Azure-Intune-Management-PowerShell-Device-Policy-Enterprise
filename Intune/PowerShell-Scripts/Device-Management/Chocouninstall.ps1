@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Chocouninstall
 
@@ -68,7 +68,7 @@ $choco = " C:\ProgramData\chocolatey"
 Write-WELog " Checking if $($app) is installed on $($env:COMPUTERNAME)..." " INFO" ; 
 $installed = choco list | Select-String $app
 
-if($installed -ne $null)
+if($null -ne $installed)
 {
     Write-WELog " $($app) is installed; uninstalling now..." " INFO"
     try 

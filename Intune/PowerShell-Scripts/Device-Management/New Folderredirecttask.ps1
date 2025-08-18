@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     New Folderredirecttask
 
@@ -64,7 +64,7 @@ param(
 )
 
 $WEVerbosePreference = " Continue"
-$stampDate = Get-Date
+$stampDate = Get-Date -ErrorAction Stop
 $scriptName = ([System.IO.Path]::GetFileNameWithoutExtension($(Split-Path $script:MyInvocation.MyCommand.Path -Leaf)))
 $logFile = " $env:ProgramData\IntuneScriptLogs\$scriptName-" + $stampDate.ToFileTimeUtc() + " .log"
 Start-Transcript -Path $WELogFile

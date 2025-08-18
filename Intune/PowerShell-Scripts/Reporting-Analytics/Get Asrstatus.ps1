@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Asrstatus
 
@@ -43,9 +43,10 @@
 $WEErrorActionPreference = "Stop"; 
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-function WE-Get-AttackSurfaceReductionRuleStatus {
+[CmdletBinding()]
+function WE-Get-AttackSurfaceReductionRuleStatus -ErrorAction Stop {
 
-    function WE-Get-AsrStatus ($WEValue) {
+    function WE-Get-AsrStatus -ErrorAction Stop ($WEValue) {
         switch ($WEValue) {
             0 { " Disabled" }
             1 { " Enabled" }
@@ -54,7 +55,7 @@ function WE-Get-AttackSurfaceReductionRuleStatus {
         }
     }
 
-   ;  $WEPrefs = Get-MpPreference
+   ;  $WEPrefs = Get-MpPreference -ErrorAction Stop
     if ($null -eq $WEPrefs.AttackSurfaceReductionRules_Ids) {
         Write-WELog " ASR rules not configured." " INFO"
     }

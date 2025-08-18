@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Officewin32Detectionscript
 
@@ -37,6 +37,7 @@
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
+[CmdletBinding()]
 function WE-Write-LogEntry {
 	[CmdletBinding()]
 $ErrorActionPreference = " Stop"

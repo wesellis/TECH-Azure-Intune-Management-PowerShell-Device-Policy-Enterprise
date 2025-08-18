@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Delete Sccm Cache And Distro
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -68,7 +69,8 @@ $softwareDistributionPath = " C:\Windows\SoftwareDistribution\Download" ;
 $deleteSoftwareDistribution = $true # <--- delete SoftwareDistribution folder
 
 
-function WE-Remove-SCCMCache {
+[CmdletBinding()]
+function WE-Remove-SCCMCache -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -86,7 +88,8 @@ param(
     }
 }
 
-function WE-Remove-SoftwareDistribution {
+[CmdletBinding()]
+function WE-Remove-SoftwareDistribution -ErrorAction Stop {
     [CmdletBinding()]; 
 $ErrorActionPreference = " Stop"
 param(

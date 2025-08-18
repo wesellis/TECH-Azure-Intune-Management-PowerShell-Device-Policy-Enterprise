@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Win11Settingsfix
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()
 try {
@@ -65,7 +66,7 @@ Copy-Item -Path " $($WEPSScriptRoot)\YOURPIC.jpeg" -Destination " C:\Windows\Web
 New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS
 
 $user = (Get-CimInstance -Class Win32_ComputerSystem | Select-Object Username).Username; 
-$sid = (New-Object System.Security.Principal.NTAccount($user)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+$sid = (New-Object -ErrorAction Stop System.Security.Principal.NTAccount($user)).Translate([System.Security.Principal.SecurityIdentifier]).Value
 ; 
 $userRegPath = " HKU\$($sid)\SOFTWARE"
 

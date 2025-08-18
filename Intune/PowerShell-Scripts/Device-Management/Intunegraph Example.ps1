@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intunegraph Example
 
@@ -43,13 +43,13 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
 
 function WE-Filter-Intune($emailAddress,$WEOSVersion)
 {
-  if($emailAddress -ne $null)
+  if($null -ne $emailAddress)
   {
-    $intuneDevices = Get-MgDeviceManagementManagedDevices | Where-Object {$_.EmailAddress -eq " $($emailAddress)" }
+    $intuneDevices = Get-MgDeviceManagementManagedDevices -ErrorAction Stop | Where-Object {$_.EmailAddress -eq " $($emailAddress)" }
     if($intuneDevices.Count -gt 0)
     {
       $userDevices = $intuneDevices | Select-Object DisplayName,OSVersion
-     if($osVersion -ne $null)
+     if($null -ne $osVersion)
      {
       ;  $selectedDevices = $userDevices | Where-Object {$_.OSVersion -match " $($WEOSVersion)" }
        return $selectedDevices
@@ -67,7 +67,7 @@ function WE-Filter-Intune($emailAddress,$WEOSVersion)
   }
   else
   {
-    Write-Host " No email address provided to function
+    Write-Information " No email address provided to function
   }
 }
 

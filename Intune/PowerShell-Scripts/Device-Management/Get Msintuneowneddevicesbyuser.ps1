@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Msintuneowneddevicesbyuser
 
@@ -98,7 +98,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
            ;  $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
@@ -145,7 +145,7 @@ Process {
    ;  $WEOwnedDevices = (Invoke-RestMethod -Uri $WEGraphURI -Headers $WEAuthToken -Method Get).Value
 
     # Construct custom PS object for output
-    if ($WEOwnedDevices -ne $null) {
+    if ($null -ne $WEOwnedDevices) {
         foreach ($WEObject in $WEOwnedDevices) {
             # Create MSIntuneGraph.OwnedDevices custom object
            ;  $WEPSObject = [PSCustomObject]@{

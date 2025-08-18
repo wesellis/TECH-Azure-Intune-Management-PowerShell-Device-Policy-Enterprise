@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Fixwinre
 
@@ -37,7 +37,7 @@
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-$disk = Get-Disk | Where-Object { $_.PartitionStyle -eq 'GPT' } | Sort-Object -Property Number | Select-Object -Last 1
+$disk = Get-Disk -ErrorAction Stop | Where-Object { $_.PartitionStyle -eq 'GPT' } | Sort-Object -Property Number | Select-Object -Last 1
 
 
 $partition = Get-Partition -DiskNumber $disk.Number | Where-Object { $_.Type -eq 'Recovery' }

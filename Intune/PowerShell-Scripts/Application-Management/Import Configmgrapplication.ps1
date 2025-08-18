@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Import Configmgrapplication
 
@@ -83,7 +83,7 @@ begin {
                 Filter      = " ConfigurationManager.psd1"
                 ErrorAction = " SilentlyContinue"
             }
-            $WEModuleFile = Get-ChildItem @params
+            $WEModuleFile = Get-ChildItem -ErrorAction Stop @params
             if (-not[System.String]::IsNullOrEmpty($WEModuleFile)) {
                 Write-Verbose -Message " Importing module: $($WEModuleFile.FullName)"
                 Import-Module -Name $WEModuleFile.FullName -Verbose:$false
@@ -183,7 +183,7 @@ process {
                     }
 
                     try {
-                        # Splat New-CMApplication parameters, add the application and move into the target folder
+                        # Splat New-CMApplication -ErrorAction Stop parameters, add the application and move into the target folder
                         $WEApplicationName = " Visual C++ Redistributable $($WEVcRedist.Release) $($WEVcRedist.Architecture) $($WEVcRedist.Version)"
                         $cmAppParams = @{
                             Name              = $WEApplicationName
@@ -196,7 +196,7 @@ process {
                             PrivacyUrl        = " https://go.microsoft.com/fwlink/?LinkId=521839"
                             UserDocumentation = " https://visualstudio.microsoft.com/vs/support/"
                         }
-                        $app = New-CMApplication @cmAppParams
+                        $app = New-CMApplication -ErrorAction Stop @cmAppParams
                         if ($WEAppFolder) {
                             $app | Move-CMObject -FolderPath $WEDestCmFolder -ErrorAction " SilentlyContinue" > $null
                         }
@@ -229,7 +229,7 @@ process {
                             Is64Bit = if ($WEVcRedist.UninstallKey -eq " 64" ) { $true } else { $false }
                             KeyName = " SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$($WEVcRedist.ProductCode)"
                         }
-                       ;  $detectionClause = New-CMDetectionClauseRegistryKey @params
+                       ;  $detectionClause = New-CMDetectionClauseRegistryKey -ErrorAction Stop @params
 
                         # Splat Add-CMScriptDeploymentType parameters and add the application deployment type
                        ;  $cmScriptParams = @{

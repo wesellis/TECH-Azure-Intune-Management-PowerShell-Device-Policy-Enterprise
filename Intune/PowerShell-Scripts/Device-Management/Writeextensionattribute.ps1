@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Writeextensionattribute
 
@@ -41,7 +41,7 @@ $clientId = " <CLIENTID>"
 $clientSecret = " <CLIENTSECRET>"
 $tenant = " <TENANTNAME>"
 
-$headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+$headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
 $headers.Add(" Content-Type" , " application/x-www-form-urlencoded" )
 
 $body = " grant_type=client_credentials&scope=https://graph.microsoft.com/.default"
@@ -53,7 +53,7 @@ $response = Invoke-RestMethod " https://login.microsoftonline.com/$tenant/oauth2
 $token = -join (" Bearer " , $response.access_token)
 
 
-$headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+$headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
 $headers.Add(" Authorization" , $token)
 $headers.Add(" Content-Type" , " application/json" )
 Write-WELog " MS Graph Authenticated" " INFO"
@@ -61,8 +61,8 @@ Write-WELog " MS Graph Authenticated" " INFO"
 
 
 
-$activeUsername = (Get-CimInstance Win32_ComputerSystem | Select-Object | username).username
-$objUser = New-Object System.Security.Principal.NTAccount(" $activeUsername" )
+$activeUsername = (Get-CimInstance -ErrorAction Stop Win32_ComputerSystem | Select-Object | username).username
+$objUser = New-Object -ErrorAction Stop System.Security.Principal.NTAccount(" $activeUsername" )
 $strSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
 $userSID = $strSID.Value
 

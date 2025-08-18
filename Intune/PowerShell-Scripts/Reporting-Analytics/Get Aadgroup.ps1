@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Aadgroup
 
@@ -103,7 +103,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
            ;  $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
@@ -148,7 +148,7 @@ Process {
 
     # Get group object from Graph API
    ;  $WEAADGroup = (Invoke-RestMethod -Uri $WEGraphURI -Method Get -Headers $WEAuthToken).Value
-    if ($WEAADGroup -ne $null) {
+    if ($null -ne $WEAADGroup) {
        ;  $WEPSObject = [PSCustomObject]@{
             PSTypeName = " MSIntuneGraph.AADGroup"
             DisplayName = $WEAADGroup.displayName

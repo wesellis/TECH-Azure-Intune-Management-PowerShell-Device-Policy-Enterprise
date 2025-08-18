@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Onedrivesetupupdate
 
@@ -72,7 +72,7 @@ Begin {
     foreach ($WEModule in $WEModules) {
         try {
             $WECurrentModule = Get-InstalledModule -Name $WEModule -ErrorAction Stop -Verbose:$false
-            if ($WECurrentModule -ne $null) {
+            if ($null -ne $WECurrentModule) {
                 $WELatestModuleVersion = (Find-Module -Name $WEModule -ErrorAction Stop -Verbose:$false).Version
                 if ($WELatestModuleVersion -gt $WECurrentModule.Version) {
                     $WEUpdateModuleInvocation = Update-Module -Name $WEModule -Force -ErrorAction Stop -Confirm:$false -Verbose:$false
@@ -98,7 +98,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Write-LogEntry {
+    [CmdletBinding()]
+function WE-Write-LogEntry {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -147,7 +148,8 @@ param(
         }
     }
 
-    function WE-Start-DownloadFile {
+    [CmdletBinding()]
+function WE-Start-DownloadFile {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -198,7 +200,8 @@ param(
         }
     }
 
-    function WE-Invoke-Executable {
+    [CmdletBinding()]
+function WE-Invoke-Executable {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(

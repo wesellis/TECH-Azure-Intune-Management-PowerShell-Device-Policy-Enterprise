@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Remeditate
 
@@ -37,6 +37,7 @@
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
+[CmdletBinding()]
 function WE-Start-PowerShellSysNative {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -97,12 +98,12 @@ catch [System.Exception] {
 
 if ($WEPackageProvider.Version -ge " 2.8.5" ){
     $WEPowerShellGetInstalledModule = Get-InstalledModule -Name " PowerShellGet" -ErrorAction SilentlyContinue -Verbose:$false
-    if ($WEPowerShellGetInstalledModule -ne $null) {
+    if ($null -ne $WEPowerShellGetInstalledModule) {
         try {
             # Attempt to locate the latest available version of the PowerShellGet module from repository
             Write-Output " Attempting to request the latest PowerShellGet module version from repository" 
            ;  $WEPowerShellGetLatestModule = Find-Module -Name " PowerShellGet" -ErrorAction Stop -Verbose:$false
-            if ($WEPowerShellGetLatestModule -ne $null) {
+            if ($null -ne $WEPowerShellGetLatestModule) {
                 if ($WEPowerShellGetInstalledModule.Version -lt $WEPowerShellGetLatestModule.Version) {
                     try {
                         # Newer module detected, attempt to update
@@ -136,8 +137,8 @@ if ($WEPackageProvider.Version -ge " 2.8.5" ){
     }
     
     #Install the latest HPCMSL Module
-    $WEHPInstalledModule = Get-InstalledModule | Where-Object {$_.Name -match " HPCMSL" } -ErrorAction SilentlyContinue -Verbose:$false
-    if ($WEHPInstalledModule -ne $null) {
+    $WEHPInstalledModule = Get-InstalledModule -ErrorAction Stop | Where-Object {$_.Name -match " HPCMSL" } -ErrorAction SilentlyContinue -Verbose:$false
+    if ($null -ne $WEHPInstalledModule) {
        ;  $WEHPGetLatestModule = Find-Module -Name " HPCMSL" -ErrorAction Stop -Verbose:$false
         if ($WEHPInstalledModule.Version -lt $WEHPGetLatestModule.Version) {
             Write-Output " Newer HPCMSL version detected, updating from repository"

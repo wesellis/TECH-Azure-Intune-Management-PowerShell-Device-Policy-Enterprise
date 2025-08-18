@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Exclusions
 
@@ -34,22 +34,24 @@
     Requires appropriate permissions and modules
 
 
-function WE-Get-Exclusions {
+[CmdletBinding()]
+function WE-Get-Exclusions -ErrorAction Stop {
 
 
 
 $WEErrorActionPreference = "Stop"; 
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-function WE-Get-Exclusions {
-   ;  $WEPrefs = Get-MpPreference
+[CmdletBinding()]
+function WE-Get-Exclusions -ErrorAction Stop {
+   ;  $WEPrefs = Get-MpPreference -ErrorAction Stop
     $WEPrefs.ExclusionExtension | ForEach-Object { [PSCustomObject]@{ Item = $_; Type = " Extension" } }
     $WEPrefs.ExclusionProcess | ForEach-Object { [PSCustomObject]@{ Item = $_; Type = " Process" } }
     $WEPrefs.ExclusionPath | ForEach-Object { [PSCustomObject]@{ Item = $_; Type = " Path" } }
     $WEPrefs.ExclusionIpAddress | ForEach-Object { [PSCustomObject]@{ Item = $_; Type = " IpAddress" } }
 }
 
-Get-Exclusions | ConvertTo-Csv -NoTypeInformation
+Get-Exclusions -ErrorAction Stop | ConvertTo-Csv -NoTypeInformation
 
 
 

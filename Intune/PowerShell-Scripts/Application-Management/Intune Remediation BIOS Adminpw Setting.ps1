@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Remediation Bios Adminpw Setting
 
@@ -101,7 +101,7 @@ $WEPWstatus = ""
 
 $serviceTag = Get-CimInstance -ClassName win32_bios | Select-Object -ExpandProperty SerialNumber
 $WEAdminPw = " $serviceTag$WEPWKey"
-$WEDate = Get-Date
+$WEDate = Get-Date -ErrorAction Stop
 $WEPWKeyOld = ""
 $serviceTagOld = ""
 $WEAdminPwOld = ""
@@ -131,7 +131,7 @@ if ($WERegKeyexist -eq " True" )
     
     Write-Output " Registry Key exist"  | out-file " $WEPATH\BIOS_Profile.txt" -Append
     # Encoding BIOS Password
-    $WEEncoder = New-Object System.Text.UTF8Encoding
+    $WEEncoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
     $WEBytes = $WEEncoder.GetBytes($WEAdminPwOld)
 }
 else
@@ -149,7 +149,7 @@ else
 
 Write-Output " Checking if the BIOS Password is set on the system"
 
-if($WEPWset -eq $null)
+if($null -eq $WEPWset)
 {
     Write-Error -Category ResourceUnavailable -CategoryTargetName " root/dcim/sysman/wmisecurity" -CategoryTargetType " PasswordObject" -Message " Unable to get the 'Admin' object in class 'PasswordObject' in the Namespace 'root/dcim/sysman/wmisecurity'" 
 	Exit 1
@@ -168,7 +168,7 @@ elseif ($WEPWset -eq $false)
             New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " ServiceTag" -value $serviceTag -type string -Force
             New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " Date" -value $WEDate -type string -Force
             New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " Status" -value " Ready" -type string -Force
-            New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " Update" -value (Get-Date $WEDateTransfer -Format yyyy-MM-dd) -type string -Force
+            New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " Update" -value (Get-Date -ErrorAction Stop $WEDateTransfer -Format yyyy-MM-dd) -type string -Force
         
             Write-Output " BIOS admin password is set successfully for first time."  | out-file " $WEPATH\BIOS_Profile.txt" -Append
             Write-WELog " BIOS admin password is set successfully for first time." " INFO"
@@ -208,7 +208,7 @@ else
             Write-WELog " BIOS admin password is updated successfully." " INFO"
             New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " Status" -value " Ready" -type string -Force
             New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " BIOS" -value $WEPWKey -type string -Force
-            New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " Update" -value (Get-Date $WEDateTransfer -Format yyyy-MM-dd) -type string -Force
+            New-Itemproperty -path " hklm:\software\Dell\BIOS" -name " Update" -value (Get-Date -ErrorAction Stop $WEDateTransfer -Format yyyy-MM-dd) -type string -Force
             Exit 0
         }
         else

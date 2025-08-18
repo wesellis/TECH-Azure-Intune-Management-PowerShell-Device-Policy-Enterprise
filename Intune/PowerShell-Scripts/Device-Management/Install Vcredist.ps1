@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install Vcredist
 
@@ -73,7 +73,8 @@ param(
 )
 Process {
     # Functions
-    function WE-Write-LogEntry {
+    [CmdletBinding()]
+function WE-Write-LogEntry {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -122,7 +123,8 @@ param(
         }
     }
 
-    function WE-Invoke-Executable {
+    [CmdletBinding()]
+function WE-Invoke-Executable {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(

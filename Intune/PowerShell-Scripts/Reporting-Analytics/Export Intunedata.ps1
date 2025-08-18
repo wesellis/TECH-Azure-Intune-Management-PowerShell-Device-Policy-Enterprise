@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Export Intunedata
 
@@ -116,7 +116,8 @@ function WE-Log-FatalError($message) {
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
     <#
     .SYNOPSIS
@@ -124,10 +125,10 @@ function WE-Get-AuthToken {
     .DESCRIPTION
     The function authenticate with the Graph API Interface with the tenant name
     .EXAMPLE
-    Get-AuthToken
+    Get-AuthToken -ErrorAction Stop
     Authenticates you with the Graph API interface
     .NOTES
-    NAME: Get-AuthToken
+    NAME: Get-AuthToken -ErrorAction Stop
     #>
     
     [cmdletbinding()]
@@ -139,7 +140,7 @@ param(
         $WEUser
     )
     
-    $userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+    $userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
     
     $tenant = $userUpn.Host
     
@@ -147,20 +148,18 @@ param(
     
         $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
     
-        if ($WEAadModule -eq $null) {
+        if ($null -eq $WEAadModule) {
     
             Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
             $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
     
         }
     
-        if ($WEAadModule -eq $null) {
-            write-host
-            write-host " AzureAD Powershell module not installed..." -f Red
-            write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-            write-host " Script can't continue..." -f Red
-            write-host
-            exit
+        if ($null -eq $WEAadModule) {
+            Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+            Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+            Write-Information " Script can't continue..." -f Red
+            Write-Information exit
         }
     
     # Getting path to ActiveDirectory Assemblies
@@ -209,19 +208,19 @@ param(
     
         try {
     
-        $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+        $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
     
         # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
         # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
     
-        $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+        $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
     
-        $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+        $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
         $WEMethodArguments = [Type[]]@(" System.String" , " System.String" , " System.Uri" , " Microsoft.IdentityModel.Clients.ActiveDirectory.PromptBehavior" , " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" )
         $WENonAsync = $WEAuthContext.GetType().GetMethod(" AcquireToken" , $WEMethodArguments)
     
-        if ($WENonAsync -ne $null) {
+        if ($null -ne $WENonAsync) {
             $authResult = $authContext.AcquireToken($resourceAppIdURI, $clientId, [Uri]$redirectUri, [Microsoft.IdentityModel.Clients.ActiveDirectory.PromptBehavior]::Auto, $userId)
         } else {
             $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI, $clientId, [Uri]$redirectUri, $platformParameters, $userId).Result 
@@ -245,10 +244,8 @@ param(
     
             else {
     
-            Write-Host
-            Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-            Write-Host
-            break
+            Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+            Write-Information break
     
             }
     
@@ -256,10 +253,9 @@ param(
     
         catch {
     
-        write-host $_.Exception.Message -f Red
-        write-host $_.Exception.ItemName -f Red
-        write-host
-        break
+        Write-Information $_.Exception.Message -f Red
+        Write-Information $_.Exception.ItemName -f Red
+        Write-Information break
     
         }
     
@@ -280,7 +276,7 @@ function WE-Get-MsGraphObject($WEPath, [switch]$WEIgnoreNotFound) {
             return $null
         }
         $WEResponseStream = $WEResponse.GetResponseStream()
-        $WEResponseReader = New-Object System.IO.StreamReader $WEResponseStream
+        $WEResponseReader = New-Object -ErrorAction Stop System.IO.StreamReader $WEResponseStream
         $WEResponseContent = $WEResponseReader.ReadToEnd()
         Log-Error " Request Failed: $($_.Exception.Message)`n$($_.ErrorDetails)"
         Log-Error " Request URL: $WEFullUri"
@@ -305,14 +301,14 @@ function WE-Get-MsGraphCollection($WEPath) {
         } 
         catch {
             $WEResponseStream = $_.Exception.Response.GetResponseStream()
-            $WEResponseReader = New-Object System.IO.StreamReader $WEResponseStream
+            $WEResponseReader = New-Object -ErrorAction Stop System.IO.StreamReader $WEResponseStream
             $WEResponseContent = $WEResponseReader.ReadToEnd()
             Log-Error " Request Failed: $($_.Exception.Message)`n$($_.ErrorDetails)"
             Log-Error " Request URL: $WENextLink"
             Log-Error " Response Content:`n$WEResponseContent"
             break
         }
-    } while ($WENextLink -ne $null)
+    } while ($null -ne $WENextLink)
     Log-Verbose " Got $($WECollection.Count) object(s)"
 
     return $WECollection
@@ -336,7 +332,7 @@ function WE-Post-MsGraphObject($WEPath, $WERequestBody) {
     } 
     catch {
         $WEResponseStream = $_.Exception.Response.GetResponseStream()
-        $WEResponseReader = New-Object System.IO.StreamReader $WEResponseStream
+        $WEResponseReader = New-Object -ErrorAction Stop System.IO.StreamReader $WEResponseStream
         $WEResponseContent = $WEResponseReader.ReadToEnd()
         Log-Error " Request Failed: $($_.Exception.Message)`n$($_.ErrorDetails)"
         Log-Error " Request URL: $WENextLink"
@@ -347,15 +343,17 @@ function WE-Post-MsGraphObject($WEPath, $WERequestBody) {
 
 
 
-function WE-Get-User {
+[CmdletBinding()]
+function WE-Get-User -ErrorAction Stop {
     Log-Info " Getting Azure AD User data for UPN $WEUPN"
-    return Get-MsGraphObject " users/$WEUpn" -IgnoreNotFound
+    return Get-MsGraphObject -ErrorAction Stop " users/$WEUpn" -IgnoreNotFound
 }
 
 
 
 
 
+[CmdletBinding()]
 function WE-Test-IntuneUser {
     Log-Info " Checking if User $WEUPN is a Microsoft Intune user"
 
@@ -374,56 +372,59 @@ function WE-Test-IntuneUser {
 
 
 
-function WE-Get-GroupMemberships {
+[CmdletBinding()]
+function WE-Get-GroupMemberships -ErrorAction Stop {
     Log-Info " Getting Azure AD Group memberships for User $WEUPN"
-    return Get-MsGraphCollection " users/$WEUpn/memberOf/microsoft.graph.group"
+    return Get-MsGraphCollection -ErrorAction Stop " users/$WEUpn/memberOf/microsoft.graph.group"
 }
 
 
 
-function WE-Get-RegisteredDevices {
+[CmdletBinding()]
+function WE-Get-RegisteredDevices -ErrorAction Stop {
     Log-Info " Getting Azure AD Registered Devices for User $WEUPN"
-    return Get-MsGraphCollection " users/$WEUpn/registeredDevices"
+    return Get-MsGraphCollection -ErrorAction Stop " users/$WEUpn/registeredDevices"
 }
 
 
 
-function WE-Get-ManagedDevices {
+[CmdletBinding()]
+function WE-Get-ManagedDevices -ErrorAction Stop {
     Log-Info " Getting managed devices for User $WEUPN"
     
-    $WEDeviceIds = @(Get-MsGraphCollection " users/$WEUserId/managedDevices?`$select=id" | Select-Object -ExpandProperty id)
+    $WEDeviceIds = @(Get-MsGraphCollection -ErrorAction Stop " users/$WEUserId/managedDevices?`$select=id" | Select-Object -ExpandProperty id)
 
     $WEDevices = @()
 
     foreach ($WEDeviceId in $WEDeviceIds) {
-        $WEDevice = Get-MsGraphObject " deviceManagement/managedDevices/$($WEDeviceId)?`$expand=detectedApps"
-        $WECategory = Get-MsGraphObject " deviceManagement/managedDevices/$($WEDevice.id)/deviceCategory"
+        $WEDevice = Get-MsGraphObject -ErrorAction Stop " deviceManagement/managedDevices/$($WEDeviceId)?`$expand=detectedApps"
+        $WECategory = Get-MsGraphObject -ErrorAction Stop " deviceManagement/managedDevices/$($WEDevice.id)/deviceCategory"
         Add-Member -InputObject $WEDevice " deviceCategory" $WECategory
 
-        $WEDeviceConfigurationStates = Get-MsGraphCollection " deviceManagement/managedDevices/$($WEDevice.id)/deviceConfigurationStates"
+        $WEDeviceConfigurationStates = Get-MsGraphCollection -ErrorAction Stop " deviceManagement/managedDevices/$($WEDevice.id)/deviceConfigurationStates"
 
         $WEApplicableDeviceConfigurationStates = @($WEDeviceConfigurationStates | Where-Object {$_.state -ne " notApplicable" })
 
         foreach ($WEApplicableDeviceConfigurationState in $WEApplicableDeviceConfigurationStates) {
-            $WEApplicableDeviceConfigurationState.settingStates = @(Get-MsGraphCollection " deviceManagement/managedDevices/$($WEDevice.id)/deviceConfigurationStates/$($WEApplicableDeviceConfigurationState.id)/settingStates" )
+            $WEApplicableDeviceConfigurationState.settingStates = @(Get-MsGraphCollection -ErrorAction Stop " deviceManagement/managedDevices/$($WEDevice.id)/deviceConfigurationStates/$($WEApplicableDeviceConfigurationState.id)/settingStates" )
         }
 
         Add-Member NoteProperty -InputObject $WEDevice -Name " deviceConfigurationStates" -Value @()
         foreach ($dcs in $WEApplicableDeviceConfigurationStates) {
             $WEDevice.deviceConfigurationStates += $dcs
         }
-        $WEDeviceCompliancePolicyStates = Get-MsGraphCollection " deviceManagement/managedDevices/$($WEDevice.id)/deviceCompliancePolicyStates"
+        $WEDeviceCompliancePolicyStates = Get-MsGraphCollection -ErrorAction Stop " deviceManagement/managedDevices/$($WEDevice.id)/deviceCompliancePolicyStates"
 
         $WEApplicableDeviceCompliancePolicyStates = @($WEDeviceCompliancePolicyStates | Where-Object {$_.state -ne " notApplicable" })
         foreach ($WEApplicableDeviceCompliancePolicyState in $WEApplicableDeviceCompliancePolicyStates) {
-            $WEApplicableDeviceCompliancePolicyState.settingStates = @(Get-MsGraphCollection " deviceManagement/managedDevices/$($WEDevice.id)/deviceCompliancePolicyStates/$($WEApplicableDeviceCompliancePolicyState.id)/settingStates" )
+            $WEApplicableDeviceCompliancePolicyState.settingStates = @(Get-MsGraphCollection -ErrorAction Stop " deviceManagement/managedDevices/$($WEDevice.id)/deviceCompliancePolicyStates/$($WEApplicableDeviceCompliancePolicyState.id)/settingStates" )
         }
 
         Add-Member NoteProperty -InputObject $WEDevice -Name " deviceCompliancePolicyStates" -Value @()
         foreach ($dcs in $WEApplicableDeviceCompliancePolicyStates) {
             $WEDevice.deviceCompliancePolicyStates += $dcs
         }
-        $WEDeviceWithHardwareInfo = Get-MsGraphObject " deviceManagement/managedDevices/$($WEDevice.id)/?`$select=id,hardwareInformation"
+        $WEDeviceWithHardwareInfo = Get-MsGraphObject -ErrorAction Stop " deviceManagement/managedDevices/$($WEDevice.id)/?`$select=id,hardwareInformation"
         $WEDevice.hardwareInformation = $WEDeviceWithHardwareInfo.hardwareInformation
         $WEDevices = $WEDevices + $WEDevice
     }
@@ -432,34 +433,38 @@ function WE-Get-ManagedDevices {
 
 
 
-function WE-Get-AuditEvents {
+[CmdletBinding()]
+function WE-Get-AuditEvents -ErrorAction Stop {
     Log-Info " Getting audit events for User $WEUPN"
     
-    return Get-MsGraphCollection " `deviceManagement/auditEvents?`$filter=actor/userPrincipalName eq '$WEUPN'"
+    return Get-MsGraphCollection -ErrorAction Stop " `deviceManagement/auditEvents?`$filter=actor/userPrincipalName eq '$WEUPN'"
 }
 
 
 
-function WE-Get-ManagedAppRegistrations {
+[CmdletBinding()]
+function WE-Get-ManagedAppRegistrations -ErrorAction Stop {
     Log-Info " Getting managed app registrations for User $WEUPN"
     
-    return Get-MsGraphCollection " `users/$WEUserId/managedAppRegistrations?`$expand=appliedPolicies,intendedPolicies,operations"
+    return Get-MsGraphCollection -ErrorAction Stop " `users/$WEUserId/managedAppRegistrations?`$expand=appliedPolicies,intendedPolicies,operations"
 }
 
 
 
-function WE-Get-AppleVppEbooks {
+[CmdletBinding()]
+function WE-Get-AppleVppEbooks -ErrorAction Stop {
     Log-Info " Getting Apple VPP EBooks for User $WEUPN"
 
-    return Get-MsGraphCollection " deviceAppManagement/managedEbooks?`$filter=microsoft.graph.iosVppEBook/appleId eq '$WEUPN'"
+    return Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/managedEbooks?`$filter=microsoft.graph.iosVppEBook/appleId eq '$WEUPN'"
 }
 
 
 
-function WE-Get-AppleDepSettings {
+[CmdletBinding()]
+function WE-Get-AppleDepSettings -ErrorAction Stop {
     Log-Info " Getting Apple DEP Settings for User $WEUPN"
 
-    return Get-MsGraphCollection " deviceManagement/depOnboardingSettings?`$filter=appleIdentifier eq '$WEUPN'"
+    return Get-MsGraphCollection -ErrorAction Stop " deviceManagement/depOnboardingSettings?`$filter=appleIdentifier eq '$WEUPN'"
 }
 
 
@@ -474,7 +479,8 @@ function WE-Has-UserStatus($WEInstallSummary) {
 
 
 
-function WE-Get-AppInstallStatuses {
+[CmdletBinding()]
+function WE-Get-AppInstallStatuses -ErrorAction Stop {
     Log-Info " Getting App Install Statuses for User $WEUPN"
 
     $WEUrl = " deviceAppManagement/mobileApps?`$expand=installSummary"
@@ -483,7 +489,7 @@ function WE-Get-AppInstallStatuses {
         $WEUrl = $WEUrl + " &`$select=id,displayName,publisher,privacyInformationUrl,informationUrl,owner,developer"
     }
 
-    $WEApps = Get-MsGraphCollection $WEUrl
+    $WEApps = Get-MsGraphCollection -ErrorAction Stop $WEUrl
     # Filter the list of apps to only the apps that have install status
     $WEAppsWithStatus = $WEApps | Where-Object { Has-UserStatus $_.installSummary }
     Log-Verbose " Found $($WEAppsWithStatus.Count) apps with install statuses"
@@ -493,8 +499,8 @@ function WE-Get-AppInstallStatuses {
     foreach ($WEApp in $WEAppsWithStatus) {
         Log-Verbose " Getting App Install Status for App '$($WEApp.displayName) $($WEApp.Id)"
 
-        $WEUserStatusesForApp = Get-MsGraphCollection " deviceAppManagement/mobileApps/$($WEApp.id)/userStatuses"
-        $WEDeviceStatusesForApp = Get-MsGraphCollection " deviceAppManagement/mobileApps/$($WEApp.id)/deviceStatuses" 
+        $WEUserStatusesForApp = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/mobileApps/$($WEApp.id)/userStatuses"
+        $WEDeviceStatusesForApp = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/mobileApps/$($WEApp.id)/deviceStatuses" 
         $WEDeviceStatusesForUser = @()
         $WEDeviceStatusesForUser = $WEDeviceStatusesForUser + $WEDeviceStatusesForApp | Where-Object { 
             $_.userPrincipalName -ieq $WEUPN
@@ -523,18 +529,19 @@ function WE-Get-AppInstallStatuses {
 
 
 
-function WE-Get-EbookInstallStatuses {
+[CmdletBinding()]
+function WE-Get-EbookInstallStatuses -ErrorAction Stop {
     Log-Info " Getting Ebook Install Statuses for User $WEUPN"
 
-    $WEEbooks = Get-MsGraphCollection " deviceAppManagement/managedEBooks?`$expand=installSummary"
+    $WEEbooks = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/managedEBooks?`$expand=installSummary"
 
     $WEEbooksStatuses = @()
 
     foreach ($WEEbook in $WEEbooks) {
         Log-Verbose " Getting Ebook Install Status for Ebook '$($WEEbook.displayName) $($WEEbook.Id)"
 
-        $WEUserStatusesForEbook = Get-MsGraphCollection " deviceAppManagement/managedEBooks/$($WEEbook.id)/userStateSummary"
-        $WEDeviceStatusesForEbook = Get-MsGraphCollection " deviceAppManagement/managedEBooks/$($WEEbook.id)/deviceStates" 
+        $WEUserStatusesForEbook = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/managedEBooks/$($WEEbook.id)/userStateSummary"
+        $WEDeviceStatusesForEbook = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/managedEBooks/$($WEEbook.id)/deviceStates" 
         $WEDeviceStatusesForUser = @()
         $WEDeviceStatusesForUser = $WEDeviceStatusesForUser + $WEDeviceStatusesForEbook | Where-Object { 
             $_.userName -ieq $WEUserDisplayName
@@ -569,7 +576,7 @@ function WE-Get-WindowsManagementAppHealthStates($WEManagedDevices) {
     foreach ($WEManagedDevice in $WEManagedDevices) {
         # Escape any ' in the device name
         $WEEscapedDeviceName = $WEManagedDevice.deviceName.Replace(" '" , " ''" )
-        $WEStatesForDevice = $WEStatesForDevice + Get-MsGraphCollection " deviceAppManagement/windowsManagementApp/healthStates?`$filter=deviceName eq '$($WEEscapedDeviceName)'"
+        $WEStatesForDevice = $WEStatesForDevice + Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/windowsManagementApp/healthStates?`$filter=deviceName eq '$($WEEscapedDeviceName)'"
     }
 
     return $WEStatesForDevice
@@ -581,46 +588,49 @@ function WE-Get-WindowsProtectionStates($WEManagedDevices) {
     Log-Info " Getting Windows Protection States for User $WEUPN"
     $WEStatesForDevice = @()
     foreach ($WEManagedDevice in $WEManagedDevices) {
-        $WEStatesForDevice = $WEStatesForDevice + Get-MsGraphObject " deviceManagement/managedDevices/$($WEManagedDevice.id)?`$expand=windowsProtectionState"
+        $WEStatesForDevice = $WEStatesForDevice + Get-MsGraphObject -ErrorAction Stop " deviceManagement/managedDevices/$($WEManagedDevice.id)?`$expand=windowsProtectionState"
     }
 }
 
 
 
-function WE-Get-RemoteActionAudits {
+[CmdletBinding()]
+function WE-Get-RemoteActionAudits -ErrorAction Stop {
     Log-Info " Getting Remote Action Audits for User $WEUPN"
 
-    $WERemoteActionAudits = Get-MsGraphCollection " deviceManagement/remoteActionAudits?`$filter=initiatedByUserPrincipalName eq '$WEUPN'"
+    $WERemoteActionAudits = Get-MsGraphCollection -ErrorAction Stop " deviceManagement/remoteActionAudits?`$filter=initiatedByUserPrincipalName eq '$WEUPN'"
     return $WERemoteActionAudits | Where-Object { $_.initiatedByUserPrincipalName -ieq $WEUPN -or $_.userName -ieq $WEUPN}
 }
 
 
 
-function WE-Get-DeviceManagementTroubleshootingEvents {
+[CmdletBinding()]
+function WE-Get-DeviceManagementTroubleshootingEvents -ErrorAction Stop {
     Log-Info " Getting Device Management Troubleshooting Events for user $WEUPN"
-    return Get-MsGraphCollection " users/$($WEUser.id)/deviceManagementTroubleshootingEvents"
+    return Get-MsGraphCollection -ErrorAction Stop " users/$($WEUser.id)/deviceManagementTroubleshootingEvents"
 }
 
 
 
-function WE-Get-IosUpdateStatuses {
+[CmdletBinding()]
+function WE-Get-IosUpdateStatuses -ErrorAction Stop {
     Log-Info " Getting iOS Update Statuses for user $WEUPN"
-    $WEIosUpdateStatuses = @(Get-MsGraphCollection " deviceManagement/iosUpdateStatuses" | Where-Object { $_.userPrincipalName -ieq $WEUPN })
+    $WEIosUpdateStatuses = @(Get-MsGraphCollection -ErrorAction Stop " deviceManagement/iosUpdateStatuses" | Where-Object { $_.userPrincipalName -ieq $WEUPN })
     return $WEIosUpdateStatuses
 }
 
 
 
-function WE-Get-ManagedDeviceMobileAppConfigurationStatuses ($WEDevices) {
+function WE-Get-ManagedDeviceMobileAppConfigurationStatuses -ErrorAction Stop ($WEDevices) {
     Log-Info " Getting Mobile App Configurations Statuses for user $WEUPN"
     $WEMobileAppConfigurationsStatuses = @()
-    $WEMobileAppConfigurations = Get-MsGraphCollection " deviceAppManagement/mobileAppConfigurations"
+    $WEMobileAppConfigurations = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/mobileAppConfigurations"
     
     $WEDeviceIds = $WEDevices | Select-Object -ExpandProperty id
 
     foreach ($WEMobileAppConfiguration in $WEMobileAppConfigurations) {
-        $WEDeviceStatuses = Get-MsGraphCollection " deviceAppManagement/mobileAppConfigurations/$($WEMobileAppConfiguration.id)/deviceStatuses"
-        $WEUserStatuses = Get-MsGraphCollection " deviceAppManagement/mobileAppConfigurations/$($WEMobileAppConfiguration.id)/userStatuses"
+        $WEDeviceStatuses = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/mobileAppConfigurations/$($WEMobileAppConfiguration.id)/deviceStatuses"
+        $WEUserStatuses = Get-MsGraphCollection -ErrorAction Stop " deviceAppManagement/mobileAppConfigurations/$($WEMobileAppConfiguration.id)/userStatuses"
 
 
         $WEDeviceStatusesForUser = @()
@@ -648,13 +658,13 @@ function WE-Get-ManagedDeviceMobileAppConfigurationStatuses ($WEDevices) {
 
 
 
-function WE-Get-DeviceManagementScriptRunStates ($WEManagedDevices){
+function WE-Get-DeviceManagementScriptRunStates -ErrorAction Stop ($WEManagedDevices){
     Log-Info " Getting Device Management Script Run States for user $WEUPN"
-    $WEDeviceManagementScripts = Get-MsGraphCollection " deviceManagement/deviceManagementScripts"
+    $WEDeviceManagementScripts = Get-MsGraphCollection -ErrorAction Stop " deviceManagement/deviceManagementScripts"
     $WEDeviceManagementScriptRunStates = @()
 
     foreach ($WEDeviceManagementScript in $WEDeviceManagementScripts) {
-        $WEUserRunStates = Get-MsGraphCollection " deviceManagement/deviceManagementScripts/$($WEDeviceManagementScript.id)/userRunStates"
+        $WEUserRunStates = Get-MsGraphCollection -ErrorAction Stop " deviceManagement/deviceManagementScripts/$($WEDeviceManagementScript.id)/userRunStates"
 
         $WEUserRunStatesForUser = @()
         $WEUserRunStatesForUser = $WEUserRunStatesForUser + $WEUserRunStates | Where-Object { 
@@ -672,10 +682,11 @@ function WE-Get-DeviceManagementScriptRunStates ($WEManagedDevices){
 
 
 
+[CmdletBinding()]
 function WE-Export-RemainingData{
     Log-Info " Getting other data for user $WEUpn"
 
-    $WEOtherData = Get-MsGraphCollection " users/$WEUpn/exportDeviceAndAppManagementData()/content"
+    $WEOtherData = Get-MsGraphCollection -ErrorAction Stop " users/$WEUpn/exportDeviceAndAppManagementData()/content"
     if ($WEOtherData.Count -gt 0) {
         foreach ($WEDataItem in $WEOtherData)
         {
@@ -704,29 +715,32 @@ function WE-Export-RemainingData{
 
 
 
-function WE-Get-AppProtectionUserStatuses {
+[CmdletBinding()]
+function WE-Get-AppProtectionUserStatuses -ErrorAction Stop {
     Log-Info " Getting Managed App Protection Status Report for user $WEUPN"
 
-    $WEStatus = Get-MsGraphObject " deviceAppManagement/managedAppStatuses('userstatus')?userId=$WEUserId"
+    $WEStatus = Get-MsGraphObject -ErrorAction Stop " deviceAppManagement/managedAppStatuses('userstatus')?userId=$WEUserId"
 
     return $WEStatus
 }
 
 
 
-function WE-Get-WindowsProtectionSummary {
+[CmdletBinding()]
+function WE-Get-WindowsProtectionSummary -ErrorAction Stop {
     Log-Info " Getting Windows Protection Summary for user $WEUPN"
-    $WEProtectionSummary = Get-MsGraphObject " deviceAppManagement/managedAppStatuses('windowsprotectionreport')"
+    $WEProtectionSummary = Get-MsGraphObject -ErrorAction Stop " deviceAppManagement/managedAppStatuses('windowsprotectionreport')"
 
     return Filter-ManagedAppReport $WEProtectionSummary
 }
 
 
 
-function WE-Get-ManagedAppUsageSummary {
+[CmdletBinding()]
+function WE-Get-ManagedAppUsageSummary -ErrorAction Stop {
     Log-Info " Getting Managed App Usage Summary for user $WEUPN"
 
-    $WEUsageSummary = Get-MsGraphObject " deviceAppManagement/managedAppStatuses('appregistrationsummary')?fetch=6000&policyMode=0&columns=UserId,DisplayName,UserEmail,ApplicationName,ApplicationInstanceId,ApplicationVersion,DeviceName,DeviceType,DeviceManufacturer,DeviceModel,AndroidPatchVersion,AzureADDeviceId,MDMDeviceID,Platform,PlatformVersion,ManagementLevel,PolicyName,LastCheckInDate"
+    $WEUsageSummary = Get-MsGraphObject -ErrorAction Stop " deviceAppManagement/managedAppStatuses('appregistrationsummary')?fetch=6000&policyMode=0&columns=UserId,DisplayName,UserEmail,ApplicationName,ApplicationInstanceId,ApplicationVersion,DeviceName,DeviceType,DeviceManufacturer,DeviceModel,AndroidPatchVersion,AzureADDeviceId,MDMDeviceID,Platform,PlatformVersion,ManagementLevel,PolicyName,LastCheckInDate"
     $WEReport = $WEUsageSummary.content.body
     $WEFilteredRows = @()
     if ($WEReport.Count -gt 0) {
@@ -744,21 +758,23 @@ function WE-Get-ManagedAppUsageSummary {
 
 
 
-function WE-Get-ManagedAppConfigurationStatusReport {
+[CmdletBinding()]
+function WE-Get-ManagedAppConfigurationStatusReport -ErrorAction Stop {
     Log-Info " Getting Managed App Configuration Status for user $WEUPN"
-    $WEStatusReport = Get-MsGraphObject " deviceAppManagement/managedAppStatuses('userconfigstatus')?userId=$WEUserId"
+    $WEStatusReport = Get-MsGraphObject -ErrorAction Stop " deviceAppManagement/managedAppStatuses('userconfigstatus')?userId=$WEUserId"
 
     return $WEStatusReport
 }
 
 
 
+[CmdletBinding()]
 function WE-Filter-ManagedAppReport {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param($WEReport)
     #Filter the report summary to only the target user
-    if ($WEReport -ne $null -and $WEReport.content -ne $null)
+    if ($null -ne $WEReport -and $WEReport.content -ne $null)
     {
         $WEHeaderCount = $WEReport.content.header.Count
         $WEDataRows = $WEReport.content.body.values
@@ -771,7 +787,7 @@ param($WEReport)
             {
                 $WEFilteredDataRows = $WEFilteredDataRows + @($WEDataRows)
             }
-        } elseif ($WEDataRows -ne $null -and $WEDataRows.Count -gt 0) {
+        } elseif ($null -ne $WEDataRows -and $WEDataRows.Count -gt 0) {
             foreach ($WEDataRow in $WEDataRows) {
                 if ($WEDataRow[0] -ieq $WEUserId) {
                     $WEFilteredDataRows = $WEFilteredDataRows + $WEDataRow
@@ -787,14 +803,15 @@ param($WEReport)
 
 
 
-function WE-Get-TermsAndConditionsAcceptanceStatuses {
+[CmdletBinding()]
+function WE-Get-TermsAndConditionsAcceptanceStatuses -ErrorAction Stop {
     Log-Info " Exporting Terms and Conditions Acceptance Statuses for user $WEUPN"
 
-    $WETermsAndConditions = Get-MsGraphCollection " deviceManagement/termsAndConditions"
+    $WETermsAndConditions = Get-MsGraphCollection -ErrorAction Stop " deviceManagement/termsAndConditions"
     $WETermsAndConditionsAcceptanceStatuses = @()
 
     foreach ($WETermsAndCondition in $WETermsAndConditions) {
-        $WEAcceptanceStatuses = Get-MsGraphCollection " deviceManagement/termsAndConditions/$($WETermsAndCondition.id)/acceptanceStatuses"
+        $WEAcceptanceStatuses = Get-MsGraphCollection -ErrorAction Stop " deviceManagement/termsAndConditions/$($WETermsAndCondition.id)/acceptanceStatuses"
 
         $WETermsAndConditionsAcceptanceStatuses = $WETermsAndConditionsAcceptanceStatuses + ($WEAcceptanceStatuses | Where-Object { $_.id.Contains($WEUserId) })
     }
@@ -817,7 +834,7 @@ function WE-Export-IntuneReportUsingGraph($WERequestBody, $WEZipName) {
     $WEMaxAttempts = 20
     do {
         Start-Sleep -Seconds 15
-        $WEIntuneReportDataGETResponse = Get-MsGraphObject $WEReportIdPath
+        $WEIntuneReportDataGETResponse = Get-MsGraphObject -ErrorAction Stop $WEReportIdPath
         Log-Verbose $WEIntuneReportDataGETResponse
         $WEAttempts = $WEAttempts + 1
     }
@@ -835,6 +852,7 @@ function WE-Export-IntuneReportUsingGraph($WERequestBody, $WEZipName) {
 
 
 
+[CmdletBinding()]
 function WE-Export-ChromeOSDeviceReportData {
     Log-Info " Exporting ChromeOS Device Report Data for user '$WEUPN'"
 
@@ -935,6 +953,7 @@ function WE-Export-Collection ($WECollectionType, $WEObjectType, $WECollection) 
 
 
 
+[CmdletBinding()]
 function WE-Filter-Entity {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -945,7 +964,7 @@ param(
 
     Log-Verbose " Filtering entity $WEEntityName"
 
-    if ($WEEntity -eq $null) {
+    if ($null -eq $WEEntity) {
         return
     }
 
@@ -1022,7 +1041,7 @@ if ([string]::IsNullOrWhiteSpace($WEConfigurationFile)) {
 Log-Verbose " Loading configuration from $WEConfigurationFile"
 
 if (Test-Path $WEConfigurationFile) {
-    $WEExportConfiguration = (Get-Content $WEConfigurationFile | ConvertFrom-Json)
+    $WEExportConfiguration = (Get-Content -ErrorAction Stop $WEConfigurationFile | ConvertFrom-Json)
 } else {
     Log-Warning " Configuration file $WEConfigurationFile not found"
 }
@@ -1055,9 +1074,9 @@ if ($WEIncludeNonAzureADUpn -or $WEAll) {
 
 
 
-$WEUser = Get-User
+$WEUser = Get-User -ErrorAction Stop
 
-if ($WEUser -eq $null) {
+if ($null -eq $WEUser) {
     Log-Warning " Azure AD User with UPN $WEUPN was not found"
     return
 }
@@ -1080,76 +1099,72 @@ Log-Info " User is a valid Microsoft Intune user"
 if ($WEIncludeAzureAD -or $WEAll) {
     Export-Object " Azure AD User" $WEUser
 
-    $WEGroups = Get-GroupMemberships
+    $WEGroups = Get-GroupMemberships -ErrorAction Stop
     Export-Collection " Azure AD Groups" " Azure AD Group" $WEGroups
 
-    $WEGroups = Get-RegisteredDevices
+    $WEGroups = Get-RegisteredDevices -ErrorAction Stop
     Export-Collection " Azure AD Registered Devices" " Azure AD Registered Device" $WEGroups
 }
 
 
 
-$WEManagedDevices = Get-ManagedDevices
+$WEManagedDevices = Get-ManagedDevices -ErrorAction Stop
 Export-Collection " ManagedDevices" " ManagedDevice" $WEManagedDevices
 
-$WEAuditEvents = Get-AuditEvents
+$WEAuditEvents = Get-AuditEvents -ErrorAction Stop
 Export-Collection " AuditEvents" " AuditEvent" $WEAuditEvents
 
-$WEManagedAppRegistrations = Get-ManagedAppRegistrations
+$WEManagedAppRegistrations = Get-ManagedAppRegistrations -ErrorAction Stop
 Export-Collection " ManagedAppRegistrations" " ManagedAppRegistration" $WEManagedAppRegistrations
 
-$WEAppleDepSettings = Get-AppleDepSettings
+$WEAppleDepSettings = Get-AppleDepSettings -ErrorAction Stop
 Export-Collection " AppleDEPSettings" " AppleDEPSetting" $WEAppleDepSettings
 
-$WEAppInstallStatuses = Get-AppInstallStatuses
+$WEAppInstallStatuses = Get-AppInstallStatuses -ErrorAction Stop
 Export-Collection " AppInstallStatuses" " AppInstallStatus" $WEAppInstallStatuses
 
-$WEEbookInstallStatuses = Get-EbookInstallStatuses
+$WEEbookInstallStatuses = Get-EbookInstallStatuses -ErrorAction Stop
 Export-Collection " EbookInstallStatuses" " EbookInstallStatus" $WEEbookInstallStatuses
 
-$WEWindowsManagementAppStatuses = Get-WindowsManagementAppHealthStates $WEManagedDevices
+$WEWindowsManagementAppStatuses = Get-WindowsManagementAppHealthStates -ErrorAction Stop $WEManagedDevices
 Export-Collection " WindowsManagementAppHealthStates" " WindowsManagementApp" $WEWindowsManagementAppStatuses
 
-$WEWindowsProtectionStates = Get-WindowsProtectionStates $WEManagedDevices
+$WEWindowsProtectionStates = Get-WindowsProtectionStates -ErrorAction Stop $WEManagedDevices
 Export-Collection " WindowsProtectionStates" " WindowsProtectionState" $WEWindowsProtectionStates
 
-$WERemoteActionAudits = Get-RemoteActionAudits
+$WERemoteActionAudits = Get-RemoteActionAudits -ErrorAction Stop
 Export-Collection " RemoteActionAudits" " RemoteActionAudit" $WERemoteActionAudits
 
-$WEDeviceManagementTroubleshootingEvents = Get-DeviceManagementTroubleshootingEvents
+$WEDeviceManagementTroubleshootingEvents = Get-DeviceManagementTroubleshootingEvents -ErrorAction Stop
 Export-Collection " DeviceManagementTroubleshootingEvents" " DeviceManagementTroubleshootingEvents" $WEDeviceManagementTroubleshootingEvents
 
-$WEIosUpdateStatues = Get-IosUpdateStatuses
+$WEIosUpdateStatues = Get-IosUpdateStatuses -ErrorAction Stop
 Export-Collection " iOSUpdateStatus" " iOSUpdateStatuses" $WEIosUpdateStatues
 
-$WEManagedDeviceMobileAppConfigurationStatuses = Get-ManagedDeviceMobileAppConfigurationStatuses  $WEManagedDevices
+$WEManagedDeviceMobileAppConfigurationStatuses = Get-ManagedDeviceMobileAppConfigurationStatuses -ErrorAction Stop  $WEManagedDevices
 Export-Collection " MobileAppConfigurationStatuses" " MobileAppConfigurationStatus" $WEManagedDeviceMobileAppConfigurationStatuses
 
-$WEDeviceManagementScriptRunStates = Get-DeviceManagementScriptRunStates 
+$WEDeviceManagementScriptRunStates = Get-DeviceManagementScriptRunStates -ErrorAction Stop 
 Export-Collection " DeviceManagementScriptRunState" " DeviceManagementScriptRunStates" $WEDeviceManagementScriptRunStates
 
-$WEAppProtectionUserStatus = Get-AppProtectionUserStatuses
+$WEAppProtectionUserStatus = Get-AppProtectionUserStatuses -ErrorAction Stop
 Export-Object " ManagedAppProtectionStatusReport" $WEAppProtectionUserStatus
 
-$WEWindowsProtectionSummary = Get-WindowsProtectionSummary
+$WEWindowsProtectionSummary = Get-WindowsProtectionSummary -ErrorAction Stop
 Export-Object " WindowsProtectionSummary" $WEWindowsProtectionSummary
 
-$WEManagedAppUsageSummary = Get-ManagedAppUsageSummary
+$WEManagedAppUsageSummary = Get-ManagedAppUsageSummary -ErrorAction Stop
 Export-Object " ManagedAppUsageSummary" $WEManagedAppUsageSummary
 ; 
-$WEManagedAppConfigurationStatusReport = Get-ManagedAppConfigurationStatusReport
+$WEManagedAppConfigurationStatusReport = Get-ManagedAppConfigurationStatusReport -ErrorAction Stop
 Export-Object " ManagedAppConfigurationStatusReport" $WEManagedAppConfigurationStatusReport
 ; 
-$WETermsAndConditionsAcceptanceStatuses = Get-TermsAndConditionsAcceptanceStatuses
+$WETermsAndConditionsAcceptanceStatuses = Get-TermsAndConditionsAcceptanceStatuses -ErrorAction Stop
 Export-Collection " TermsAndConditionsAcceptanceStatus" " TermsAndConditionsAcceptanceStatuses" $WETermsAndConditionsAcceptanceStatuses
 
 Export-RemainingData
 
 Log-Info " Export complete, files can be found at $WEOutputPath"
-Write-Host
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

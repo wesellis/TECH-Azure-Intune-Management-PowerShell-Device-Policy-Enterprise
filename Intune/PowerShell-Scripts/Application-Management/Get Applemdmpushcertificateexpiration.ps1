@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Applemdmpushcertificateexpiration
 
@@ -37,6 +37,7 @@
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
+[CmdletBinding()]
 function WE-Send-O365MailMessage {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -128,7 +129,7 @@ try {
             # Retrieve authentication token
             Write-Output -InputObject " Attempting to retrieve authentication token"
             $WEAuthToken = Get-MSIntuneAuthToken -TenantName $WETenantName -ClientID $WEAppClientID -Credential $WECredential -ErrorAction Stop
-            if ($WEAuthToken -ne $null) {
+            if ($null -ne $WEAuthToken) {
                 Write-Output -InputObject " Successfully retrieved authentication token"
 
                 try {
@@ -136,7 +137,7 @@ try {
                     $WEAppleMDMPushResource = " https://graph.microsoft.com/v1.0/devicemanagement/applePushNotificationCertificate"
                     $WEAppleMDMPushCertificate = Invoke-RestMethod -Uri $WEAppleMDMPushResource -Method Get -Headers $WEAuthToken -ErrorAction Stop
 
-                    if ($WEAppleMDMPushCertificate -ne $null) {
+                    if ($null -ne $WEAppleMDMPushCertificate) {
                         Write-Output -InputObject " Successfully retrieved Apple MDM Push certificate"
 
                         # Parse the JSON date time string into an DateTime object

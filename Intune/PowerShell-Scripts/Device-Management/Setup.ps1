@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Setup
 
@@ -49,7 +49,7 @@ reg.exe add " HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v
 Stop-Process -name explorer -force
 
 
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+Invoke-Expression ((New-Object -ErrorAction Stop System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 ; 
 $apps = @(
     " notepadplusplus.install" ,

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Customdetection
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()
 try {

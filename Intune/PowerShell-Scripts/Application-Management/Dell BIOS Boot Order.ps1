@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Bios Boot Order
 
@@ -58,13 +58,13 @@ limitations under the License.
 
 <#
 .Synopsis
-   Set-DellBIOSBootOrder cmdlet used to configure Boot order
+   Set-DellBIOSBootOrder -ErrorAction Stop cmdlet used to configure Boot order
 .DESCRIPTION
    NOTE: Configuring boot order is supported for LEGACY and UEFI boot sequences.
    - NewBootOrder: REQUIRED, pass in the New Boot order to set e.g. Windows Boot Manager, UEFI Hard Drive, UEFI HTTPs Boot, USB NIC (IPV6)" 
    - BootListType: REQUIRED, pass in the BootListType e.g. 'LEGACY' or 'UEFI' 
    - AdminPwd, OPTIONAL, Dell BIOS Admin password, if set on the client
-   IMPORTANT: You must execute and view the current boot order at least once using Get-DellBIOSBootOrder before trying to configure Boot Order.
+   IMPORTANT: You must execute and view the current boot order at least once using Get-DellBIOSBootOrder -ErrorAction Stop before trying to configure Boot Order.
    IMPORTANT: make sure to pass correct list for " NewBootOrder" argument otherwise INCORRECT PARAMETER error will be thrown.
    IMPORTANT: Make sure direct WMI capabilities are supported on the system.
    
@@ -81,6 +81,7 @@ limitations under the License.
 
 
 
+[CmdletBinding()]
 Function Is-DellBIOSPasswordSet
 {
     [CmdletBinding()]
@@ -96,8 +97,8 @@ param(
 	try
 	{
 		$WEIsPasswordSet = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject | Where-Object NameId -EQ $WEPwdType | Select-Object -ExpandProperty IsPasswordSet -ErrorAction stop
-		if(1 -eq $WEIsPasswordSet) { Write-Host  $WEPwdType " password is set on the system" }
-		else { Write-Host  $WEPwdType " password is not set on the system" }
+		if(1 -eq $WEIsPasswordSet) { Write-Information $WEPwdType " password is set on the system" }
+		else { Write-Information $WEPwdType " password is not set on the system" }
 		return $WEIsPasswordSet
 	}
 	Catch
@@ -112,7 +113,8 @@ param(
 }
 
 
-Function Get-DellBIOSBootOrder
+[CmdletBinding()]
+Function Get-DellBIOSBootOrder -ErrorAction Stop
 {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -125,8 +127,8 @@ param(
     try
     {
         $WEBootOrder = Get-CimInstance -Namespace root\dcim\sysman\biosattributes -ClassName BootOrder | Where-Object BootListType -eq $WEBootListType -EA Stop
-		Write-Host $WEBootListType " BootOrder count:" $WEBootOrder.BOCount
-		Write-Host $WEBootListType " BootOrder isActive:" $WEBootOrder.IsActive
+		Write-Information $WEBootListType " BootOrder count:" $WEBootOrder.BOCount
+		Write-Information $WEBootListType " BootOrder isActive:" $WEBootOrder.IsActive
         return $WEBootOrder
     }
     catch
@@ -136,12 +138,13 @@ param(
     }
     Finally
     {
-        Write-WELog " Function Get-DellBIOSBootOrder Executed" " INFO"
+        Write-WELog " Function Get-DellBIOSBootOrder -ErrorAction Stop Executed" " INFO"
     }
 }
 
 
-Function Set-DellBIOSBootOrder
+[CmdletBinding()]
+Function Set-DellBIOSBootOrder -ErrorAction Stop
 {
     #Set BootOrder
 
@@ -191,7 +194,7 @@ param(
 				if(!([String]::IsNullOrEmpty($WEAdminPwd)))
 				{
 					#Get encoder for encoding password
-					$encoder = New-Object System.Text.UTF8Encoding
+					$encoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
    
 					#encode the password
 				; 	$WEAdminBytes = $encoder.GetBytes($WEAdminPwd)
@@ -249,8 +252,8 @@ param(
 	}
 	finally
 	{
-        Write-Host $result
-		Write-WELog " Function Set-DellBIOSBootOrder Executed" " INFO"		
+        Write-Information $result
+		Write-WELog " Function Set-DellBIOSBootOrder -ErrorAction Stop Executed" " INFO"		
 	}
 }
 

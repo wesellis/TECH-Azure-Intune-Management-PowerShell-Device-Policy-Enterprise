@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Msintunefeatureupdatedevicecompatibilityreportdetails
 
@@ -50,6 +50,7 @@ $WEOperatingSystemName = " Windows 11"
 $WEOperatingSystemVersion = " 23H2"
 
 
+[CmdletBinding()]
 function WE-ConvertTo-Base64String {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -67,6 +68,7 @@ param(
     }
 }
 
+[CmdletBinding()]
 function WE-ConvertFrom-Base64String {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -144,7 +146,7 @@ $WEFilterPickerEncodedString = ConvertTo-Base64String -Value ([System.Uri]::Esca
 
 
 $WECachedReportConfigurationsFilterString = " (ReadinessStatus eq '$($WEReportReadinessStatusTableValues[$WERiskStatus])') and (TargetOS eq '$($WETargetOperatingSystemFilter.ID)')"
-if ($WEAssetType -ne $null) {
+if ($null -ne $WEAssetType) {
     if ($WEAssetType.Count -eq 1) {
        ;  $WECachedReportConfigurationsFilterString = $WECachedReportConfigurationsFilterString + " and (AssetType eq '$($WEReportAssetTypeTableValues[$WEAssetType])')"
     }

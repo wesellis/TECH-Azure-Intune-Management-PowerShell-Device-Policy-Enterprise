@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Azureaddevicerecordsbyserialnumber
 
@@ -98,7 +98,8 @@ param(
 Begin {}
 Process {
     # Functions
-    function WE-Invoke-MSGraphOperation {
+    [CmdletBinding()]
+function WE-Invoke-MSGraphOperation {
         <#
         .SYNOPSIS
             Perform a specific call to Graph API, either as GET, POST, PATCH or DELETE methods.
@@ -146,7 +147,7 @@ Process {
             Version history:
             1.0.0 - (2020-10-11) Function created
             1.0.1 - (2020-11-11) Tested in larger environments with 100K+ resources, made small changes to nextLink handling
-            1.0.2 - (2020-12-04) Added support for testing if authentication token has expired, call Get-MsalToken to refresh. This version and onwards now requires the MSAL.PS module
+            1.0.2 - (2020-12-04) Added support for testing if authentication token has expired, call Get-MsalToken -ErrorAction Stop to refresh. This version and onwards now requires the MSAL.PS module
         #>
         [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -336,16 +337,17 @@ param(
         }
     }
 
-    function WE-New-AuthenticationHeader {
+    [CmdletBinding()]
+function WE-New-AuthenticationHeader -ErrorAction Stop {
         <#
         .SYNOPSIS
-            Construct a required header hash-table based on the access token from Get-MsalToken cmdlet.
+            Construct a required header hash-table based on the access token from Get-MsalToken -ErrorAction Stop cmdlet.
 
         .DESCRIPTION
-            Construct a required header hash-table based on the access token from Get-MsalToken cmdlet.
+            Construct a required header hash-table based on the access token from Get-MsalToken -ErrorAction Stop cmdlet.
 
         .PARAMETER AccessToken
-            Pass the AuthenticationResult object returned from Get-MsalToken cmdlet.
+            Pass the AuthenticationResult object returned from Get-MsalToken -ErrorAction Stop cmdlet.
 
         .NOTES
             Author:      Nickolaj Andersen
@@ -359,7 +361,7 @@ param(
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
-            [parameter(Mandatory = $true, HelpMessage = " Pass the AuthenticationResult object returned from Get-MsalToken cmdlet." )]
+            [parameter(Mandatory = $true, HelpMessage = " Pass the AuthenticationResult object returned from Get-MsalToken -ErrorAction Stop cmdlet." )]
             [ValidateNotNullOrEmpty()]
             [Microsoft.Identity.Client.AuthenticationResult]$WEAccessToken
         )
@@ -380,7 +382,8 @@ param(
         }
     }
 
-    function WE-Get-AutopilotDevice {
+    [CmdletBinding()]
+function WE-Get-AutopilotDevice -ErrorAction Stop {
         <#
         .SYNOPSIS
             Retrieve an Autopilot device identity based on serial number.
@@ -445,7 +448,7 @@ param(
                 $WEPhysicalIds = (Invoke-MSGraphOperation -Get -APIVersion " v1.0" -Resource " devices?`$filter=deviceId eq '$($WEAutopilotDevice.azureActiveDirectoryDeviceId)'" -Headers $WEAuthenticationHeader).value.physicalIds
                 $WEHardwareID = $WEPhysicalIds | Where-Object { $WEPSItem -match " ^\[HWID\]:h:.*$" }
 
-                if ($WEHardwareID -ne $null) {
+                if ($null -ne $WEHardwareID) {
                     # Retrieve all Azure AD device records matching the given hardware identifier
                    ;  $WEDevicesResponse = (Invoke-MSGraphOperation -Get -APIVersion " v1.0" -Resource " devices?`$filter=physicalIds/any(c:c eq '$($WEHardwareID)')" -Headers $WEAuthenticationHeader)
                     if ($WEDevicesResponse.value -eq $null) {

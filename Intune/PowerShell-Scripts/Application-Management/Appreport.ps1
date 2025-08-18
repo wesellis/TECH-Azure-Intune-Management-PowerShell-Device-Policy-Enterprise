@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Appreport
 
@@ -64,6 +64,7 @@ Copyright 2025 - Rubix, LLC. All rights reserved.
 
 Add-Type -AssemblyName PresentationFramework
 
+[CmdletBinding()]
 function log {
     param(
         [string]$message
@@ -83,7 +84,7 @@ $ErrorActionPreference = " Stop"
         [string]$clientSecret = " <client_secret>" ,
         [string]$tenantName = " <tenant_name>"
     )
-    $headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+    $headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add(" Content-Type" , " application/x-www-form-urlencoded" )
     $body = " grant_type=client_credentials&scope=https://graph.microsoft.com/.default"
     $body = $body + -join (" &client_id=" , $clientId, " &client_secret=" , $clientSecret)
@@ -93,7 +94,7 @@ $ErrorActionPreference = " Stop"
     $token = -join (" Bearer " , $response.access_token)
 
     # Reinstantiate headers
-    $headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+    $headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add(" Authorization" , $token)
     $headers.Add(" Content-Type" , " application/json" )
     $headers = @{'Authorization'=" $($token)" }
@@ -257,7 +258,7 @@ if($null -eq $WEAppStatusList)
 </Window>
 " @
 
-$reader = (New-Object System.Xml.XmlNodeReader $xaml)
+$reader = (New-Object -ErrorAction Stop System.Xml.XmlNodeReader $xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
 ; 
@@ -277,18 +278,18 @@ foreach($WEApp in $WEAppStatusList)
     $statusColor = $status[1]
 
     # Create row stack
-    $row = New-Object System.Windows.Controls.StackPanel
+    $row = New-Object -ErrorAction Stop System.Windows.Controls.StackPanel
     $row.Orientation = " Horizontal"
     $row.Margin = " 0,5,0,0"
 
     # App name
-    $nameText = New-Object System.Windows.Controls.TextBlock
+    $nameText = New-Object -ErrorAction Stop System.Windows.Controls.TextBlock
     $nameText.Text = $WEApp.DisplayName
     $nameText.Width = 180
     $nameText.VerticalAlignment = " Center"
 
     # Progress bar
-   ;  $progress = New-Object System.Windows.Controls.ProgressBar
+   ;  $progress = New-Object -ErrorAction Stop System.Windows.Controls.ProgressBar
     $progress.Width = 250
     $progress.Height = 10
     $progress.Margin = " 10,0,10,0"
@@ -301,7 +302,7 @@ foreach($WEApp in $WEAppStatusList)
     }
 
     # Status text
-   ;  $statusBlock = New-Object System.Windows.Controls.TextBlock
+   ;  $statusBlock = New-Object -ErrorAction Stop System.Windows.Controls.TextBlock
     $statusBlock.Text = $statusText
     $statusBlock.Width = 80
     $statusBlock.Foreground = $statusColor

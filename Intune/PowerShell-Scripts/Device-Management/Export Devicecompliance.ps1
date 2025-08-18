@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Export Devicecompliance
 
@@ -67,7 +67,7 @@ function Write-WELog {
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 param ()
@@ -79,7 +79,7 @@ $authparams = @{
     TenantId     = " tenant.onmicrosoft.com"
     ClientSecret = (" sdflkjsdflkjsdfsdfsdfsdfsdf" | ConvertTo-SecureString -AsPlainText -Force)
 }
-$auth = Get-MsalToken @authParams
+$auth = Get-MsalToken -ErrorAction Stop @authParams
 
 
 $settings = @(

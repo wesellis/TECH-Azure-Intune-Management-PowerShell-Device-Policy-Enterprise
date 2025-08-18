@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Registryvalue
 
@@ -34,14 +34,16 @@
     Requires appropriate permissions and modules
 
 
-function WE-Set-RegistryValue {
+[CmdletBinding()]
+function WE-Set-RegistryValue -ErrorAction Stop {
 
 
 
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-function WE-Set-RegistryValue {
+[CmdletBinding()]
+function WE-Set-RegistryValue -ErrorAction Stop {
     <#
         .SYNOPSIS
             Creates a registry value in a target key. Creates the target key if it does not exist.
@@ -76,7 +78,7 @@ param(
             Write-Verbose -Message " Parent is: $parent."
 
             foreach ($folder in ($folders | Where-Object { $_ -notlike " *:" })) {
-                if ($WEPSCmdlet.ShouldProcess($WEPath, (" New-Item '{0}'" -f " $parent\$folder" ))) {
+                if ($WEPSCmdlet.ShouldProcess($WEPath, (" New-Item -ErrorAction Stop '{0}'" -f " $parent\$folder" ))) {
                     New-Item -Path $parent -Name $folder -ErrorAction " SilentlyContinue" | Out-Null
                 }
                ;  $parent = " $parent\$folder"
@@ -93,7 +95,7 @@ param(
     }
     finally {
         Write-Verbose -Message " Setting $WEValue in $WEKey."
-        if ($WEPSCmdlet.ShouldProcess($WEPath, (" New-ItemProperty '{0}'" -f $WEKey))) {
+        if ($WEPSCmdlet.ShouldProcess($WEPath, (" New-ItemProperty -ErrorAction Stop '{0}'" -f $WEKey))) {
             New-ItemProperty -Path $WEKey -Name $WEValue -Value $WEData -PropertyType $WEType -Force -ErrorAction " SilentlyContinue" | Out-Null
         }
     }

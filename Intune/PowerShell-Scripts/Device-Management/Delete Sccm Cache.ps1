@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Delete Sccm Cache
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -61,7 +62,8 @@ $createScheduledTask = $true # <--- create scheduled task to run this script dai
 $sccmCachePath = " C:\Windows\ccmcache"
 
 
-function WE-Remove-SCCMCache {
+[CmdletBinding()]
+function WE-Remove-SCCMCache -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -80,6 +82,7 @@ param(
 } 
 
 
+[CmdletBinding()]
 function WE-Add-ScheduledTask {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -95,7 +98,7 @@ param(
     )
 
     # if scheduled task already exists, return
-    $taskExists = Get-ScheduledTask | Where-Object { $_.TaskName -eq $WETaskName }
+    $taskExists = Get-ScheduledTask -ErrorAction Stop | Where-Object { $_.TaskName -eq $WETaskName }
     if ($taskExists) {
         return
     }

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Install Driver Files
 
@@ -94,6 +94,7 @@ limitations under the License.
     Install-DellDriverFiles -DownloadDir " LocalPath" -ProxyServer " http://<proxy_url>" -ProxyPort " 80" -ProxyUser " Username" -ProxyPassword $WESecureProxyPassword
 
 
+[CmdletBinding()]
 Function Restart-DellComputer
 {	
 	[CmdletBinding()]
@@ -107,7 +108,7 @@ param(
 	{
 	Write-WELog " Following will happen during restart" " INFO"
 	$WEWhatIf = Restart-Computer -WhatIf	
-	Write-Host $WEWhatIf
+	Write-Information $WEWhatIf
 	
 	Write-WELog " Waiting for" " INFO" $WESeconds " before restart"
 	Start-Sleep -Seconds $WESeconds
@@ -125,6 +126,7 @@ param(
 	}	
 }
 
+[CmdletBinding()]
 Function Install-DellDriverFiles
 {
     [CmdletBinding()]
@@ -173,8 +175,8 @@ param(
         
         if(![Environment]::Is64BitProcess)
         {
-            Write-Host Error: Script is not supported in 32-bit PowerShell Host `n -BackgroundColor Red
-            Write-Host Run Script in 64-bit PowerShell Host `n -BackgroundColor Red
+            Write-Information Error: Script is not supported in 32-bit PowerShell Host `n -BackgroundColor Red
+            Write-Information Run Script in 64-bit PowerShell Host `n -BackgroundColor Red
             exit $1
         }
             
@@ -184,13 +186,13 @@ param(
            ($WEProxyServer -and $WEProxyPort -and !$WEProxyUser -and !$WEProxyPassword) -or 
            ($WEProxyServer -and $WEProxyPort -and $WEProxyUser -and $WEProxyPassword)))        
         {
-            Write-Host Error: Missing Mandatory Proxy Arguments `n -BackgroundColor Red
+            Write-Information Error: Missing Mandatory Proxy Arguments `n -BackgroundColor Red
             exit $1
         }
         # Driver installation status flag
         $WEDriverInstallSuccess = $false 
         # To get the current date and time to write onto log-file.      
-        $WEDate = Get-Date
+        $WEDate = Get-Date -ErrorAction Stop
         # DriverCabCatalog File Name
         $WEDriverCabCatalogFileName = " DriverPackCatalog.cab"
         # DriverCabCatalog XML File Name
@@ -198,15 +200,15 @@ param(
         # DriverPackCatalog.cab file URL
 		$WEDriverCabCatalog = " https://downloads.dell.com/catalog/DriverPackCatalog.cab"      
         # Platform System ID or BIOS ID
-        $WESystemID = (Get-CimInstance Win32_ComputerSystem).SystemSKUNumber
+        $WESystemID = (Get-CimInstance -ErrorAction Stop Win32_ComputerSystem).SystemSKUNumber
         # Platform System OS
-        $WEPlatformSystemOS = (Get-CimInstance Win32_OperatingSystem).Caption
+        $WEPlatformSystemOS = (Get-CimInstance -ErrorAction Stop Win32_OperatingSystem).Caption
         #Platform OS Architecture
         $WEPlatformSystemOSArch = [Environment]::Is64BitOperatingSystem
         # Check OS architecture, supports only 64-bit architecture 
         if($WEPlatformSystemOSArch -ne " True" )
         {
-            Write-Host Error: Supports only 64-bit architecture! `n -BackgroundColor Red
+            Write-Information Error: Supports only 64-bit architecture! `n -BackgroundColor Red
             exit $1
         }
 
@@ -221,7 +223,7 @@ param(
         }
         else
         {
-            Write-Host Error: Supports only Windows 10 and Windows 11 platforms `n -BackgroundColor Red            
+            Write-Information Error: Supports only Windows 10 and Windows 11 platforms `n -BackgroundColor Red            
             exit $1
         }
 
@@ -245,16 +247,16 @@ param(
         }
         Catch [Exception]
 		{
-            Write-Host Error resolving path $WEDownloadDir `n
+            Write-Information Error resolving path $WEDownloadDir `n
 			Write-Error " $($_.Exception)"
             Try
 		    {
-                Write-Host Creating Download Directory: $WEDownloadDir `n
+                Write-Information Creating Download Directory: $WEDownloadDir `n
 			    New-Item -Path $WEDownloadDir -ItemType Directory -Force | Out-Null                
 		    }
 		    Catch [Exception]
 		    {
-                Write-Host Error creating download directory $WEDownloadDir `n
+                Write-Information Error creating download directory $WEDownloadDir `n
 			    Write-Error " $($_.Exception)"
                 exit $1
 		    }
@@ -263,19 +265,19 @@ param(
         {           
             Try
 		    {
-                Write-Host Creating Download Directory: $WEDownloadDir `n
+                Write-Information Creating Download Directory: $WEDownloadDir `n
 			    New-Item -Path $WEDownloadDir -ItemType Directory -Force | Out-Null                
 		    }
 		    Catch [Exception]
 		    {
-                Write-Host Error creating download directory $WEDownloadDir `n
+                Write-Information Error creating download directory $WEDownloadDir `n
 			    Write-Error " $($_.Exception)"
                 exit $1
 		    }
         }
         else
         {            
-            $WEDownloadDirFile = Get-Item $WEDownloadDir -Force -ea SilentlyContinue
+            $WEDownloadDirFile = Get-Item -ErrorAction Stop $WEDownloadDir -Force -ea SilentlyContinue
             if([bool]($WEDownloadDirFile.Attributes -band [IO.FileAttributes]::ReparsePoint))
             { 
                 Write-WELog " Directory Reparse Point Exists for $WEDownloadDir. Select another directory and re-run script..." " INFO" `n -BackgroundColor Red
@@ -289,12 +291,12 @@ param(
         {           
             Try
 		    {
-                Write-Host Deleting Folder: $WEDriverDownloadFolder `n
+                Write-Information Deleting Folder: $WEDriverDownloadFolder `n
 			    Remove-Item -Path $WEDriverDownloadFolder -Recurse -Force | Out-Null                
 		    }
 		    Catch [Exception]
 		    {
-                Write-Host Error deleting directory $WEDriverDownloadFolder `n
+                Write-Information Error deleting directory $WEDriverDownloadFolder `n
 			    Write-Error " $($_.Exception)"
                 exit $1
 		    }
@@ -304,20 +306,20 @@ param(
                
         Try
 		{
-            Write-Host Creating Folder: $WEDriverDownloadFolder `n
+            Write-Information Creating Folder: $WEDriverDownloadFolder `n
 			
             New-Item -Path $WEDriverDownloadFolder -ItemType Directory -Force | Out-Null
             
             # Apply ACL
             
-            Write-Host Applying ACL to Folder: $WEDriverDownloadFolder `n
+            Write-Information Applying ACL to Folder: $WEDriverDownloadFolder `n
             
-            $WEACL = Get-Item $WEDriverDownloadFolder | get-acl
+            $WEACL = Get-Item -ErrorAction Stop $WEDriverDownloadFolder | get-acl -ErrorAction Stop
             # Remove inheritance
             $WEACL.SetAccessRuleProtection($true,$true)
-            $WEACL | Set-Acl
+            $WEACL | Set-Acl -ErrorAction Stop
             # Remove Users
-            $accessrule = New-Object system.security.AccessControl.FileSystemAccessRule(" users" ," Read" ,,," Allow" )
+            $accessrule = New-Object -ErrorAction Stop system.security.AccessControl.FileSystemAccessRule(" users" ," Read" ,,," Allow" )
             $WEACL.RemoveAccessRuleAll($accessrule)
             Set-Acl -Path $WEDriverDownloadFolder -AclObject $WEACL
             # Create Log File
@@ -325,7 +327,7 @@ param(
 		}
 		Catch [Exception]
 		{
-            Write-Host Error creating directory $WEDriverDownloadFolder `n
+            Write-Information Error creating directory $WEDriverDownloadFolder `n
 			Write-Error " $($_.Exception)"            
             exit $1
 		}
@@ -348,24 +350,24 @@ param(
         # *** To Download the Driver Cab Catalog. ***
 
         try {
-              Write-Host Downloading DriverPackCatalog file... `n 
+              Write-Information Downloading DriverPackCatalog file... `n 
               Add-Content -Path $WELogFilePath -Value " Downloading DriverPackCatalog file..."         
               $WEWebClient = New-Object -TypeName System.Net.WebClient
               # *** Check if Custom Proxy Settings is passed and set the custom proxy settings. ***
               if($WEProxyServer -and $WEProxyPort -and $WEProxyUser -and $WEProxyPassword)
               {
                 $WEProxyServerAddress = $WEProxyServer.Trim() + " :" + $WEProxyPort.ToString()
-                Write-Host Downloading DriverPackCatalog File using Custom Proxy Settings using Proxy Credentials. `n
-                $WEWebProxy = New-Object System.Net.WebProxy($WEProxyServerAddress,$true)           
-                $WEWebProxyCredentials = (New-Object Net.NetworkCredential($WEProxyUser.Trim(),$WEProxyPassword)).GetCredential($WEProxyServer.Trim(),$WEProxyPort," KERBEROS" ) 
+                Write-Information Downloading DriverPackCatalog File using Custom Proxy Settings using Proxy Credentials. `n
+                $WEWebProxy = New-Object -ErrorAction Stop System.Net.WebProxy($WEProxyServerAddress,$true)           
+                $WEWebProxyCredentials = (New-Object -ErrorAction Stop Net.NetworkCredential($WEProxyUser.Trim(),$WEProxyPassword)).GetCredential($WEProxyServer.Trim(),$WEProxyPort," KERBEROS" ) 
                 $WEWebProxy.Credentials = $WEWebProxyCredentials            
                 $WEWebClient.Proxy = $WEWebProxy                 
               }
               elseif($WEProxyServer -and $WEProxyPort)
               {
                 $WEProxyServerAddress = $WEProxyServer.Trim() + " :" + $WEProxyPort.ToString()
-                Write-Host Downloading DriverPackCatalog File using Custom Proxy Settings. `n
-                $WEWebProxy = New-Object System.Net.WebProxy($WEProxyServerAddress,$true)         
+                Write-Information Downloading DriverPackCatalog File using Custom Proxy Settings. `n
+                $WEWebProxy = New-Object -ErrorAction Stop System.Net.WebProxy($WEProxyServerAddress,$true)         
                 $WEWebClient.Proxy = $WEWebProxy                         
               }
 
@@ -373,12 +375,12 @@ param(
               
               if (Test-Path " $WEDriverCabCatalogFile" )
 			  {                   
-                 Write-Host DriverPackCatalog file downloaded successful. `n
+                 Write-Information DriverPackCatalog file downloaded successful. `n
                  Add-Content -Path $WELogFilePath -Value " DriverPackCatalog file downloaded successful."
               }
               else
               {
-                    Write-Host DriverPackCatalog file is not downloaded! `n -BackgroundColor Red 
+                    Write-Information DriverPackCatalog file is not downloaded! `n -BackgroundColor Red 
                     Add-Content -Path $WELogFilePath -Value " DriverPackCatalog file download failed!"
                     exit $1
               }              
@@ -394,17 +396,17 @@ param(
         # *** To Extract the DriverPackCatalog file. ***
         
         try {
-                Write-Host Extracting DriverPackCatalog file... `n 
+                Write-Information Extracting DriverPackCatalog file... `n 
                 Add-Content -Path $WELogFilePath -Value " Extracting DriverPackCatalog file..."  
                 expand -r $WEDriverCabCatalogFile $WEDriverDownloadFolder
                 if (Test-Path " $WEDriverCatalogXMLFile" )
 			    {
-                   Write-Host DriverPackCatalog file extraction successful. `n
+                   Write-Information DriverPackCatalog file extraction successful. `n
                    Add-Content -Path $WELogFilePath -Value " DriverPackCatalog file extraction successful."
                 }
                 else
                 {
-                    Write-Host DriverPackCatalog XML file extraction failed! `n -BackgroundColor Red 
+                    Write-Information DriverPackCatalog XML file extraction failed! `n -BackgroundColor Red 
                     Add-Content -Path $WELogFilePath -Value " DriverPackCatalog XML file extraction failed!"
                     exit $1
                 }               	                        
@@ -455,7 +457,7 @@ param(
 		            
 		        if ($WEDriverMatchFound)
 		        {     
-                    Write-Host Downloading driver file! `n The download might take some time... `n Make sure the internet is not disconnected! `n -BackgroundColor Gray
+                    Write-Information Downloading driver file! `n The download might take some time... `n Make sure the internet is not disconnected! `n -BackgroundColor Gray
                     Add-Content -Path $WELogFilePath -Value " Downloading driver file..."
                     # Adding stopwatch to get the total time taken to download the driver.
                     $WEStopWatch = [system.diagnostics.stopwatch]::StartNew() 
@@ -465,17 +467,17 @@ param(
                     if($WEProxyServer -and $WEProxyPort -and $WEProxyUser -and $WEProxyPassword)
                     {
                         $WEProxyServerAddress = $WEProxyServer.Trim() + " :" + $WEProxyPort.ToString()
-                        Write-Host Downloading Driver using Custom Proxy Settings using Proxy Credentials. `n
-                        $WEWebProxy = New-Object System.Net.WebProxy($WEProxyServerAddress,$true)           
-                        $WEWebProxyCredentials = (New-Object Net.NetworkCredential($WEProxyUser.Trim(),$WEProxyPassword)).GetCredential($WEProxyServer.Trim(),$WEProxyPort," KERBEROS" ) 
+                        Write-Information Downloading Driver using Custom Proxy Settings using Proxy Credentials. `n
+                        $WEWebProxy = New-Object -ErrorAction Stop System.Net.WebProxy($WEProxyServerAddress,$true)           
+                        $WEWebProxyCredentials = (New-Object -ErrorAction Stop Net.NetworkCredential($WEProxyUser.Trim(),$WEProxyPassword)).GetCredential($WEProxyServer.Trim(),$WEProxyPort," KERBEROS" ) 
                         $WEWebProxy.Credentials = $WEWebProxyCredentials            
                         $WEWebClient.Proxy = $WEWebProxy                 
                     }
                     elseif($WEProxyServer -and $WEProxyPort)
                     {
                         $WEProxyServerAddress = $WEProxyServer.Trim() + " :" + $WEProxyPort.ToString()
-                        Write-Host Downloading Driver using Custom Proxy Settings. `n
-                        $WEWebProxy = New-Object System.Net.WebProxy($WEProxyServerAddress,$true)         
+                        Write-Information Downloading Driver using Custom Proxy Settings. `n
+                        $WEWebProxy = New-Object -ErrorAction Stop System.Net.WebProxy($WEProxyServerAddress,$true)         
                         $WEWebClient.Proxy = $WEWebProxy                         
                     }
 
@@ -493,7 +495,7 @@ param(
                         # MD5 hash from the xml file           		
 		                $WEMD5Hash = $WEDriverPackage.Cryptography.Hash | Where-Object { $_.algorithm -eq 'SHA256' } | Select-Object -ExpandProperty " #text"       
                         # MD5 hash of the downloaded driver file
-                        $WEDriverFileMD5Hash = Get-FileHash $WEDriverDownloadDestPath -Algorithm SHA256                                                        
+                        $WEDriverFileMD5Hash = Get-FileHash -ErrorAction Stop $WEDriverDownloadDestPath -Algorithm SHA256                                                        
 		                if($WEMD5Hash -eq $WEDriverFileMD5Hash.Hash)
                         {
                             Write-WELog " MD5 hash match successful - $WEDriverPackageName. `n" " INFO"
@@ -614,7 +616,7 @@ param(
 	            }
             }
 		    Write-WELog " Function Install-DellDriverFiles Executed" " INFO"        
-           ;  $WEFinishTime = Get-Date
+           ;  $WEFinishTime = Get-Date -ErrorAction Stop
             Add-Content -Path $WELogFilePath -Value " ------------------------------------"
 
             Add-Content -Path $WELogFilePath -Value " Function Install-DellDriverFiles Executed"

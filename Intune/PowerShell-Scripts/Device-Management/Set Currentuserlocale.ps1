@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Currentuserlocale
 
@@ -58,6 +58,7 @@ $ErrorActionPreference = " Stop"
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(" PSAvoidUsingWriteHost" , "" , Justification = " Output required by Proactive Remediations." )]
 
 
+[CmdletBinding()]
 function Write-WELog {
     param(
         [Parameter(Mandatory=$false)]
@@ -75,7 +76,7 @@ function Write-WELog {
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 param(

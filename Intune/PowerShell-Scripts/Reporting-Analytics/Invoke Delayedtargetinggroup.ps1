@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Delayedtargetinggroup
 
@@ -55,6 +55,7 @@
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
+[CmdletBinding()]
 function WE-Get-MSIAccessTokenGraph{
    ;  $resourceURL = " https://graph.microsoft.com/" 
    ;  $response = [System.Text.Encoding]::Default.GetString((Invoke-WebRequest -UseBasicParsing -Uri " $($env:IDENTITY_ENDPOINT)?resource=$resourceURL" -Method 'GET' -Headers @{'X-IDENTITY-HEADER' = " $env:IDENTITY_HEADER" ; 'Metadata' = 'True'}).RawContentStream.ToArray()) | ConvertFrom-Json 
@@ -73,7 +74,7 @@ $WETargetingGroupID = " <ENTER YOUR GROUPS OBJECTID FROM AZURE AD>" # Or use a A
 $WEConnecting = Connect-AzAccount -Identity 
 
 
-$WEResponse = Get-MSIAccessTokenGraph
+$WEResponse = Get-MSIAccessTokenGraph -ErrorAction Stop
 
 
 $starttime = Get-Date((Get-Date).AddHours(-28)) -Format " yyyy-MM-ddTHH:mm:ssZ"

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Macos Mdatp Deployment Add
 
@@ -50,6 +50,7 @@ See LICENSE in the project root for license information.
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -69,7 +70,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -81,7 +82,7 @@ param(
 
 
 
-function WE-Get-AuthToken {
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -89,10 +90,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -106,7 +107,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -114,20 +115,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -174,14 +173,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -203,10 +202,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -214,10 +211,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -254,7 +250,7 @@ $WEApp_resource = " deviceAppManagement/mobileApps"
 
         if(!$WEJSON){
 
-        write-host " No JSON was passed to the function, provide a JSON variable" -f Red
+        Write-Information " No JSON was passed to the function, provide a JSON variable" -f Red
         break
 
         }
@@ -270,14 +266,13 @@ $WEApp_resource = " deviceAppManagement/mobileApps"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -313,9 +308,9 @@ Write-Verbose " Resource: $WEDCP_resource"
 
     try {
 
-        if($WEJSON -eq "" -or $WEJSON -eq $null){
+        if($WEJSON -eq "" -or $null -eq $WEJSON){
 
-        write-host " No JSON specified, please specify valid JSON for the Android Policy..." -f Red
+        Write-Information " No JSON specified, please specify valid JSON for the Android Policy..." -f Red
 
         }
 
@@ -334,14 +329,13 @@ Write-Verbose " Resource: $WEDCP_resource"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -365,6 +359,7 @@ NAME: Test-AuthHeader
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -384,7 +379,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -421,10 +416,7 @@ $WEJSON
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -434,19 +426,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -455,15 +443,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -479,7 +465,7 @@ if (!($WEOnboardingXMLFilePath)){
         
         if (!(Test-Path $WEOnboardingXMLFilePath)){
 
-            write-host " - Couldn't find $WEOnboardingXMLFilePath, try again" -f yellow
+            Write-Information " - Couldn't find $WEOnboardingXMLFilePath, try again" -f yellow
         
         }
 
@@ -493,14 +479,13 @@ else {
 
     if (!(Test-Path $WEOnboardingXMLFilePath)){
 
-        write-host " - Couldn't find $WEOnboardingXMLFilePath, please run script again with a valid path" -f yellow
-        Write-Host
-        break
+        Write-Information " - Couldn't find $WEOnboardingXMLFilePath, please run script again with a valid path" -f yellow
+        Write-Information break
     }
 
 }
 
-$WEOnboardingXMLFile = get-content " $WEOnboardingXMLFilePath" -Encoding byte
+$WEOnboardingXMLFile = get-content -ErrorAction Stop " $WEOnboardingXMLFilePath" -Encoding byte
 $WEOnboardingXML = [System.Convert]::ToBase64String($WEOnboardingXMLFile)
 
 
@@ -599,68 +584,42 @@ $WEMDATP_sysext = @"
 
 
 
-write-host
-
-write-host " Publishing" ($WEMDATP | ConvertFrom-Json).displayName -ForegroundColor Yellow
+Write-Information Write-Information " Publishing" ($WEMDATP | ConvertFrom-Json).displayName
 
 $WECreate_Application = Add-MDMApplication -JSON $WEMDATP
 
 Write-WELog " + Application created as $($WECreate_Application.displayName)/$($create_Application.id)" " INFO"
 
-Write-Host
-
-
-
-Write-WELog " Adding MDATP Notification settings from JSON..." " INFO" -ForegroundColor Yellow
+Write-Information Write-WELog " Adding MDATP Notification settings from JSON..." " INFO"
 
 $WECreateResult_Notifications = Add-DeviceConfigurationPolicy -JSON $WEMDATP_Notifications
 
 Write-WELog " + Device MDATP Notifications Policy created as" " INFO" $WECreateResult_Notifications.id
 
-Write-Host
-
-
-
-Write-WELog " Adding MDATP Kext Policy from JSON..." " INFO" -ForegroundColor Yellow
+Write-Information Write-WELog " Adding MDATP Kext Policy from JSON..." " INFO"
 
 $WECreateResult_Kext = Add-DeviceConfigurationPolicy -JSON $WEMDATP_Kext
 
 Write-WELog " + Device MDATP Kext Policy created as" " INFO" $WECreateResult_kext.id
 
-Write-Host
-
-
-
-Write-WELog " Adding MDATP Full Disk Access Policy from JSON..." " INFO" -ForegroundColor Yellow
+Write-Information Write-WELog " Adding MDATP Full Disk Access Policy from JSON..." " INFO"
 
 $WECreateResult_FullDiskAccess = Add-DeviceConfigurationPolicy -JSON $WEMDATP_FullDiskAccess
 
 Write-WELog " + Device MDATP Full Disk Access Policy created as" " INFO" $WECreateResult_FullDiskAccess.id
 
-Write-Host
-
-
-
-Write-WELog " Adding MDATP OnBoarding Policy from XML..." " INFO" -ForegroundColor Yellow
+Write-Information Write-WELog " Adding MDATP OnBoarding Policy from XML..." " INFO"
 ; 
 $WECreateResult_Onboarding = Add-DeviceConfigurationPolicy -JSON $WEMDATP_Onboarding
 
 Write-WELog " + Device MDATP OnBoarding Policy created as" " INFO" $WECreateResult_Onboarding.id
 
-Write-Host
-
-
-
-Write-WELog " Adding MDATP System Extension Policy from XML..." " INFO" -ForegroundColor Yellow
+Write-Information Write-WELog " Adding MDATP System Extension Policy from XML..." " INFO"
 ; 
 $WECreateResult_sysext = Add-DeviceConfigurationPolicy -JSON $WEMDATP_sysext
 
 Write-WELog " + Device MDATP System Extension Policy created as" " INFO" $WECreateResult_sysext.id
 
-Write-Host
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

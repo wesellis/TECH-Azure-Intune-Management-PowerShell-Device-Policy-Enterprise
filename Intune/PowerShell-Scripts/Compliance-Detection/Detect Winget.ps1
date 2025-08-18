@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Detect Winget
 
@@ -37,10 +37,11 @@
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-$desiredVersion = " 1.22.3172.0" # <-- can be retrieved from Get-AppxPackage cmdlet: Get-AppxPackage | Where-Object {$_.Name -eq " Microsoft.DesktopAppInstaller" }
+$desiredVersion = " 1.22.3172.0" # <-- can be retrieved from Get-AppxPackage -ErrorAction Stop cmdlet: Get-AppxPackage -ErrorAction Stop | Where-Object {$_.Name -eq " Microsoft.DesktopAppInstaller" }
 
 
-function WE-Get-CurrentVersion {
+[CmdletBinding()]
+function WE-Get-CurrentVersion -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -49,7 +50,7 @@ param(
     )
 
     try {
-       ;  $currentVersion = (Get-AppxPackage | Where-Object { $_.Name -eq $WEPackageName }).Version
+       ;  $currentVersion = (Get-AppxPackage -ErrorAction Stop | Where-Object { $_.Name -eq $WEPackageName }).Version
         return $currentVersion
     }
     catch {

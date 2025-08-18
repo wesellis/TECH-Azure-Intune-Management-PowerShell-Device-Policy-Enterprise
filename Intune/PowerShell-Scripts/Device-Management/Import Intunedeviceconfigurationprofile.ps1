@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Import Intunedeviceconfigurationprofile
 
@@ -145,7 +145,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
             $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
@@ -197,7 +197,7 @@ Begin {
     # Validate that given path contains JSON files
     try {
         $WEJSONFiles = Get-ChildItem -Path $WEPath -Filter *.json -ErrorAction Stop
-        if ($WEJSONFiles -eq $null) {
+        if ($null -eq $WEJSONFiles) {
            ;  $WESkipDeviceConfigurationProfiles = $true
             Write-Warning -Message " Specified path doesn't contain any .json files, skipping device configuration profile import actions"
         }
@@ -213,7 +213,7 @@ Begin {
     # Check if given path contains any directories assuming they're exported administrative templates
     try {
         $WEAdministrativeTemplateFolders = Get-ChildItem -Path $WEPath -Directory -ErrorAction Stop
-        if ($WEAdministrativeTemplateFolders -eq $null) {
+        if ($null -eq $WEAdministrativeTemplateFolders) {
            ;  $WESkipAdministrativeTemplateProfiles = $true
             Write-Warning -Message " Specified path doesn't contain any exported Administrative Template folders, skipping administrative template profile import actions"
         }
@@ -228,7 +228,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Get-ErrorResponseBody {
+    [CmdletBinding()]
+function WE-Get-ErrorResponseBody -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -239,7 +240,7 @@ param(
 
         # Read the error stream
         $WEErrorResponseStream = $WEException.Response.GetResponseStream()
-        $WEStreamReader = New-Object System.IO.StreamReader($WEErrorResponseStream)
+        $WEStreamReader = New-Object -ErrorAction Stop System.IO.StreamReader($WEErrorResponseStream)
         $WEStreamReader.BaseStream.Position = 0
         $WEStreamReader.DiscardBufferedData()
         $WEResponseBody = $WEStreamReader.ReadToEnd()
@@ -248,7 +249,8 @@ param(
         return $WEResponseBody
     }
 
-    function WE-Invoke-IntuneGraphRequest {
+    [CmdletBinding()]
+function WE-Invoke-IntuneGraphRequest {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -280,7 +282,8 @@ param(
         }
     }
 
-    function WE-Test-JSON {
+    [CmdletBinding()]
+function WE-Test-JSON {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -300,7 +303,8 @@ param(
         }
     }
 
-    function WE-Get-Platform {
+    [CmdletBinding()]
+function WE-Get-Platform -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -327,7 +331,8 @@ param(
         return $WEPlatformType
     }
 
-    function WE-New-IntuneDeviceConfigurationProfile {
+    [CmdletBinding()]
+function WE-New-IntuneDeviceConfigurationProfile -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -344,7 +349,8 @@ param(
         Invoke-IntuneGraphRequest -URI $WEGraphURI -Body $WEJSON
     }
 
-    function WE-New-IntuneAdministrativeTemplateProfile {
+    [CmdletBinding()]
+function WE-New-IntuneAdministrativeTemplateProfile -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -364,7 +370,8 @@ param(
         return $WEGraphResponse.id
     }
 
-    function WE-New-IntuneAdministrativeTemplateDefinitionValues {
+    [CmdletBinding()]
+function WE-New-IntuneAdministrativeTemplateDefinitionValues -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -462,7 +469,7 @@ param(
 
             # Validate that current administrative template folder contains JSON files
             $WEAdministrativeTemplateFolderJSONFiles = Get-ChildItem -Path $WEAdministrativeTemplatePath -Filter *.json
-            if ($WEAdministrativeTemplateFolderJSONFiles -ne $null) {
+            if ($null -ne $WEAdministrativeTemplateFolderJSONFiles) {
                 # Handle administrative template profile name if prefix parameter is specified
                 if ($WEPSBoundParameters[" Prefix" ]) {
                     $WEAdministrativeTemplateName = -join($WEPrefix, $WEAdministrativeTemplateName)

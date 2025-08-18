@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Downloadappimage
 
@@ -125,12 +125,12 @@ Process {
     }
 
     # Invoke web request to get app image information
-    if ($WEAppLink -ne $null) {
+    if ($null -ne $WEAppLink) {
         $WEWebRequest = Invoke-WebRequest -Uri $WEAppLink
         $WEAppIcon = $WEWebRequest.Images | Where-Object { ($_.Width -eq 175) -and ($_.Class -like " artwork" ) }
-        if ($WEAppIcon -ne $null) {
+        if ($null -ne $WEAppIcon) {
             # Download app image to specified path
-           ;  $WEWebClient = New-Object System.Net.WebClient
+           ;  $WEWebClient = New-Object -ErrorAction Stop System.Net.WebClient
             $WEWebClient.DownloadFile($WEAppIcon." src-swap" , " $($WEPath)\$($WEAppIcon.alt).jpg" )
            ;  $WEAppImage = [PSCustomObject]@{
                 ImageName = $WEAppIcon.alt

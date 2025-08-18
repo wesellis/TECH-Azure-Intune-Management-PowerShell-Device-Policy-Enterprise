@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Vcredistdetection
 
@@ -62,13 +62,13 @@ $WEUninstallWOW6432Path = " HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\Current
 
 $WEUninstallItemList = New-Object -TypeName " System.Collections.ArrayList"
 $WEUninstallNativeItems = Get-ChildItem -Path $WEUninstallNativePath -ErrorAction SilentlyContinue
-if ($WEUninstallNativeItems -ne $null) {
+if ($null -ne $WEUninstallNativeItems) {
     $WEUninstallItemList.AddRange($WEUninstallNativeItems) | Out-Null
 }
 
 
 $WEUninstallWOW6432Items = Get-ChildItem -Path $WEUninstallWOW6432Path -ErrorAction SilentlyContinue
-if ($WEUninstallWOW6432Items -ne $null) {
+if ($null -ne $WEUninstallWOW6432Items) {
     $WEUninstallItemList.AddRange($WEUninstallWOW6432Items) | Out-Null
 }
 

@@ -1,4 +1,4 @@
-# Install required modules if not already installed
+﻿# Install required modules if not already installed
 if (-not (Get-Module -ListAvailable -Name Microsoft.Graph.Intune)) {
     Install-Module -Name Microsoft.Graph.Intune
 }
@@ -11,57 +11,57 @@ if (-not (Get-Module -ListAvailable -Name Microsoft.Graph.SDK)) {
 Connect-MSGraph
 
 # Get all applications
-Write-Host "---- App Assignments ----"
-$apps = Get-IntuneManagedApplication
+Write-Information "---- App Assignments ----"
+$apps = Get-IntuneManagedApplication -ErrorAction Stop
 
 # Loop through each application and get assignments
 foreach ($app in $apps) {
-    Write-Host "App Name: $($app.displayName)"
-    Write-Host "App ID: $($app.id)"
-    Write-Host "App Assignments:"
+    Write-Information "App Name: $($app.displayName)"
+    Write-Information "App ID: $($app.id)"
+    Write-Information "App Assignments:"
 
     $assignments = Get-IntuneManagedApplicationAssignment -ManagedAppId $app.id
 
     if ($assignments) {
         foreach ($assignment in $assignments) {
-            Write-Host "---------------------------------------------"
-            Write-Host "Assignment ID: $($assignment.id)"
-            Write-Host "Assignment Group ID: $($assignment.target.groupId)"
-            Write-Host "Assignment Intent: $($assignment.intent)"
-            Write-Host "Assignment Settings: $($assignment.settings)"
-            Write-Host "---------------------------------------------"
+            Write-Information "---------------------------------------------"
+            Write-Information "Assignment ID: $($assignment.id)"
+            Write-Information "Assignment Group ID: $($assignment.target.groupId)"
+            Write-Information "Assignment Intent: $($assignment.intent)"
+            Write-Information "Assignment Settings: $($assignment.settings)"
+            Write-Information "---------------------------------------------"
         }
     } else {
-        Write-Host "No assignments found for this app."
+        Write-Information "No assignments found for this app."
     }
-    Write-Host ""
+    Write-Information ""
 }
 
 # Get Compliance Policies
-Write-Host "---- Compliance Policies ----"
-$compliancePolicies = Get-IntuneDeviceCompliancePolicy
+Write-Information "---- Compliance Policies ----"
+$compliancePolicies = Get-IntuneDeviceCompliancePolicy -ErrorAction Stop
 foreach ($policy in $compliancePolicies) {
-    Write-Host "Policy Name: $($policy.displayName)"
-    Write-Host "Policy ID: $($policy.id)"
-    Write-Host "---------------------------------------------"
+    Write-Information "Policy Name: $($policy.displayName)"
+    Write-Information "Policy ID: $($policy.id)"
+    Write-Information "---------------------------------------------"
 }
 
 # Get Configuration Profiles
-Write-Host "---- Configuration Profiles ----"
-$configProfiles = Get-IntuneDeviceConfigurationPolicy
+Write-Information "---- Configuration Profiles ----"
+$configProfiles = Get-IntuneDeviceConfigurationPolicy -ErrorAction Stop
 foreach ($profile in $configProfiles) {
-    Write-Host "Profile Name: $($profile.displayName)"
-    Write-Host "Profile ID: $($profile.id)"
-    Write-Host "---------------------------------------------"
+    Write-Information "Profile Name: $($profile.displayName)"
+    Write-Information "Profile ID: $($profile.id)"
+    Write-Information "---------------------------------------------"
 }
 
 # Get Conditional Access Policies
-Write-Host "---- Conditional Access Policies ----"
+Write-Information "---- Conditional Access Policies ----"
 $conditionalAccessPolicies = Get-MSGraphPolicy -PolicyType "ConditionalAccessPolicy"
 foreach ($policy in $conditionalAccessPolicies) {
-    Write-Host "Policy Name: $($policy.displayName)"
-    Write-Host "Policy ID: $($policy.id)"
-    Write-Host "---------------------------------------------"
+    Write-Information "Policy Name: $($policy.displayName)"
+    Write-Information "Policy ID: $($policy.id)"
+    Write-Information "---------------------------------------------"
 }
 
 # Disconnect from Microsoft Graph

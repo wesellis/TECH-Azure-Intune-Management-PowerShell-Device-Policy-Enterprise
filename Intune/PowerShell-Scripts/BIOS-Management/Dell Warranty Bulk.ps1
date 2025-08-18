@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Warranty Bulk
 
@@ -67,20 +67,20 @@ limitations under the License.
 	This helps with proactive plans of warranty renewal and inventory/audits.
 
 .DESCRIPTION
-	Get-DellWarrantyInBulk cmdlet can be used to fetch warranty entitlement information 
+	Get-DellWarrantyInBulk -ErrorAction Stop cmdlet can be used to fetch warranty entitlement information 
 	of list of client systems.
 	This cmdlet can be executed on a single windows endpoint, and need not deployed to 
 	all the client systems.
 
-	Scenario A : Using Get-DellWarrantyInBulk cmdlet, An Intune based IT Administrative 
+	Scenario A : Using Get-DellWarrantyInBulk -ErrorAction Stop cmdlet, An Intune based IT Administrative 
 	user can just use their Intune UPN and Password to fetch a list of service tags
 	of their Dell IntuneManagedDevices and then bulk query the warranty entitlement 
 	status using Dell Command | Warranty. 
 
-	Scenario B : Using Get-DellWarrantyInBulk cmdlet, A Microsoft Endpoint Manager / 
+	Scenario B : Using Get-DellWarrantyInBulk -ErrorAction Stop cmdlet, A Microsoft Endpoint Manager / 
 	Configuration Manager (MEMCM) based IT Administrative user can fetch the list
 	of service tags from the MEMCM Database in a CSV format and then pass the same 
-	as input to Get-DellWarrantyInBulk cmdlet.
+	as input to Get-DellWarrantyInBulk -ErrorAction Stop cmdlet.
 
    	IMPORTANT: 
 		1. Make sure you are using latest Powershell version 5 or newer to execute 
@@ -91,7 +91,7 @@ limitations under the License.
 		4. This script installs " Microsoft.Graph.Intune" powershell module from 
 			PSGallery, if user wishes to fetch Dell service tags from Intune environment.
    
-	Following is description of Get-DellWarrantyInBulk cmdlet parameters -
+	Following is description of Get-DellWarrantyInBulk -ErrorAction Stop cmdlet parameters -
 
 	- AdminUPN, 	[string],       REQUIRED (Scenario A),  
 		User Principal Name of Intune Administrative user.
@@ -172,7 +172,8 @@ limitations under the License.
 
 
 
-Function Get-DellWarrantyInBulk
+[CmdletBinding()]
+Function Get-DellWarrantyInBulk -ErrorAction Stop
 {	
 	[CmdletBinding(DefaultParameterSetName = 'UsingGraph')]
     [CmdletBinding()]
@@ -290,31 +291,31 @@ param(
         {           
             Try
 		    {
-                Write-Host Creating output directory: $WEOutputDir `n
+                Write-Information Creating output directory: $WEOutputDir `n
 			    New-Item -Path $WEOutputDir -ItemType Directory -Force | Out-Null
 				
 				# Apply ACL
 
-				Write-Host Applying ACL to Folder: $WEOutputDir `n
-				$WEACL = Get-Item $WEOutputDir | get-acl
+				Write-Information Applying ACL to Folder: $WEOutputDir `n
+				$WEACL = Get-Item -ErrorAction Stop $WEOutputDir | get-acl -ErrorAction Stop
 				# Remove inheritance
 				$WEACL.SetAccessRuleProtection($true,$true)
-				$WEACL | Set-Acl
+				$WEACL | Set-Acl -ErrorAction Stop
 				# Remove Users
-				$accessrule = New-Object system.security.AccessControl.FileSystemAccessRule(" users" ," Read" ,,," Allow" )
+				$accessrule = New-Object -ErrorAction Stop system.security.AccessControl.FileSystemAccessRule(" users" ," Read" ,,," Allow" )
 				$WEACL.RemoveAccessRuleAll($accessrule)
 				Set-Acl -Path $WEOutputDir -AclObject $WEACL                
 		    }
 		    Catch
 		    {
-                Write-Host Error creating output directory $WEOutputDir `n
+                Write-Information Error creating output directory $WEOutputDir `n
 			    Write-Error " $($_.Exception)"
                 exit $1
 		    }
         }
         else
         {            
-            $WEOutputDirObj = Get-Item $WEOutputDir -Force -ea SilentlyContinue
+            $WEOutputDirObj = Get-Item -ErrorAction Stop $WEOutputDir -Force -ea SilentlyContinue
             if([bool]($WEOutputDirObj.Attributes -band [IO.FileAttributes]::ReparsePoint))
             { 
                 Write-Error " Directory reparse point exists for $WEOutputDir. `
@@ -366,7 +367,7 @@ param(
 
 			# Verify Installation
 
-			If (-not(Get-InstalledModule Microsoft.Graph.Intune -ErrorAction silentlycontinue)) 
+			If (-not(Get-InstalledModule -ErrorAction Stop Microsoft.Graph.Intune -ErrorAction SilentlyContinue)) 
 			{
 				Write-Error " Microsoft.Graph.Intune PowerShell module installation failed"
 				exit $1
@@ -378,7 +379,7 @@ param(
 			# Authenticate with Microsoft Graph.
 			# Create the PSCredential object.
 			
-			$WEAdminCred = New-Object System.Management.Automation.PSCredential ($adminUPN, $adminPwd)
+			$WEAdminCred = New-Object -ErrorAction Stop System.Management.Automation.PSCredential ($adminUPN, $adminPwd)
 
 			# Log in with these credentials
 			Connect-MSGraph -PSCredential $WEAdminCred | Out-Null
@@ -387,7 +388,7 @@ param(
 			# Retrieve list of device serial number.
 
 			#$WEServiceTags = Get-IntuneManagedDevice -Filter " startswith(deviceName,'DELL_')" | | Select-Object -Property serialNumber
-			$WEServiceTags = Get-IntuneManagedDevice | Select-Object -Property serialNumber
+			$WEServiceTags = Get-IntuneManagedDevice -ErrorAction Stop | Select-Object -Property serialNumber
 
 			if($WERemoveModule -eq $true)
 			{
@@ -454,7 +455,7 @@ param(
 	}
 	Finally
 	{
-		Write-WELog " Function Get-DellWarrantyInBulk Executed" " INFO"
+		Write-WELog " Function Get-DellWarrantyInBulk -ErrorAction Stop Executed" " INFO"
 		Write-WELog " Observe Dell | Command Warranty log files for more information" " INFO" 
 	}
 }

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install (Case Conflict)
 
@@ -72,8 +72,8 @@ foreach($user in $allUsers)
 $oldFolder = " $($env:SystemDrive)\Users\*\AppData\Local\Microsoft\Teams" ; 
 $oldIcon = " $($env:SystemDrive)\Users\*\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Microsoft Teams*.lnk"
 
-Get-Item $oldFolder | Remove-Item -Recurse -Force
-Get-Item $oldIcon | Remove-Item -Recurse -Force
+Get-Item -ErrorAction Stop $oldFolder | Remove-Item -Recurse -Force
+Get-Item -ErrorAction Stop $oldIcon | Remove-Item -Recurse -Force
 
 New-Item -Path " C:\ProgramData\Microsoft" -ItemType File -Name " classicTeamsUninstall.txt"
 

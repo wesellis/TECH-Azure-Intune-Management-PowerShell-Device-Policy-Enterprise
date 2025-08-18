@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Rbac Scopetags Policyassign
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
  
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
  
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -199,7 +195,7 @@ This function is used to get device compliance policies from the Graph API REST 
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any device compliance policies
 .EXAMPLE
-Get-DeviceCompliancePolicy
+Get-DeviceCompliancePolicy -ErrorAction Stop
 Returns any device compliance policies configured in Intune
 .EXAMPLE
 Get-DeviceCompliancePolicy -Android
@@ -208,7 +204,7 @@ Returns any device compliance policies for Android configured in Intune
 Get-DeviceCompliancePolicy -iOS
 Returns any device compliance policies for iOS configured in Intune
 .NOTES
-NAME: Get-DeviceCompliancePolicy
+NAME: Get-DeviceCompliancePolicy -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -237,7 +233,7 @@ $WEResource = " deviceManagement/deviceCompliancePolicies"
 
         if($WECount_Params -gt 1){
 
-        write-host " Multiple parameters set, specify a single parameter -Android -iOS or -Win10 against the function" -f Red
+        Write-Information " Multiple parameters set, specify a single parameter -Android -iOS or -Win10 against the function" -f Red
 
         }
 
@@ -289,14 +285,13 @@ $WEResource = " deviceManagement/deviceCompliancePolicies"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -312,10 +307,10 @@ This function is used to get device configuration policies from the Graph API RE
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any device configuration policies
 .EXAMPLE
-Get-DeviceConfigurationPolicy
+Get-DeviceConfigurationPolicy -ErrorAction Stop
 Returns any device configuration policies configured in Intune
 .NOTES
-NAME: Get-DeviceConfigurationPolicy
+NAME: Get-DeviceConfigurationPolicy -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -359,14 +354,13 @@ $WEDCP_resource = " deviceManagement/deviceConfigurations"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -406,7 +400,7 @@ $WEResource = " deviceManagement/deviceCompliancePolicies/$id"
 
     try {
      
-        if($WEScopeTags -eq "" -or $WEScopeTags -eq $null){
+        if($WEScopeTags -eq "" -or $null -eq $WEScopeTags){
 
 $WEJSON = @"
 
@@ -420,7 +414,7 @@ $WEJSON = @"
 
         else {
 
-            $object = New-Object –TypeName PSObject
+            $object = New-Object -ErrorAction Stop –TypeName PSObject
             $object | Add-Member -MemberType NoteProperty -Name '@odata.type' -Value " $WEType"
             $object | Add-Member -MemberType NoteProperty -Name 'roleScopeTagIds' -Value @($WEScopeTags)
             $WEJSON = $object | ConvertTo-Json
@@ -436,17 +430,15 @@ $WEJSON = @"
 
     catch {
 
-    Write-Host
-    $ex = $_.Exception
+    Write-Information $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -486,7 +478,7 @@ $WEResource = " deviceManagement/deviceConfigurations/$id"
 
     try {
      
-        if($WEScopeTags -eq "" -or $WEScopeTags -eq $null){
+        if($WEScopeTags -eq "" -or $null -eq $WEScopeTags){
 
 $WEJSON = @"
 
@@ -500,7 +492,7 @@ $WEJSON = @"
 
         else {
 
-            $object = New-Object –TypeName PSObject
+            $object = New-Object -ErrorAction Stop –TypeName PSObject
             $object | Add-Member -MemberType NoteProperty -Name '@odata.type' -Value " $WEType"
             $object | Add-Member -MemberType NoteProperty -Name 'roleScopeTagIds' -Value @($WEScopeTags)
             $WEJSON = $object | ConvertTo-Json
@@ -516,17 +508,15 @@ $WEJSON = @"
 
     catch {
 
-    Write-Host
-    $ex = $_.Exception
+    Write-Information $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -545,7 +535,7 @@ The function connects to the Graph API Interface and gets scope tags
 Get-RBACScopeTag -DisplayName " Test"
 Gets a scope tag with display Name 'Test'
 .NOTES
-NAME: Get-RBACScopeTag
+NAME: Get-RBACScopeTag -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -585,14 +575,13 @@ $WEResource = " deviceManagement/roleScopeTags"
     
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    throw
+    Write-Information throw
     }
 
 }
@@ -601,10 +590,7 @@ $WEResource = " deviceManagement/roleScopeTags"
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -614,19 +600,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
 
-            # Defining Azure AD tenant name, this is the name of your Azure Active Directory (do not use the verified domain name)
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -635,15 +617,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -657,16 +637,12 @@ $WEConfirm = read-host
 if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
 
     Write-WELog " Checking if any Scope Tags have been created..." " INFO"
-    Write-Host
-
-    $WEScopeTags = Get-RBACScopeTag
+    Write-Information $WEScopeTags = Get-RBACScopeTag -ErrorAction Stop
 
     if($WEScopeTags){
 
         Write-WELog " Scope Tags found..." " INFO" -ForegroundColor Green
-        Write-Host
-
-        foreach($WEScopeTag in $WEScopeTags){
+        Write-Information foreach($WEScopeTag in $WEScopeTags){
 
         $WEScopeTag_DN = $WEScopeTag.displayName
         $WEScopeTagId = $WEScopeTag.id
@@ -679,7 +655,7 @@ if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
 
         Write-WELog " Testing if '$WEScopeTag_DN' exists in Device Compliance Policy Display Name..." " INFO"
 
-        $WECPs = Get-DeviceCompliancePolicy | Where-Object { ($_.displayName).contains(" $WEScopeTag_DN" ) } | Sort-Object displayName
+        $WECPs = Get-DeviceCompliancePolicy -ErrorAction Stop | Where-Object { ($_.displayName).contains(" $WEScopeTag_DN" ) } | Sort-Object displayName
 
             if($WECPs){
 
@@ -731,9 +707,7 @@ if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
 
             }
 
-            Write-Host
-
-        #endregion
+            Write-Information #endregion
 
         ####################################################
 
@@ -741,7 +715,7 @@ if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
 
         Write-WELog " Testing if '$WEScopeTag_DN' exists in Device Configuration Policy Display Name..." " INFO"
 
-        $WEDCPs = Get-DeviceConfigurationPolicy | Where-Object { ($_.displayName).contains(" $WEScopeTag_DN" ) } | Sort-Object displayName
+        $WEDCPs = Get-DeviceConfigurationPolicy -ErrorAction Stop | Where-Object { ($_.displayName).contains(" $WEScopeTag_DN" ) } | Sort-Object displayName
 
             if($WEDCPs){
 
@@ -793,9 +767,7 @@ if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
 
             }
 
-            Write-Host
-
-        #endregion
+            Write-Information #endregion
 
         ####################################################
 
@@ -817,10 +789,6 @@ else {
 
 }
 
-Write-Host
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

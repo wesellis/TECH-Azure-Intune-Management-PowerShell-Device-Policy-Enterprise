@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Remediation
 
@@ -40,9 +40,11 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
 $applicationNames = @(" Dell SupportAssist" , " Dell SupportAssist Remediation" , " Dell SupportAssist OS Recovery Plugin for Dell Update" )
 
 
-function WE-Get-RegistryKey {
+[CmdletBinding()]
+function WE-Get-RegistryKey -ErrorAction Stop {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -62,7 +64,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -91,9 +93,11 @@ param(
     }
 }
 
+[CmdletBinding()]
 function WE-Uninstall-Application {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -113,7 +117,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -142,7 +146,7 @@ param(
 
 
 
-$registryKeys = $applicationNames | Get-RegistryKey
+$registryKeys = $applicationNames | Get-RegistryKey -ErrorAction Stop
 
 if (($registryKeys | Where-Object { $_.DisplayName -eq $applicationNames[2] }).Count -eq 2) {
    ;  $registryKeys = $registryKeys | Where-Object { $_.DisplayName -ne $applicationNames[2] -or $_.QuietUninstallString -ne $null }
@@ -151,7 +155,7 @@ if (($registryKeys | Where-Object { $_.DisplayName -eq $applicationNames[2] }).C
 $registryKeys | Uninstall-Application
 
 ; 
-$registryKeys = $applicationNames | Get-RegistryKey
+$registryKeys = $applicationNames | Get-RegistryKey -ErrorAction Stop
 if ($registryKeys) {
     Write-WELog " Dell SupportAssist is still installed." " INFO" -ForegroundColor Red
 } else {

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Retreive Bios Version
 
@@ -80,7 +80,7 @@ limitations under the License.
 
 $WEBiosVersion= Get-CimInstance -Namespace root\dcim\sysman -ClassName DCIM_BIOSElement | Select -ExpandProperty Version
 
-if($WEBiosVersion -ne $null)
+if($null -ne $WEBiosVersion)
 {
 ; 	$hash = @{ Version = $WEBiosVersion }
 

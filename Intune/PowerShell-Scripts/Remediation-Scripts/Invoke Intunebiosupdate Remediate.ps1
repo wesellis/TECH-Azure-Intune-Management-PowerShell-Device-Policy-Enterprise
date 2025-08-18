@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Intunebiosupdate Remediate
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     param([Parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -122,6 +123,7 @@ $WEScript:RegPath = 'HKLM:\SOFTWARE\MSEndpointMgr\BIOSUpdateManagemement'
 
 
 
+[CmdletBinding()]
 function WE-Add-NotificationApp {
     <#
     .SYNOPSIS
@@ -188,6 +190,7 @@ $ErrorActionPreference = " Stop"
     # Clean up
     Remove-PSDrive -Name HKCR -Force
 }#endfunction
+[CmdletBinding()]
 function WE-Add-ToastRebootProtocolHandler{
     <#
     .SYNOPSIS
@@ -197,24 +200,25 @@ function WE-Add-ToastRebootProtocolHandler{
     This function must be run as system and registers the protocal handler for toast reboot. 
     #>    
     New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -ErrorAction SilentlyContinue | out-null
-    $WEProtocolHandler = Get-Item 'HKCR:\MSEndpointMgrToastReboot' -ErrorAction SilentlyContinue
+    $WEProtocolHandler = Get-Item -ErrorAction Stop 'HKCR:\MSEndpointMgrToastReboot' -ErrorAction SilentlyContinue
     if (!$WEProtocolHandler) {
         #create handler for reboot
-        New-Item 'HKCR:\MSEndpointMgrToastReboot' -Force
-        Set-Itemproperty 'HKCR:\MSEndpointMgrToastReboot' -Name '(DEFAULT)' -Value 'url:MSEndpointMgrToastReboot' -Force
-        Set-Itemproperty 'HKCR:\MSEndpointMgrToastReboot' -Name 'URL Protocol' -Value '' -Force
+        New-Item -ErrorAction Stop 'HKCR:\MSEndpointMgrToastReboot' -Force
+        Set-Itemproperty -ErrorAction Stop 'HKCR:\MSEndpointMgrToastReboot' -Name '(DEFAULT)' -Value 'url:MSEndpointMgrToastReboot' -Force
+        Set-Itemproperty -ErrorAction Stop 'HKCR:\MSEndpointMgrToastReboot' -Name 'URL Protocol' -Value '' -Force
         New-Itemproperty -path 'HKCR:\MSEndpointMgrToastReboot' -PropertyType DWORD -Name 'EditFlags' -Value 2162688
-        New-Item 'HKCR:\MSEndpointMgrToastReboot\Shell\Open\command' -Force
-        Set-Itemproperty 'HKCR:\MSEndpointMgrToastReboot\Shell\Open\command' -Name '(DEFAULT)' -Value 'C:\Windows\System32\shutdown.exe -r -t 60 -c " Your computer will be restarted in 1 minute to complete the BIOS Update process." ' -Force
+        New-Item -ErrorAction Stop 'HKCR:\MSEndpointMgrToastReboot\Shell\Open\command' -Force
+        Set-Itemproperty -ErrorAction Stop 'HKCR:\MSEndpointMgrToastReboot\Shell\Open\command' -Name '(DEFAULT)' -Value 'C:\Windows\System32\shutdown.exe -r -t 60 -c " Your computer will be restarted in 1 minute to complete the BIOS Update process." ' -Force
     }
     Remove-PSDrive -Name HKCR -Force -ErrorAction SilentlyContinue
 }#endfunction
+[CmdletBinding()]
 function WE-Test-UserSession {
     #Check if a user is currently logged on before doing user action
     [String]$WECurrentlyLoggedOnUser = (Get-CimInstance -Class Win32_ComputerSystem |  Where-Object {$_.Username} | Select-Object UserName).UserName
     if ($WECurrentlyLoggedOnUser){
         $WESAMName = [String]$WECurrentlyLoggedOnUser.Split(" \" )[1]
-        #$WEUserPath = (Get-ChildItem  -Path HKLM:\SOFTWARE\Microsoft\IdentityStore\LogonCache\ -Recurse -ErrorAction SilentlyContinue | ForEach-Object { if((Get-ItemProperty -Path $_.PsPath) -match $WESAMName) {$_.PsPath} } ) | Where-Object {$WEPSItem -Match 'S-\d-\d{2}-\d-\d{10}-\d{10}-\d{10}-\d{10}'}
+        #$WEUserPath = (Get-ChildItem -ErrorAction Stop  -Path HKLM:\SOFTWARE\Microsoft\IdentityStore\LogonCache\ -Recurse -ErrorAction SilentlyContinue | ForEach-Object { if((Get-ItemProperty -Path $_.PsPath) -match $WESAMName) {$_.PsPath} } ) | Where-Object {$WEPSItem -Match 'S-\d-\d{2}-\d-\d{10}-\d{10}-\d{10}-\d{10}'}
         #$WEFullName = (Get-ItemProperty -Path $WEUserPath | Select-Object DisplayName).DisplayName
         $WEReturnObject = $WESAMName 
     }else {
@@ -222,6 +226,7 @@ function WE-Test-UserSession {
     }
     Return $WEReturnObject
 }#endfunction
+[CmdletBinding()]
 function WE-Invoke-ToastNotification {
     param(
         [Parameter(Mandatory=$false)]$WEFullName,
@@ -233,6 +238,7 @@ function WE-Invoke-ToastNotification {
     )
 
 $WEMyScriptBlockString = "
+[CmdletBinding()]
 function WE-Start-ToastNotification {
     `$WELoad = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
     `$WELoad = [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
@@ -315,6 +321,7 @@ $WENew_Task = New-ScheduledTask -Description " Toast_Notification_$($WEToastGuid
 Register-ScheduledTask -TaskName " Toast_Notification_$($WEToastGuid)" -InputObject $WENew_Task | Out-Null
 Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " Toast Notification Task created for logged on user: Toast_Notification_$($WEToastGuid)"
 }#endfunction
+[CmdletBinding()]
 function WE-Invoke-BIOSUpdateHP{
     param(
             [parameter(Mandatory = $true)]
@@ -328,13 +335,13 @@ function WE-Invoke-BIOSUpdateHP{
     # Import HP Module 
     Import-Module HP.ClientManagement
     # Get Date
-    $WEDate = Get-Date
+    $WEDate = Get-Date -ErrorAction Stop
     # Obtain current BIOS verison
-    [version]$WECurrentBIOSVersion = Get-HPBIOSVersion
+    [version]$WECurrentBIOSVersion = Get-HPBIOSVersion -ErrorAction Stop
 
     # Inform current BIOS deployment state
     if ($WEBIOSApprovedVersion -gt $WECurrentBIOSVersion){
-        $WEHPBIOSVersions = Get-HPBIOSUpdates
+        $WEHPBIOSVersions = Get-HPBIOSUpdates -ErrorAction Stop
         foreach ($WEHPBIOSVersion in $WEHPBIOSVersions.Ver){
             if ([version]$WEHPBIOSVersion -eq $WEBIOSApprovedVersion) {
                 $WEHPVersion = $WEHPBIOSVersion
@@ -345,7 +352,7 @@ function WE-Invoke-BIOSUpdateHP{
             Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " Processing BIOS flash update process"
             # Check for BIOS password and update flash cmdline
             Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " Checking if BIOS password is set"
-            $WEBIOSPasswordSet = Get-HPBIOSSetupPasswordIsSet
+            $WEBIOSPasswordSet = Get-HPBIOSSetupPasswordIsSet -ErrorAction Stop
             switch ($WEBIOSPasswordSet) {
                 $true {
                     # Verify that an password has been provided
@@ -430,6 +437,7 @@ function WE-Invoke-BIOSUpdateHP{
 
     Return $WEOutput
 }#endfunction
+[CmdletBinding()]
 function WE-Invoke-BIOSUpdateDell{
     param(
             [parameter(Mandatory = $true)]
@@ -444,6 +452,7 @@ $WEOutput = @{
 }
 Return $WEOutput
 }#endfunction
+[CmdletBinding()]
 function WE-Invoke-BIOSUpdateLenovo{
     param(
             [parameter(Mandatory = $true)]
@@ -458,6 +467,7 @@ $WEOutput = @{
 }
 return $WEOutput
 }#endfunction
+[CmdletBinding()]
 function WE-Test-BIOSVersionHP{
 param(
         [parameter(Mandatory = $true)]
@@ -472,7 +482,7 @@ param(
     Import-Module HP.ClientManagement
 
     # Obtain current BIOS verison
-    [version]$WECurrentBIOSVersion = Get-HPBIOSVersion
+    [version]$WECurrentBIOSVersion = Get-HPBIOSVersion -ErrorAction Stop
 
     # Inform current BIOS deployment state
     if ($WEBIOSApprovedVersion -gt $WECurrentBIOSVersion){
@@ -495,6 +505,7 @@ param(
 
     Return $WEOutput
 }#endfunction
+[CmdletBinding()]
 function WE-Test-BiosVersionDell{
     param(
             [parameter(Mandatory = $true)]
@@ -509,6 +520,7 @@ function WE-Test-BiosVersionDell{
     }
     Return $WEOutput
 }#endfunction
+[CmdletBinding()]
 function WE-Test-BiosVersionLenovo{
     param(
             [parameter(Mandatory = $true)]
@@ -546,12 +558,12 @@ if (-not (Test-Path $WEToastMediafolder)){
 switch -Wildcard ($WEManufacturer) { 
     {($WEPSItem -match " HP" ) -or ($WEPSItem -match " Hewlett-Packard" )}{
         Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " Validated HP hardware check"
-        $WEHPPreReq = [boolean](Get-InstalledModule | Where-Object {$_.Name -match " HPCMSL" } -ErrorAction SilentlyContinue -Verbose:$false)
+        $WEHPPreReq = [boolean](Get-InstalledModule -ErrorAction Stop | Where-Object {$_.Name -match " HPCMSL" } -ErrorAction SilentlyContinue -Verbose:$false)
         if ($WEHPPreReq){
             # Import module
             Import-Module HP.ClientManagement
             # Get matching identifier from baseboard
-            $WESystemID = Get-HPDeviceProductID
+            $WESystemID = Get-HPDeviceProductID -ErrorAction Stop
             $WESupportedModel = $WEBIOSPackageDetails | Where-Object {$_.Description -match $WESystemID}
             if (-not ([string]::IsNullOrEmpty($WESupportedModel))) {
                 [version]$WEBIOSApprovedVersion = ($WEBIOSPackageDetails | Where-Object {$_.Description -match $WESystemID} | Sort-Object Version -Descending  | Select-Object -First 1 -Unique -ExpandProperty Version).Split(" " )[0] 
@@ -623,7 +635,7 @@ if ($WEBiosUpdateinProgress -ne 0){
     Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " BIOS Update already in Progress"
     # Check if computer has restarted since last try 
     [DateTime]$WEBIOSUpdateTime = Get-ItemPropertyValue -Path " $WERegPath" -Name 'BIOSUpdateTime'
-    $WELastBootime = Get-Date (Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime)
+    $WELastBootime = Get-Date -ErrorAction Stop (Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime)
     if ($WEBIOSUpdateTime -gt $WELastBootime){
         Write-EventLog -LogName $WEEventLogName -EntryType Information -EventId 8001 -Source $WEEventLogSource -Message " Computer pending reboot after BIOS staging. Checking for user session"
         # Computer not restarted - Invoke remediation to notify user to reboot

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Retreive Manufacturer
 
@@ -80,7 +80,7 @@ limitations under the License.
 
 $WEManufacturer= Get-CimInstance -Namespace root\dcim\sysman -ClassName DCIM_Chassis | Select -ExpandProperty Manufacturer
 
-if($WEManufacturer -ne $null)
+if($null -ne $WEManufacturer)
 {
    ;  $hash = @{ Manufacturer = $WEManufacturer }
 

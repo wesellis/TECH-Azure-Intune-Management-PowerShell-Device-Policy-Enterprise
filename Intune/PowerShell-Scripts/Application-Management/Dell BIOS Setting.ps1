@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Bios Setting
 
@@ -58,8 +58,8 @@ limitations under the License.
 
 <#
 .Synopsis
-   Set-DellBIOSAttribute cmdlet used to set single Dell BIOS attribute at a time.
-   Set-DellBIOSAttributes cmdlet used to set multiple Dell BIOS attributes at a time.
+   Set-DellBIOSAttribute -ErrorAction Stop cmdlet used to set single Dell BIOS attribute at a time.
+   Set-DellBIOSAttributes -ErrorAction Stop cmdlet used to set multiple Dell BIOS attributes at a time.
    IMPORTANT: Make sure you are using latest Powershell version 5 or newer to execute this cmdlet. Execute " Get-Host" to check the version.
    IMPORTANT: Make sure direct WMI capabilities are supported on the system.
 .DESCRIPTION
@@ -100,6 +100,7 @@ limitations under the License.
 
 
 
+[CmdletBinding()]
 Function Is-DellBIOSPasswordSet
 {
     [CmdletBinding()]
@@ -115,8 +116,8 @@ param(
 	try
 	{
 		$WEIsPasswordSet = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject | Where-Object NameId -EQ $WEPwdType | Select-Object -ExpandProperty IsPasswordSet -ErrorAction stop
-		if(1 -eq $WEIsPasswordSet) { Write-Host  $WEPwdType " password is set on the system" }
-		else { Write-Host  $WEPwdType " password is not set on the system" }
+		if(1 -eq $WEIsPasswordSet) { Write-Information $WEPwdType " password is set on the system" }
+		else { Write-Information $WEPwdType " password is not set on the system" }
 		return $WEIsPasswordSet
 	}
 	Catch
@@ -131,7 +132,8 @@ param(
 }
 
 
-Function Get-DellBIOSAttributes
+[CmdletBinding()]
+Function Get-DellBIOSAttributes -ErrorAction Stop
 {
     try
 	{
@@ -156,12 +158,13 @@ Function Get-DellBIOSAttributes
     }
     Finally
     {
-        Write-WELog " Function Get-DellBIOSAttribute Executed" " INFO"
+        Write-WELog " Function Get-DellBIOSAttribute -ErrorAction Stop Executed" " INFO"
     }
 }
 
 
-Function Set-DellBIOSAttribute
+[CmdletBinding()]
+Function Set-DellBIOSAttribute -ErrorAction Stop
 {
     #Sets a single Dell BIOS Attribute at a time
 
@@ -209,7 +212,7 @@ param(
                     if(!([String]::IsNullOrEmpty($WEAdminPwd)))
 			        {
 				        #Get encoder for encoding password
-	                    $encoder = New-Object System.Text.UTF8Encoding
+	                    $encoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
    
                         #encode the password
                        ;  $WEAdminBytes = $encoder.GetBytes($WEAdminPwd)
@@ -268,17 +271,18 @@ param(
     catch
     {
         $WEException = $_
-		Write-Host $WEException
+		Write-Information $WEException
     }
     finally
     {
-        Write-Host $result
-		Write-WELog " Function Set-DellBIOSAttribute Executed" " INFO"
+        Write-Information $result
+		Write-WELog " Function Set-DellBIOSAttribute -ErrorAction Stop Executed" " INFO"
     }
 }
 
 
-Function Set-DellBIOSAttributes
+[CmdletBinding()]
+Function Set-DellBIOSAttributes -ErrorAction Stop
 {
     #Sets multiple Dell BIOS Attributes at a time
 
@@ -312,7 +316,7 @@ param(
             if(!([String]::IsNullOrEmpty($WEAdminPwd)))
 			{
 				#Get encoder for encoding password
-	            $encoder = New-Object System.Text.UTF8Encoding
+	            $encoder = New-Object -ErrorAction Stop System.Text.UTF8Encoding
    
                 #encode the password
                ;  $WEAdminBytes = $encoder.GetBytes($WEAdminPwd)
@@ -363,12 +367,12 @@ param(
     catch
     {
        ;  $WEException = $_
-		Write-Host $WEException
+		Write-Information $WEException
     }
     finally
     {
-        Write-Host $result
-		Write-WELog " Function Set-DellBIOSAttributes Executed" " INFO"
+        Write-Information $result
+		Write-WELog " Function Set-DellBIOSAttributes -ErrorAction Stop Executed" " INFO"
     }
 }
 

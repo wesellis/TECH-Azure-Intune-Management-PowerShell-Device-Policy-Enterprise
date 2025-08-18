@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Azureblobitem
 
@@ -34,14 +34,16 @@
     Requires appropriate permissions and modules
 
 
-function WE-Get-AzureBlobItem {
+[CmdletBinding()]
+function WE-Get-AzureBlobItem -ErrorAction Stop {
 
 
 
 $WEErrorActionPreference = "Stop" ; 
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-function WE-Get-AzureBlobItem {
+[CmdletBinding()]
+function WE-Get-AzureBlobItem -ErrorAction Stop {
     <#
         .SYNOPSIS
             Returns an array of items and properties from an Azure blog storage URL.

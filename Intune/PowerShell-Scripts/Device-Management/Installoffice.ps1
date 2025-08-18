@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Installoffice
 
@@ -60,6 +60,7 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
 
 
 
+[CmdletBinding()]
 function WE-Write-LogEntry {
 	[CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -110,6 +111,7 @@ param(
 		Write-Warning -Message " Unable to append log entry to $WELogFileName.log file. Error message at line $($_.InvocationInfo.ScriptLineNumber): $($_.Exception.Message)"
 	}
 }
+[CmdletBinding()]
 function WE-Start-DownloadFile {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -183,7 +185,7 @@ try{
         $WEODTExtractionArguments = " /quiet /extract:$($WEODTExtractionPath)"
         Write-LogEntry -Value " Attempting to extract the setup.exe executable from Office Deployment Toolkit" -Severity 1
         Start-Process -FilePath $WEODTExecutable -ArgumentList $WEODTExtractionArguments -NoNewWindow -Wait -ErrorAction Stop
-        $WESetupFilePath = ($WEODTExtractionPath | Get-ChildItem | Where-Object {$_.Name -eq " setup.exe" }).FullName
+        $WESetupFilePath = ($WEODTExtractionPath | Get-ChildItem -ErrorAction Stop | Where-Object {$_.Name -eq " setup.exe" }).FullName
         Write-LogEntry -Value " Setup file ready at $($WESetupFilePath)" -Severity 1
         try{
             #Prepare Office Installation

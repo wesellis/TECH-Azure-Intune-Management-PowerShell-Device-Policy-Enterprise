@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Detection Bios Thermalmode Setting
 
@@ -86,14 +86,14 @@ try
         2 {" Quiet" }
         3 {" Performance" }
     }
-    if($WEBIOSThermalMode -eq $null)
+    if($null -eq $WEBIOSThermalMode)
     {
         Write-Error -Category ResourceUnavailable -CategoryTargetName " root/dcim/sysman" -CategoryTargetType " DCIM_ThermalInformation" -Message " Unable to enumerate the class 'DCIM_ThermalInformation' in the namespace 'root/dcim/sysman'" 	
         exit 1
     }
     elseif ($WEBIOSThermalMode -match " Quiet" )
     {
-        Write-host " BIOS Thermal Mode is set to 'Quiet' mode."
+        Write-Information " BIOS Thermal Mode is set to 'Quiet' mode."
     	exit 0  
     }
     else
@@ -105,7 +105,7 @@ try
 catch
 {
    ;  $errMsg = $_.Exception.Message
-    write-host $errMsg
+    Write-Information $errMsg
     exit 1
 }
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Delete Old User Profiles
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -62,7 +63,8 @@ $excludedUsers = @(" Administrator" , " Public" , " Default" , " coy-it" )
 $createScheduledTask = $true # <--- create scheduled task to run this script daily
 
 
-function WE-Get-OldProfiles {
+[CmdletBinding()]
+function WE-Get-OldProfiles -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -82,7 +84,8 @@ param(
     }
 }
 
-function WE-Remove-OldProfiles {
+[CmdletBinding()]
+function WE-Remove-OldProfiles -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -93,7 +96,7 @@ param(
     foreach ($profile in $WEOldProfiles) {
         try {
             $fullProfileName = " C:\Users\$($profile)"
-            Get-CimInstance -ClassName Win32_UserProfile | Where-Object { $_.LocalPath -eq $fullProfileName } | Remove-CimInstance
+            Get-CimInstance -ClassName Win32_UserProfile | Where-Object { $_.LocalPath -eq $fullProfileName } | Remove-CimInstance -ErrorAction Stop
         }
         catch {
             Write-WELog " Error: $_" " INFO"
@@ -103,6 +106,7 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Add-ScheduledTask {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -118,7 +122,7 @@ param(
     )
 
     # if scheduled task already exists, return
-    $taskExists = Get-ScheduledTask | Where-Object { $_.TaskName -eq $WETaskName }
+    $taskExists = Get-ScheduledTask -ErrorAction Stop | Where-Object { $_.TaskName -eq $WETaskName }
     if ($taskExists) {
         Write-WELog " Scheduled task $WETaskName already exists" " INFO"
         return

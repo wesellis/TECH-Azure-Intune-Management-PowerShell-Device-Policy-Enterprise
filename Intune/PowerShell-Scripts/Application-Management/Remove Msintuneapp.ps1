@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Remove Msintuneapp
 
@@ -98,7 +98,7 @@ Begin {
     try {
         Write-Verbose -Message " Attempting to locate PSIntuneAuth module"
         $WEPSIntuneAuthModule = Get-InstalledModule -Name PSIntuneAuth -ErrorAction Stop
-        if ($WEPSIntuneAuthModule -ne $null) {
+        if ($null -ne $WEPSIntuneAuthModule) {
             Write-Verbose -Message " Authentication module detected, checking for latest version"
            ;  $WELatestModuleVersion = (Find-Module -Name PSIntuneAuth -ErrorAction Stop -Verbose:$false).Version
             if ($WELatestModuleVersion -gt $WEPSIntuneAuthModule.Version) {
@@ -150,7 +150,7 @@ Process {
         Write-Warning -Message " An error occurred while calling Graph API to query for resource. Error message: $($_.Exception.Message)" ; break
     }
 
-    if ($WEMobileApp -ne $null) {
+    if ($null -ne $WEMobileApp) {
         $WEMobileAppsCount = ($WEMobileApp | Measure-Object).Count
         if ($WEMobileAppsCount -eq 1) {
             Write-Verbose -Message " Successfully located mobile app resource"

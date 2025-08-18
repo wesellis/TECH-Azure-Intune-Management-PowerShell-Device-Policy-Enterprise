@@ -1,8 +1,8 @@
-# Connect to Azure account
+﻿# Connect to Azure account
 Connect-AzAccount
 
 # Get list of all NSGs in subscription
-$nsgList = Get-AzNetworkSecurityGroup
+$nsgList = Get-AzNetworkSecurityGroup -ErrorAction Stop
 
 # Create an array to store NSG details
 $nsgDetails = @()

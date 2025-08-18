@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Dell Intune App Publish
 
@@ -114,6 +114,7 @@ $error_code_mapping = @{" Success" = 0; " Invalid_App_Name" = 1; " Invalid_Param
 
 $WEGlobal:intune_config_file_download_url = " https://dellupdater.dell.com/non_du/ClientService/endpointmgmt/Intune_Config.cab"
 
+[CmdletBinding()]
 function secure_dir_file_creation {
     # The below statements are to define global variables
     $timestamp = Get-Date -Format " yyyy-MM-dd_HH_mm_ss"
@@ -151,9 +152,11 @@ function secure_dir_file_creation {
 }
 
 
-function WE-Set-CustomAcl {
+[CmdletBinding()]
+function WE-Set-CustomAcl -ErrorAction Stop {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -173,7 +176,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -186,12 +189,12 @@ param(
         $WEGlobal:logMessages += " `n$(Get-Date -Format " yyyy-MM-dd HH:mm:ss" ) - The specified path does not exist: $WEPath"
     }
     # Determine if the path is a directory or a file
-    $isDirectory = (Get-Item $WEPath).PSIsContainer
+    $isDirectory = (Get-Item -ErrorAction Stop $WEPath).PSIsContainer
     # Get the parent directory and item name
-    $parentDir = (Get-Item $WEPath).PSParentPath -replace 'Microsoft.PowerShell.Core\\FileSystem::', ''
-    $itemName = (Get-Item $WEPath).Name
+    $parentDir = (Get-Item -ErrorAction Stop $WEPath).PSParentPath -replace 'Microsoft.PowerShell.Core\\FileSystem::', ''
+    $itemName = (Get-Item -ErrorAction Stop $WEPath).Name
     # Handle symlinks and existing items
-    if ((Get-Item $WEPath).Attributes -match " ReparsePoint" ) {
+    if ((Get-Item -ErrorAction Stop $WEPath).Attributes -match " ReparsePoint" ) {
         $WEGlobal:logMessages += " `n$(Get-Date -Format " yyyy-MM-dd HH:mm:ss" ) - Removing Symlink: $WEPath"
         Remove-Item -LiteralPath $WEPath -Force -Recurse -Confirm:$false
         $newPath = Join-Path -Path $parentDir -ChildPath $itemName
@@ -214,28 +217,28 @@ param(
     $WEACL.SetAccessRuleProtection($true, $false) # Enable protection but do not preserve inherited rules
     $WEACL.Access | ForEach-Object { $WEACL.RemoveAccessRule($_) } > $null  
     # Add the specified access rules
-    $systemRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $systemRule = New-Object -ErrorAction Stop System.Security.AccessControl.FileSystemAccessRule(
         " NT AUTHORITY\SYSTEM" ,
         " FullControl" ,
         " ContainerInherit, ObjectInherit" ,
         " None" ,
         " Allow"
     )
-    $adminRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $adminRule = New-Object -ErrorAction Stop System.Security.AccessControl.FileSystemAccessRule(
         " BUILTIN\Administrators" ,
         " FullControl" ,
         " ContainerInherit, ObjectInherit" ,
         " None" ,
         " Allow"
     )
-    $WEUserRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $WEUserRule = New-Object -ErrorAction Stop System.Security.AccessControl.FileSystemAccessRule(
         " BUILTIN\Users" ,
         " ReadAndExecute" ,
         " ContainerInherit, ObjectInherit" ,
         " None" ,
         " Allow"
     )
-    $WEUserRule1 = New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $WEUserRule1 = New-Object -ErrorAction Stop System.Security.AccessControl.FileSystemAccessRule(
         " BUILTIN\Users" ,
         " Write" ,
         " ContainerInherit, ObjectInherit" ,
@@ -254,12 +257,14 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Write-Log {
     
     Add-Content -Path $WEGlobal:log_file_path -Value $WEGlobal:logMessages
 }
 
 
+[CmdletBinding()]
 function verify_admin_privileges {
     if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] " Administrator" )) {
         Write-Error " You do not have Administrator rights to run this script. Please re-run this script as an Administrator." , $error_code_mapping.Admin_Privilege_Required
@@ -270,6 +275,7 @@ function verify_admin_privileges {
     }
 }
 
+[CmdletBinding()]
 function prerequisite_verification {
     # The below check is for checking if MSAL library is installed or not
     if (Get-Module -ListAvailable -Name " MSAL.PS" ) {
@@ -284,9 +290,11 @@ function prerequisite_verification {
 }
 
 
+[CmdletBinding()]
 function hash_verification {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -306,7 +314,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -357,9 +365,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function sig_verification {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -379,7 +389,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -409,9 +419,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function input_processing {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -431,7 +443,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -618,6 +630,7 @@ param(
 }
 
 
+[CmdletBinding()]
 function download_files {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -678,9 +691,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Extract_Archive {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -700,7 +715,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -741,9 +756,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Extract_CabinetFile {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -763,7 +780,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -806,9 +823,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function read_json_section {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -828,7 +847,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -857,9 +876,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function generate_access_token_using_Client_Secret {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -879,7 +900,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]; 
@@ -896,7 +917,7 @@ param(
         'ClientSecret' = $WEClientSecret | ConvertTo-SecureString -AsPlainText -Force
     }
     try{
-        $token = Get-MsalToken @Global:connectionDetails
+        $token = Get-MsalToken -ErrorAction Stop @Global:connectionDetails
     }
     catch{
         $WEGlobal:logMessages += " `n$(Get-Date -Format " yyyy-MM-dd HH:mm:ss" ) - Failed to generate the Access token"
@@ -918,9 +939,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function generate_access_token_using_Client_Cert_Thumbprint {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -940,7 +963,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -951,7 +974,7 @@ param(
         [Parameter(Mandatory = $true)] [string] $WECertThumbprint
     )
 
-    $clientCertificate = Get-Item " Cert:\CurrentUser\My\$WECertThumbprint" -ErrorAction SilentlyContinue
+    $clientCertificate = Get-Item -ErrorAction Stop " Cert:\CurrentUser\My\$WECertThumbprint" -ErrorAction SilentlyContinue
     if ($clientCertificate) {
         $WEGlobal:logMessages += " `n$(Get-Date -Format " yyyy-MM-dd HH:mm:ss" ) - Certificate found with thumbprint under current user cert store "
 
@@ -979,10 +1002,12 @@ param(
 }
 
 
+[CmdletBinding()]
 function win32_LobApp_creation {
     
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1002,7 +1027,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1034,10 +1059,12 @@ param(
 }
 
 
+[CmdletBinding()]
 function win32_LobApp_file_version {
 
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1057,7 +1084,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1090,9 +1117,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function win32LobApp_placeholder {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1112,7 +1141,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1149,9 +1178,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function  check_win32LobApp_placeholder_status {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1171,7 +1202,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1216,9 +1247,11 @@ param(
 
 
 
+[CmdletBinding()]
 function calculate_create_upload_chunks {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1238,7 +1271,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1331,9 +1364,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function commit_upload_status {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1353,7 +1388,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1422,9 +1457,11 @@ param(
 }
 
 
+[CmdletBinding()]
 function update_file_version {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1444,7 +1481,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1504,10 +1541,12 @@ param(
     }
 }
 
+[CmdletBinding()]
 function WE-Intune_App_Publish {
 
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1527,7 +1566,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1592,9 +1631,11 @@ param(
     return $win32LobAppId
 }
 
+[CmdletBinding()]
 function check_win32_App_Existenece_in_Intune {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -1614,7 +1655,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1694,9 +1735,11 @@ param(
     
 }
 
+[CmdletBinding()]
 function WE-Win32_App_Dependency_Update {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -1716,7 +1759,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1756,6 +1799,7 @@ param(
 
 }
 
+[CmdletBinding()]
 function WE-Show-Help {
     @"
     Usage:
@@ -1782,13 +1826,14 @@ function WE-Show-Help {
         -proxy                     : Proxy URL that needs to be passed to the script for downloading the files
         -logpath                   : FolderPath To store log Files.
 
-" @ | Write-Host
-}
+" @ | Write-Information }
 
 
+[CmdletBinding()]
 function WE-Draw-AsciiTable {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -1808,7 +1853,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -1824,7 +1869,8 @@ param(
         " AppName" = [Math]::Max(15, ($WEData | ForEach-Object { $_.AppName.Length } | Measure-Object -Maximum).Maximum)
     }
  
-    function WE-Build-Line {
+    [CmdletBinding()]
+function WE-Build-Line {
         $line = " +"
         foreach ($col in $WEColumns) {
             $line = $line + (" -" * ($colWidths[$col] + 2)) + " +"
@@ -1832,11 +1878,13 @@ param(
         return $line
     }
  
-    function WE-Print-Line {
-        Write-Host (Build-Line) -ForegroundColor Green
+    [CmdletBinding()]
+function WE-Print-Line {
+        Write-Information (Build-Line)
     }
  
-    function WE-Print-Header {
+    [CmdletBinding()]
+function WE-Print-Header {
         $line = ""
         foreach ($col in $WEColumns) {
             $line = $line + " | " + $col.PadRight($colWidths[$col]) + " "
@@ -1846,15 +1894,15 @@ param(
         $parts = $line -split '(\|)'
         foreach ($part in $parts) {
             if ($part -eq " |" ) {
-                Write-Host -NoNewline $part -ForegroundColor Green
+                Write-Information -NoNewline $part
             } else {
-                Write-Host -NoNewline $part -ForegroundColor Yellow
+                Write-Information -NoNewline $part
             }
         }
-        Write-Host
-    }
+        Write-Information }
  
-    function WE-Print-Rows {
+    [CmdletBinding()]
+function WE-Print-Rows {
         foreach ($row in $WEData) {
             $line = ""
             $line = $line + " | " + $row.DisplayName.PadRight($colWidths[" Supported Application Name" ]) + " "
@@ -1864,13 +1912,12 @@ param(
             $parts = $line -split '(\|)'
             foreach ($part in $parts) {
                 if ($part -eq " |" ) {
-                    Write-Host -NoNewline $part -ForegroundColor Green
+                    Write-Information -NoNewline $part
                 } else {
-                    Write-Host -NoNewline $part -ForegroundColor White
+                    Write-Information -NoNewline $part
                 }
             }
-            Write-Host
-            Print-Line
+            Write-Information Print-Line
         }
     }
  
@@ -1879,11 +1926,11 @@ param(
     Print-Line
     Print-Rows
 }
+[CmdletBinding()]
 function WE-Show-SupportedApps {
     @"
 Supported applications and its AppName that needs to be passed to script are as below:  
-" @ | Write-Host
-    # The below code is to download the config json cabinet file
+" @ | Write-Information # The below code is to download the config json cabinet file
     if ($proxy) {
         $download_files_response = download_files -downloadurl $WEGlobal:intune_config_file_download_url -downloadPath $WEGlobal:downloads_dir -proxy $proxy
     }
@@ -1930,9 +1977,11 @@ Supported applications and its AppName that needs to be passed to script are as 
 }
 
 
+[CmdletBinding()]
 function WE-File_download_Extract {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -1952,7 +2001,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -2014,6 +2063,7 @@ param(
 
 
 
+[CmdletBinding()]
 function main {
 
     secure_dir_file_creation
@@ -2200,7 +2250,7 @@ function main {
 
         Write-WELog " Invalid parameters passed. Please pass the correct parameters" " INFO"
         Write-WELog " For more details on script usage, Please run the script with -help parameter as below" " INFO"
-        Write-Host 'powershell.exe -file Dell_Intune_App_Publish_V1.0.ps1 -help'
+        Write-Information \'powershell.exe -file Dell_Intune_App_Publish_V1.0.ps1 -help\'
         $WEGlobal:logMessages += " `n$(Get-Date -Format " yyyy-MM-dd HH:mm:ss" ) - Invalid parameters passed. Please pass the correct parameters"
         $WEGlobal:logMessages += " `n$(Get-Date -Format " yyyy-MM-dd HH:mm:ss" ) - For more details on script usage, Please run the script with -help parameter as below"
         $WEGlobal:logMessages += " $(Get-Date -Format " yyyy-MM-dd HH:mm:ss" ) - powershell.exe -file Dell_Intune_App_Publish_V1.0.ps1 -help"

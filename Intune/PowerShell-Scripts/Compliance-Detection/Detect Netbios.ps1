@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Detect Netbios
 
@@ -48,7 +48,7 @@ $reg_key = " NetbiosOptions" # Enter the Registry key dword name.
 $reg_value = 2 # Enter the desired value to REMEDIATE the vulnerability.
 
 
-$child_items = Get-ChildItem $reg_path
+$child_items = Get-ChildItem -ErrorAction Stop $reg_path
 
 
 $results = @()
@@ -58,17 +58,17 @@ foreach ($child_item in $child_items) {
     $interface_name = $child_item.PSChildName
     $regentry = Get-ItemProperty -Path $child_item.PSPath -Name $reg_key
 
-    if ($regentry -eq $null -or $regentry.$reg_key -ne $reg_value) {
+    if ($null -eq $regentry -or $regentry.$reg_key -ne $reg_value) {
         # Outcome if disabled or registry key does not exist
         $outcome = " $interface_name - Not disabled or Registry Key does not exist."
         $results = $results + $outcome
 
-        Write-Host $outcome
+        Write-Information $outcome
     } else {
         # Outcome if enabled
         $outcome = " $interface_name - Netbios is Disabled"
        ;  $results = $results + $outcome
-        Write-Host $outcome
+        Write-Information $outcome
     }
 }
 

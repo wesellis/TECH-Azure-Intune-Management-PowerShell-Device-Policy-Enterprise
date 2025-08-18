@@ -1,4 +1,4 @@
-#### Disable-FastStartup.ps1 ####
+﻿#### Disable-FastStartup.ps1 ####
 
 <#
 .SYNOPSIS
@@ -27,6 +27,7 @@ Runs the script to disable Fast Startup.
 $LogFilePath = Join-Path -Path $env:TEMP -ChildPath "ScriptLog_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 
 # Function to write to the log file
+[CmdletBinding()]
 function Write-Log {
     param (
         [string]$Message,
@@ -37,9 +38,9 @@ function Write-Log {
     
     # Write to the console
     switch ($Type) {
-        "ERROR" { Write-Host $LogMessage -ForegroundColor Red }
-        "WARNING" { Write-Host $LogMessage -ForegroundColor Yellow }
-        default { Write-Host $LogMessage }
+        "ERROR" { Write-Information $LogMessage -ForegroundColor Red }
+        "WARNING" { Write-Information $LogMessage -ForegroundColor Yellow }
+        default { Write-Information $LogMessage }
     }
     
     # Write to log file

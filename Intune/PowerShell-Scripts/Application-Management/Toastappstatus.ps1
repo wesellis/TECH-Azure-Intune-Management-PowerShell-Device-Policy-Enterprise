@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Toastappstatus
 
@@ -61,6 +61,7 @@ Copyright 2025 - Rubix, LLC. All rights reserved.
 
 
 
+[CmdletBinding()]
 function log {
     param(
         [string]$message
@@ -80,7 +81,7 @@ $ErrorActionPreference = " Stop"
         [string]$clientSecret = " <client_secret>" ,
         [string]$tenantName = " <tenant_name>"
     )
-    $headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+    $headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add(" Content-Type" , " application/x-www-form-urlencoded" )
     $body = " grant_type=client_credentials&scope=https://graph.microsoft.com/.default"
     $body = $body + -join (" &client_id=" , $clientId, " &client_secret=" , $clientSecret)
@@ -90,7 +91,7 @@ $ErrorActionPreference = " Stop"
     $token = -join (" Bearer " , $response.access_token)
 
     # Reinstantiate headers
-    $headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+    $headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add(" Authorization" , $token)
     $headers.Add(" Content-Type" , " application/json" )
     $headers = @{'Authorization'=" $($token)" }

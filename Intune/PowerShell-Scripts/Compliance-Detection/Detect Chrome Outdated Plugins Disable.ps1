@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Detect Chrome Outdated Plugins Disable
 
@@ -50,7 +50,7 @@ try {
         Write-WELog " Setting is disabled! Exiting." " INFO"
         exit 0
     }
-    ElseIf ($regentry.$reg_key -eq $null){        
+    ElseIf ($regentry.$null -eq $reg_key){        
         #Exit 1 for Intune if error
         Write-WELog " Registry Key does not exist! Exiting." " INFO"
         exit 0}

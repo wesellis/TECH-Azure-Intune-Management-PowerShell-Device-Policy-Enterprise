@@ -1,4 +1,4 @@
-###################
+﻿###################
 ## Embed the XML ##
 ###################
 # Replace this XML with your exported task XML.
@@ -34,6 +34,7 @@ $TaskName = "Your Task Name"
 
 $LogFilePath = Join-Path -Path $env:TEMP -ChildPath "ScriptLog_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 
+[CmdletBinding()]
 function Write-Log {
     param (
         [string]$Message,
@@ -43,9 +44,9 @@ function Write-Log {
     $LogMessage = "[$Timestamp] [$Type] $Message"
     
     switch ($Type) {
-        "ERROR" { Write-Host $LogMessage -ForegroundColor Red }
-        "WARNING" { Write-Host $LogMessage -ForegroundColor Yellow }
-        default { Write-Host $LogMessage }
+        "ERROR" { Write-Information $LogMessage -ForegroundColor Red }
+        "WARNING" { Write-Information $LogMessage -ForegroundColor Yellow }
+        default { Write-Information $LogMessage }
     }
     
     Add-Content -Path $LogFilePath -Value $LogMessage

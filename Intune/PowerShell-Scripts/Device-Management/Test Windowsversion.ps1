@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Test Windowsversion
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 Function Test-WindowsVersion {
 
 
@@ -44,6 +45,7 @@ try {
     # Main script execution
 ) { " Continue" } else { " SilentlyContinue" }
 
+[CmdletBinding()]
 Function Test-WindowsVersion {
     <#
         .SYNOPSIS

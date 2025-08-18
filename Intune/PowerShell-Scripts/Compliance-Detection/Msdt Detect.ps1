@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Msdt Detect
 
@@ -46,7 +46,7 @@ try {
         Write-WELog " Setting is disabled! Exiting." " INFO"
         exit 1
     }
-    ElseIf ($regentry -eq $null) {        
+    ElseIf ($null -eq $regentry) {        
         #Exit 1 for Intune if error
         Write-WELog " Registry Key does not exist! Exiting." " INFO"
         exit 0

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Chocoinstall
 
@@ -71,7 +71,7 @@ if(!(Test-Path $choco))
     Write-WELog " Chocolatey was not found; installing now..." " INFO"
     try 
     {
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        Invoke-Expression ((New-Object -ErrorAction Stop System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
         Write-WELog " Chocolatey was successfully installed." " INFO"    
     }
     catch 
@@ -89,7 +89,7 @@ else
 Write-WELog " Checking if $($app) is installed on $($env:COMPUTERNAME)..." " INFO" ; 
 $installed = choco list | Select-String $app
 
-if($installed -eq $null)
+if($null -eq $installed)
 {
     Write-WELog " $($app) was not found; installing now..." " INFO"
     try 

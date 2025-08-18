@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Mapdrives
 
@@ -49,7 +49,7 @@ $clientId = " <CLIENT ID>"
 $clientSecret = " <CLIENT SECRET>"
 $domain = " <DOMAIN NAME>"
 
-$headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+$headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
 $headers.Add(" Content-Type" , " application/x-www-form-urlencoded" )
 
 $body = " grant_type=client_credentials&scope=https://graph.microsoft.com/.default"
@@ -59,12 +59,12 @@ $response = Invoke-RestMethod " https://login.microsoftonline.com/$($domain)/oau
 $token = -join(" Bearer " , $response.access_token)
 
 
-$headers = New-Object " System.Collections.Generic.Dictionary[[String],[String]]"
+$headers = New-Object -ErrorAction Stop " System.Collections.Generic.Dictionary[[String],[String]]"
 $headers.Add(" Authorization" , $token)
 
 
 $user = (Get-CimInstance -Class Win32_ComputerSystem | Select-Object Username).Username
-$sid = (New-Object System.Security.Principal.NTAccount($user)).Translate([System.Security.Principal.SecurityIdentifier]).value
+$sid = (New-Object -ErrorAction Stop System.Security.Principal.NTAccount($user)).Translate([System.Security.Principal.SecurityIdentifier]).value
 
 
 $upn = Get-ItemPropertyValue -Path " HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache\$($sid)\IdentityCache\$($sid)" -Name " UserName"
@@ -91,7 +91,7 @@ $drives2string = $drives | Out-String
 
 
 New-Item -ItemType File -Path " C:\Users\Public\Desktop" -Name " Map Drives.bat" -Force
-Add-Content " C:\Users\Public\Desktop\Map Drives.bat" $drives2string | Set-Content " C:\Users\Public\Desktop\Map Drives.bat" -Force
+Add-Content " C:\Users\Public\Desktop\Map Drives.bat" $drives2string | Set-Content -ErrorAction Stop " C:\Users\Public\Desktop\Map Drives.bat" -Force
 
 
 # Wesley Ellis Enterprise PowerShell Toolkit

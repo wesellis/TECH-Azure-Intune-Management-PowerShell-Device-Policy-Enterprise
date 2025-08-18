@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Msintuneprofiletypescopetag
 
@@ -246,7 +246,7 @@ Process {
         # Ensure a Scope Tag exists by given name from parameter input
         $WEScopeTagsUri = " deviceManagement/roleScopeTags?`$filter=displayName eq '$($WEScopeTagName)'"
         $WEScopeTag = Invoke-MSGraphOperation -Get -APIVersion " Beta" -Resource $WEScopeTagsUri
-        if ($WEScopeTag -ne $null) {
+        if ($null -ne $WEScopeTag) {
             Write-Verbose -Message " Found Scope Tag with display name '$($WEScopeTag.displayName)' and id: $($WEScopeTag.id)"
 
             # Construct list of profiles where the specified Scope Tag should be added
@@ -434,7 +434,7 @@ Process {
                     }
 
                     # Process current profile item type if matching resource uri was set in any of the previous switch statements
-                    if ($WEResourceUri -ne $null) {
+                    if ($null -ne $WEResourceUri) {
                         try {
                             # Retrieve profiles for current profile type
                             switch ($WEProfileTypeItem) {

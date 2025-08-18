@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Redirect Folders Favorites
 
@@ -60,7 +60,8 @@ $stampDate = Get-Date;
 $WELogFile = " $env:LocalAppData\IntuneScriptLogs\Redirect-Folders-" + $stampDate.ToFileTimeUtc() + " .log"
 Start-Transcript -Path $WELogFile
 
-Function Set-KnownFolderPath {
+[CmdletBinding()]
+Function Set-KnownFolderPath -ErrorAction Stop {
     <#
         .SYNOPSIS
             Sets a known folder's path using SHSetKnownFolderPath.
@@ -117,13 +118,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
             Write-Verbose " Redirecting $WEKnownFolders[$WEKnownFolder]"
             $result = $WEType::SHSetKnownFolderPath([ref]$guid, 0, 0, $WEPath)
             If ($result -ne 0) {
-                $errormsg = " Error redirecting $($WEKnownFolder). Return code $($result) = $((New-Object System.ComponentModel.Win32Exception($result)).message)"
+                $errormsg = " Error redirecting $($WEKnownFolder). Return code $($result) = $((New-Object -ErrorAction Stop System.ComponentModel.Win32Exception($result)).message)"
                 Throw $errormsg
             }
         }
     }
     Else {
-        Throw New-Object System.IO.DirectoryNotFoundException " Could not find part of the path $WEPath."
+        Throw New-Object -ErrorAction Stop System.IO.DirectoryNotFoundException " Could not find part of the path $WEPath."
     }
 
     # Fix up permissions, if we're still here
@@ -131,7 +132,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
     Write-Output $WEPath
 }
 
-Function Get-KnownFolderPath {
+[CmdletBinding()]
+Function Get-KnownFolderPath -ErrorAction Stop {
     <#
         .SYNOPSIS
             Gets a known folder's path using GetFolderPath.
@@ -148,6 +150,7 @@ Function Get-KnownFolderPath {
     [Environment]::GetFolderPath($WEKnownFolder)
 }
 
+[CmdletBinding()]
 Function Move-File {
     <#
         .SYNOPSIS
@@ -171,6 +174,7 @@ Function Move-File {
     Robocopy.exe " $WESource" " $WEDestination" /E /MOV /XJ /XF *.ini /R:1 /W:1 /NP /LOG+:$WELog
 }
 
+[CmdletBinding()]
 Function Redirect-Folder {
     <#
         .SYNOPSIS

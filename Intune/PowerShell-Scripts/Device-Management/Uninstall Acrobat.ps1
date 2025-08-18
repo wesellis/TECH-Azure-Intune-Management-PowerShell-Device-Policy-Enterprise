@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Uninstall Acrobat
 
@@ -40,9 +40,10 @@ try {
     # Main script execution
 ) { " Continue" } else { " SilentlyContinue" }
 
-function WE-Get-AdobeAcrobat {
-   ;  $adobeAcrobat32 = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like " *Adobe Acrobat*" }
-   ;  $adobeAcrobat64 = Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like " *Adobe Acrobat*" }
+[CmdletBinding()]
+function WE-Get-AdobeAcrobat -ErrorAction Stop {
+   ;  $adobeAcrobat32 = Get-ItemProperty -ErrorAction Stop HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like " *Adobe Acrobat*" }
+   ;  $adobeAcrobat64 = Get-ItemProperty -ErrorAction Stop HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -like " *Adobe Acrobat*" }
 
     # if both are null, return null; else return the install directory
     if ($null -eq $adobeAcrobat32 -and $null -eq $adobeAcrobat64) {
@@ -54,7 +55,8 @@ function WE-Get-AdobeAcrobat {
 }
 
 
-function WE-Remove-AdobeAcrobat {
+[CmdletBinding()]
+function WE-Remove-AdobeAcrobat -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -77,7 +79,7 @@ param(
 
     end {
         # check if the uninstall was successful
-       ;  $adobeAcrobat = Get-AdobeAcrobat
+       ;  $adobeAcrobat = Get-AdobeAcrobat -ErrorAction Stop
         if ($null -eq $adobeAcrobat) {
             Write-WELog " Adobe Acrobat has been uninstalled." " INFO" -ForegroundColor Green
         }
@@ -89,7 +91,7 @@ param(
 
 }
 
-Get-AdobeAcrobat | Select-Object -ExpandProperty UninstallString | Remove-AdobeAcrobat
+Get-AdobeAcrobat -ErrorAction Stop | Select-Object -ExpandProperty UninstallString | Remove-AdobeAcrobat -ErrorAction Stop
 
 
 

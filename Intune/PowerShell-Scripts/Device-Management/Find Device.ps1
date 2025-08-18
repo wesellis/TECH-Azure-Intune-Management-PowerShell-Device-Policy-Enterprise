@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Find Device
 
@@ -57,7 +57,7 @@ Write-Verbose -Message " Device name to locate is: $WEDeviceName"
 Write-Verbose -Message " Looking for the device ID..."
 
 try {
-    $WEGetDevice = Get-IntuneManagedDevice | Get-MSGraphAllPages | Where-Object { $_.deviceName -like " $WEDeviceName" }
+    $WEGetDevice = Get-IntuneManagedDevice -ErrorAction Stop | Get-MSGraphAllPages -ErrorAction Stop | Where-Object { $_.deviceName -like " $WEDeviceName" }
 }
 catch {
     Throw $_

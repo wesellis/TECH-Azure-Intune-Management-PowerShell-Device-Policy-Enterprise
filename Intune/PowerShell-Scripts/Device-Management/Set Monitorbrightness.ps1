@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Monitorbrightness
 
@@ -61,7 +61,7 @@ try {
         Class       = " WmiMonitorBrightnessMethods"
         ErrorAction = " SilentlyContinue"
     }
-   ;  $WEMonitor = Get-CimInstance @params
+   ;  $WEMonitor = Get-CimInstance -ErrorAction Stop @params
     $WEMonitor.WmiSetBrightness(5, $WEBrightness)
     exit 0
 }

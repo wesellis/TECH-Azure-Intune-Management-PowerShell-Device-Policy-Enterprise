@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Retreive Cpuinfo
 
@@ -79,7 +79,7 @@ limitations under the License.
 
 
 $WEProcessor = Get-CimInstance -Namespace root\dcim\sysman -ClassName DCIM_Processor
-if($WEProcessor -ne $null)
+if($null -ne $WEProcessor)
 {
     $WEProcessorName = $WEProcessor | Select -ExpandProperty ElementName
     $WEEnabledState = Switch ($WEProcessor | Select -ExpandProperty EnabledState)
@@ -190,7 +190,7 @@ if($WEProcessor -ne $null)
    ;  $hash = @{ProcessorName=$WEProcessorName;EnabledDefault=$WEEnabledDefault;EnabledState=$WEEnabledState;CPUStatus=$WECPUStatus;CurrentClockSpeed=$WECurrentClockSpeed;ExternalBusClockSpeed=$WEExternalBusClockSpeed;HealthState=$WEHealthState;MaxClockSpeed=$WEMaxClockSpeed;NumberOfEnabledCores=$WENumberOfEnabledCores;OperationalStatus=$WEOperationalStatus;PrimaryStatus=$WEPrimaryStatus;RequestedState=$WERequestedState;Stepping=$WEStepping;SystemName=$WESystemName;TransitioningToState=$WETransitioningToState;UniqueID=$WEUniqueID;Family=$WEFamily;UpgradeMethod=$WEUpgradeMethod} | ConvertTo-Json -Compress
 
     return $hash
-    Write-Host $hash
+    Write-Information $hash
 }
  
 else

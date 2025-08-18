@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Compliance Sensor Dcm Warranty Expire
 
@@ -85,7 +85,7 @@ $WEWarrantyDate = $WEWarrantyEndSelect -split " "
 [datetime]$WEFinalDate = $WEWarrantyDate.GetValue(0)
 
 
-$WEToday = Get-Date
+$WEToday = Get-Date -ErrorAction Stop
 $WEDuration = New-TimeSpan -Start $WEToday -End $WEFinalDate; 
 $last30Days = New-TimeSpan -Start $WEToday -End $WEFinalDate.AddDays(-30)
 

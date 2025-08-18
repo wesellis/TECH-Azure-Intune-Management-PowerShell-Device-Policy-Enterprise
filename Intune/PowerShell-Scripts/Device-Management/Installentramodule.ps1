@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Installentramodule
 
@@ -44,7 +44,7 @@ $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Cont
 Install-PackageProvider -Name NuGet -Force
 Install-Module -Name PowerShellGet -Force -AllowClobber
 
-Remove-Module PowerShellGet,PackageManagement -Force
+Remove-Module -ErrorAction Stop PowerShellGet,PackageManagement -Force
 
 Import-Module PowerShellGet -MinimumVersion 2.0 -Force
 Import-PackageProvider PowerShellGet -MinimumVersion 2.0 -Force

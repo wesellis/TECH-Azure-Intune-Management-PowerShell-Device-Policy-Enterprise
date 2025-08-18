@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Loganalytics Example
 
@@ -42,7 +42,7 @@ $workspaceID = " <WORKSPACE ID>"
 $primaryKey = " <PRIMARY KEY>"
 
 
-$logObject = New-Object System.Object
+$logObject = New-Object -ErrorAction Stop System.Object
 ; 
 $logInfo = @()
 
@@ -86,14 +86,14 @@ $json = $logObject | ConvertTo-Json
 
 $logType = " deviceInfoLogs"
 $timeStampField = ""
-Function Build-Signature ($workspaceID, $primaryKey, $date, $contentLength, $method, $contentType, $resource)
+function New-Signature ($workspaceID, $primaryKey, $date, $contentLength, $method, $contentType, $resource)
 {
     $xHeaders = " x-ms-date:" + $date
     $stringToHash = $method + " `n" + $contentLength + " `n" + $contentType + " `n" + $xHeaders + " `n" + $resource
     $bytesToHash = [Text.Encoding]::UTF8.GetBytes($stringToHash)
     $keyBytes = [Convert]::FromBase64String($primaryKey)
 
-    $sha256 = New-Object System.Security.Cryptography.HMACSHA256
+    $sha256 = New-Object -ErrorAction Stop System.Security.Cryptography.HMACSHA256
     $sha256.Key = $keyBytes
     $calculatedHash = $sha256.ComputeHash($bytesToHash)
     $encodedHash = [Convert]::ToBase64String($calculatedHash)

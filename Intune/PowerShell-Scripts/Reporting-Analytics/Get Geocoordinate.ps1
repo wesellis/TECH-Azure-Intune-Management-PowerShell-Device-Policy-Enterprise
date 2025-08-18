@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Geocoordinate
 
@@ -34,14 +34,16 @@
     Requires appropriate permissions and modules
 
 
-function WE-Get-GeoCoordinate {
+[CmdletBinding()]
+function WE-Get-GeoCoordinate -ErrorAction Stop {
 
 
 
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-function WE-Get-GeoCoordinate {
+[CmdletBinding()]
+function WE-Get-GeoCoordinate -ErrorAction Stop {
     # Source: https://github.com/MSEndpointMgr/Intune/tree/master/Autopilot
 
     # Construct return value object

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Monitor Intuneappleconnectors
 
@@ -88,7 +88,8 @@ $WETenantName = Get-AutomationVariable -Name 'TenantName'
 $WEAppID = Get-AutomationVariable -Name " msgraph-clientcred-appid"
 $WEAppSecret = Get-AutomationVariable -Name " msgraph-clientcred-appsecret"
 $WEUri = Get-AutomationVariable -Name " TeamsChannelUri"
-$WENow = Get-Date
+$WENow = Get-Date -ErrorAction Stop
+[CmdletBinding()]
 Function Send-TeamsAlerts {
     [cmdletbinding()]
     [CmdletBinding()]
@@ -164,7 +165,7 @@ Update-MSGraphEnvironment -SchemaVersion " beta" -AppId $WEAppId -AuthUrl " http
 Connect-MSGraph -ClientSecret $WEAppSecret -Quiet
 
 
-$WEApplePushCert = Get-IntuneApplePushNotificationCertificate
+$WEApplePushCert = Get-IntuneApplePushNotificationCertificate -ErrorAction Stop
 $WEApplePushCertExpDate = $WEApplePushCert.expirationDateTime
 $WEApplePushIdentifier = $WEApplePushCert.appleIdentifier
 $WEAPNExpDate = $WEApplePushCertExpDate.ToShortDateString()
@@ -186,7 +187,7 @@ else {
 }
     
 
-$WEAppleVPPToken = Get-DeviceAppManagement_VppTokens
+$WEAppleVPPToken = Get-DeviceAppManagement_VppTokens -ErrorAction Stop
     
 if($WEAppleVPPToken.Count -ne '0'){
     foreach ($token in $WEAppleVPPToken){

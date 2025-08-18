@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Msgraphauthenticationtoken
 
@@ -34,14 +34,16 @@
     Requires appropriate permissions and modules
 
 
-function WE-Get-MSGraphAuthenticationToken {
+[CmdletBinding()]
+function WE-Get-MSGraphAuthenticationToken -ErrorAction Stop {
 }
 
 
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-function WE-Get-MSGraphAuthenticationToken {
+[CmdletBinding()]
+function WE-Get-MSGraphAuthenticationToken -ErrorAction Stop {
     <#
     .SYNOPSIS
         Get an authentication token required for interacting with Microsoft Intune using Microsoft Graph API
@@ -99,7 +101,7 @@ $ErrorActionPreference = " Stop"
         # Get installed Azure AD modules
         $WEAzureADModules = Get-InstalledModule -Name " AzureAD" -ErrorAction Stop -Verbose:$false
 
-        if ($WEAzureADModules -ne $null) {
+        if ($null -ne $WEAzureADModules) {
             # Check if multiple modules exist and determine the module path for the most current version
             if (($WEAzureADModules | Measure-Object).Count -gt 1) {
                 $WELatestAzureADModule = ($WEAzureADModules | Select-Object -Property Version | Sort-Object)[-1]

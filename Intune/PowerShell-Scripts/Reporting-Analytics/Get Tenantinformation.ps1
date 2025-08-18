@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Tenantinformation
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     param([Parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -151,6 +152,7 @@ function WE-ConvertToHexString($byteArray) {
 }
 
 
+[CmdletBinding()]
 function WE-Convert-BitStringToGuid {
     param(
         [byte[]]$bitstring,
@@ -279,14 +281,16 @@ function WE-Convert-BitStringToGuid {
 }
 
 
+[CmdletBinding()]
 function WE-Test-IsAdmin {
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    $principal = New-Object -ErrorAction Stop Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 
-function WE-Get-PrivateKeyInfo {
+[CmdletBinding()]
+function WE-Get-PrivateKeyInfo -ErrorAction Stop {
     param(
         [System.Security.Cryptography.X509Certificates.X509Certificate2]$cert,
         [string]$certFilePath  # Optional parameter for certificate file path (only used for user profile)
@@ -349,7 +353,8 @@ function WE-Get-PrivateKeyInfo {
 }
 
 
-function WE-Get-CertificateFilePath {
+[CmdletBinding()]
+function WE-Get-CertificateFilePath -ErrorAction Stop {
     param(
         [Parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -371,7 +376,7 @@ function WE-Get-CertificateFilePath {
     Write-Verbose " Certificate not found in user profile. Checking LocalMachine store."
 
     # Search for the certificate in the LocalMachine\My store by thumbprint
-    $localMachineStore = New-Object System.Security.Cryptography.X509Certificates.X509Store(" My" , [System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine)
+    $localMachineStore = New-Object -ErrorAction Stop System.Security.Cryptography.X509Certificates.X509Store(" My" , [System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine)
     $localMachineStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadOnly)
 
     # Get the certificate from LocalMachine store by thumbprint
@@ -387,7 +392,8 @@ function WE-Get-CertificateFilePath {
 }
 
 
-function WE-Get-CertificateInformation {
+[CmdletBinding()]
+function WE-Get-CertificateInformation -ErrorAction Stop {
     param(
         [Parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -419,7 +425,7 @@ function WE-Get-CertificateInformation {
     $certificateStore = [System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine
     Write-Verbose " `nChecking certificates in LocalMachine store"
 
-    $localMachineStore = New-Object System.Security.Cryptography.X509Certificates.X509Store(" My" , $certificateStore)
+    $localMachineStore = New-Object -ErrorAction Stop System.Security.Cryptography.X509Certificates.X509Store(" My" , $certificateStore)
     $localMachineStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadOnly)
 
     foreach ($cert in $localMachineStore.Certificates) {
@@ -497,7 +503,7 @@ function WE-Get-CertificateInformation {
                     try {
 
                         # Attempt to load the certificate, regardless of extension
-                        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certFile.FullName)
+                        $cert = New-Object -ErrorAction Stop System.Security.Cryptography.X509Certificates.X509Certificate2($certFile.FullName)
 
                         switch ($WECertToCheck) {
                             'Both' {
@@ -556,6 +562,7 @@ function WE-Get-CertificateInformation {
 }
 
 
+[CmdletBinding()]
 function WE-Test-CertificateIssuer {
     param(
         [System.Security.Cryptography.X509Certificates.X509Certificate2]$cert,
@@ -568,7 +575,7 @@ function WE-Test-CertificateIssuer {
     )
 
     # Create a new instance of the x509Chain class to build and validate the certificate chain
-    $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain
+    $chain = New-Object -ErrorAction Stop System.Security.Cryptography.X509Certificates.X509Chain
     $chain.ChainPolicy.RevocationMode = [System.Security.Cryptography.X509Certificates.X509RevocationMode]::NoCheck
 
     Write-Verbose " Building certificate chain for certificate: $($cert.Subject)"
@@ -628,6 +635,7 @@ function WE-Test-CertificateIssuer {
 }
 
 
+[CmdletBinding()]
 function WE-Invoke-CertificateProcessing {
     param(
         [System.Security.Cryptography.X509Certificates.X509Certificate2]$cert,
@@ -671,7 +679,7 @@ function WE-Invoke-CertificateProcessing {
     }
 
     # Initialize a chain object and build the certificate chain
-    $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain
+    $chain = New-Object -ErrorAction Stop System.Security.Cryptography.X509Certificates.X509Chain
     $chain.Build($cert) | Out-Null
 
     # Check if the certificate chain is longer than just the cert itself
@@ -713,7 +721,7 @@ function WE-Invoke-CertificateProcessing {
         }
     }
 
-        # Determine if the cert is from LocalMachine or UserProfile, and call Get-PrivateKeyInfo accordingly
+        # Determine if the cert is from LocalMachine or UserProfile, and call Get-PrivateKeyInfo -ErrorAction Stop accordingly
         $certFilePath = $null
 
         # Check if the cert is from a user profile path (not from LocalMachine store)
@@ -726,7 +734,7 @@ function WE-Invoke-CertificateProcessing {
 
     if ($hasPrivateKey){
 
-    # Call Get-PrivateKeyInfo with either the cert object (for LocalMachine store) or the file path (for user profile)
+    # Call Get-PrivateKeyInfo -ErrorAction Stop with either the cert object (for LocalMachine store) or the file path (for user profile)
    ;  $privateKeyInfo = Get-PrivateKeyInfo -cert $cert -certFilePath $certFilePath
 
     $properties[" PrivateKeyPresent" ] = $hasPrivateKey
@@ -755,7 +763,7 @@ function WE-Invoke-CertificateProcessing {
 }
 
 
-Get-CertificateInformation `
+Get-CertificateInformation -ErrorAction Stop `
     -MDMIntermediateIssuer $WEMDMIntermediateIssuer `
     -MDMRootIssuer $WEMDMRootIssuer `
     -EntraIDIntermediateIssuer $WEEntraIDIntermediateIssuer `

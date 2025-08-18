@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Remediate Acrobat 2017 Javascript
 
@@ -51,7 +51,7 @@ try {
         Write-WELog " Setting is disabled! Exiting." " INFO"
         exit 0
     }
-    ElseIf ($regentry.$reg_key -eq $null){        
+    ElseIf ($regentry.$null -eq $reg_key){        
         #Exit 0 for Intune if the registry does not exist, indicating the remediation is unnecessary. 
         Write-WELog " Registry Key does not exist! Exiting." " INFO"
         exit 0}

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Cleanup Temp Files
 
@@ -71,7 +71,8 @@ $WETempExtensions = @(
 )
 
 
-function WE-Get-ReadableFileSize {
+[CmdletBinding()]
+function WE-Get-ReadableFileSize -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param([long]$WESize)
@@ -88,7 +89,8 @@ param([long]$WESize)
 }
 
 
-function WE-Remove-TempItems {
+[CmdletBinding()]
+function WE-Remove-TempItems -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -142,7 +144,7 @@ param(
         foreach ($file in $WEFilesToDelete) {
             try {
                 if ($WEWhatIf) {
-                    Write-Output " [WHATIF] Would delete file: $($file.FullName) ($(Get-ReadableFileSize $file.Length))"
+                    Write-Output " [WHATIF] Would delete file: $($file.FullName) ($(Get-ReadableFileSize -ErrorAction Stop $file.Length))"
                     $WEItemsRemoved++
                     $WESizeFreed = $WESizeFreed + $file.Length
                 } else {
@@ -193,6 +195,7 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Clear-RecycleBin {
     [CmdletBinding()]; 
 $ErrorActionPreference = " Stop"
@@ -224,6 +227,7 @@ param([switch]$WEWhatIf)
 }
 
 
+[CmdletBinding()]
 function WE-Start-DiskCleanup {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -254,7 +258,8 @@ param([switch]$WEWhatIf)
 }
 
 
-function WE-Get-DiskSpaceInfo {
+[CmdletBinding()]
+function WE-Get-DiskSpaceInfo -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param([string]$WEDrive = " C:" )
@@ -288,11 +293,11 @@ try {
     Write-Output "  - Include Recycle Bin: $WEIncludeRecycleBin"
     
     # Get initial disk space
-    $initialDiskSpace = Get-DiskSpaceInfo
+    $initialDiskSpace = Get-DiskSpaceInfo -ErrorAction Stop
     if ($initialDiskSpace) {
         Write-Output " Initial disk space on $($initialDiskSpace.Drive):"
-        Write-Output "  - Total: $(Get-ReadableFileSize $initialDiskSpace.TotalSize)"
-        Write-Output "  - Free: $(Get-ReadableFileSize $initialDiskSpace.FreeSpace) ($($initialDiskSpace.FreeSpacePercent)%)"
+        Write-Output "  - Total: $(Get-ReadableFileSize -ErrorAction Stop $initialDiskSpace.TotalSize)"
+        Write-Output "  - Free: $(Get-ReadableFileSize -ErrorAction Stop $initialDiskSpace.FreeSpace) ($($initialDiskSpace.FreeSpacePercent)%)"
     }
     
     $totalItemsRemoved = 0
@@ -326,20 +331,20 @@ try {
     # Get final disk space
     if (-not $WEWhatIf) {
         Start-Sleep -Seconds 2  # Allow time for cleanup to complete
-       ;  $finalDiskSpace = Get-DiskSpaceInfo
+       ;  $finalDiskSpace = Get-DiskSpaceInfo -ErrorAction Stop
         if ($finalDiskSpace -and $initialDiskSpace) {
            ;  $spaceFreed = $finalDiskSpace.FreeSpace - $initialDiskSpace.FreeSpace
             Write-Output " Final disk space on $($finalDiskSpace.Drive):"
-            Write-Output "  - Total: $(Get-ReadableFileSize $finalDiskSpace.TotalSize)"
-            Write-Output "  - Free: $(Get-ReadableFileSize $finalDiskSpace.FreeSpace) ($($finalDiskSpace.FreeSpacePercent)%)"
-            Write-Output "  - Space freed: $(Get-ReadableFileSize $spaceFreed)"
+            Write-Output "  - Total: $(Get-ReadableFileSize -ErrorAction Stop $finalDiskSpace.TotalSize)"
+            Write-Output "  - Free: $(Get-ReadableFileSize -ErrorAction Stop $finalDiskSpace.FreeSpace) ($($finalDiskSpace.FreeSpacePercent)%)"
+            Write-Output "  - Space freed: $(Get-ReadableFileSize -ErrorAction Stop $spaceFreed)"
         }
     }
     
     # Summary
     Write-Output " Cleanup Summary:"
     Write-Output "  - Items processed: $totalItemsRemoved"
-    Write-Output "  - Size freed: $(Get-ReadableFileSize $totalSizeFreed)"
+    Write-Output "  - Size freed: $(Get-ReadableFileSize -ErrorAction Stop $totalSizeFreed)"
     Write-Output "  - Errors encountered: $totalErrors"
     
     if ($totalErrors -eq 0) {

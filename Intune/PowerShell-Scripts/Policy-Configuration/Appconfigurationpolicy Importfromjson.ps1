@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Appconfigurationpolicy Importfromjson
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        Write-Host
-        Write-WELog " AzureAD Powershell module not installed..." " INFO" -f Red
+    if ($null -eq $WEAadModule) {
+        Write-Information Write-WELog " AzureAD Powershell module not installed..." " INFO" -f Red
         Write-WELog " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" " INFO" -f Yellow
         Write-WELog " Script can't continue..." " INFO" -f Red
-        Write-Host
-        exit
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    Write-Host $_.Exception.Message -f Red
-    Write-Host $_.Exception.ItemName -f Red
-    Write-Host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -207,6 +203,7 @@ NAME: Test-JSON
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -226,7 +223,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -277,6 +274,7 @@ NAME: Test-AppBundleId
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -296,7 +294,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -320,14 +318,13 @@ $WEResource = " deviceAppManagement/mobileApps?`$filter=(microsoft.graph.managed
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -365,6 +362,7 @@ NAME: Test-AppPackageId
 
 
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -384,7 +382,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -408,14 +406,13 @@ $WEResource = " deviceAppManagement/mobileApps?`$filter=(isof('microsoft.graph.a
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -463,7 +460,7 @@ $WEResource = " deviceAppManagement/targetedManagedAppConfigurations"
     
     try {
 
-        if($WEJSON -eq "" -or $WEJSON -eq $null){
+        if($WEJSON -eq "" -or $null -eq $WEJSON){
 
         Write-WELog " No JSON specified, please specify valid JSON for the App Configuration Policy..." " INFO" -f Red
 
@@ -484,14 +481,13 @@ $WEResource = " deviceAppManagement/targetedManagedAppConfigurations"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -525,7 +521,7 @@ $WEResource = " deviceAppManagement/mobileAppConfigurations"
     
     try {
 
-        if($WEJSON -eq "" -or $WEJSON -eq $null){
+        if($WEJSON -eq "" -or $null -eq $WEJSON){
 
         Write-WELog " No JSON specified, please specify valid JSON for the App Configuration Policy..." " INFO" -f Red
 
@@ -546,14 +542,13 @@ $WEResource = " deviceAppManagement/mobileAppConfigurations"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    Write-Host
-    break
+    Write-Information break
 
     }
 
@@ -563,10 +558,7 @@ $WEResource = " deviceAppManagement/mobileAppConfigurations"
 
 
 
-Write-Host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -577,18 +569,14 @@ if($global:authToken){
         if($WETokenExpires -le 0){
 
         Write-WELog " Authentication Token expired" " INFO" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        Write-Host
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -597,15 +585,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -622,8 +608,7 @@ if(!(Test-Path " $WEImportPath" )){
 
 Write-WELog " Import Path for JSON file doesn't exist..." " INFO" -ForegroundColor Red
 Write-WELog " Script can't continue..." " INFO" -ForegroundColor Red
-Write-Host
-break
+Write-Information break
 
 }
 
@@ -634,8 +619,7 @@ $WEJSON_Convert = $WEJSON_Data | ConvertFrom-Json | Select-Object -Property * -E
 
 $WEDisplayName = $WEJSON_Convert.displayName
 
-Write-Host
-Write-WELog " App Configuration Policy '$WEDisplayName' Found..." " INFO" -ForegroundColor Yellow
+Write-Information Write-WELog " App Configuration Policy '$WEDisplayName' Found..." " INFO"
 
 
 
@@ -650,12 +634,9 @@ If(($WEJSON_Convert.'@odata.type' -eq " #microsoft.graph.iosMobileAppConfigurati
            
         If($targetedMobileApp){
 
-            Write-Host
-            Write-WELog " Targeted app $($WEJSON_Convert.bundleId) has already been added from the App Store" " INFO" -ForegroundColor Yellow
+            Write-Information Write-WELog " Targeted app $($WEJSON_Convert.bundleId) has already been added from the App Store" " INFO"
             Write-WELog " The App Configuration Policy will be created" " INFO" -ForegroundColor Yellow
-            Write-Host
-
-            # Update the targetedMobileApps GUID if required
+            Write-Information # Update the targetedMobileApps GUID if required
             If(!($targetedMobileApp -eq $WEJSON_Convert.targetedMobileApps)){
 
                 $WEJSON_Convert.targetedMobileApps.SetValue($targetedMobileApp,0)
@@ -664,8 +645,7 @@ If(($WEJSON_Convert.'@odata.type' -eq " #microsoft.graph.iosMobileAppConfigurati
 
             $WEJSON_Output = $WEJSON_Convert | ConvertTo-Json -Depth 5
             $WEJSON_Output
-            Write-Host
-            Write-WELog " Adding App Configuration Policy '$WEDisplayName'" " INFO" -ForegroundColor Yellow
+            Write-Information Write-WELog " Adding App Configuration Policy '$WEDisplayName'" " INFO"
             Add-ManagedDeviceAppConfigPolicy -JSON $WEJSON_Output
 
         }
@@ -673,8 +653,7 @@ If(($WEJSON_Convert.'@odata.type' -eq " #microsoft.graph.iosMobileAppConfigurati
         Else
         {
 
-            Write-Host
-            Write-WELog " Targeted app bundle id '$($WEJSON_Convert.bundleId)' has not been added from the App Store" " INFO" -ForegroundColor Red
+            Write-Information Write-WELog " Targeted app bundle id '$($WEJSON_Convert.bundleId)' has not been added from the App Store" " INFO"
             Write-WELog " The App Configuration Policy can't be created" " INFO" -ForegroundColor Red
 
         }
@@ -689,12 +668,9 @@ If(($WEJSON_Convert.'@odata.type' -eq " #microsoft.graph.iosMobileAppConfigurati
         
         If($targetedMobileApp){
 
-            Write-Host
-            Write-WELog " Targeted app $($WEJSON_Convert.packageId) has already been added from Managed Google Play" " INFO" -ForegroundColor Yellow
+            Write-Information Write-WELog " Targeted app $($WEJSON_Convert.packageId) has already been added from Managed Google Play" " INFO"
             Write-WELog " The App Configuration Policy will be created" " INFO" -ForegroundColor Yellow
-            Write-Host
-            
-            # Update the targetedMobileApps GUID if required           
+            Write-Information # Update the targetedMobileApps GUID if required           
             If(!($targetedMobileApp -eq $WEJSON_Convert.targetedMobileApps)){
                
                 $WEJSON_Convert.targetedMobileApps.SetValue($targetedMobileApp,0)
@@ -703,8 +679,7 @@ If(($WEJSON_Convert.'@odata.type' -eq " #microsoft.graph.iosMobileAppConfigurati
 
            ;  $WEJSON_Output = $WEJSON_Convert | ConvertTo-Json -Depth 5
             $WEJSON_Output
-            Write-Host   
-            Write-WELog " Adding App Configuration Policy '$WEDisplayName'" " INFO" -ForegroundColor Yellow                                                      
+            Write-Information Write-WELog " Adding App Configuration Policy '$WEDisplayName'" " INFO" -ForegroundColor Yellow                                                      
             Add-ManagedDeviceAppConfigPolicy -JSON $WEJSON_Output
 
         }
@@ -712,8 +687,7 @@ If(($WEJSON_Convert.'@odata.type' -eq " #microsoft.graph.iosMobileAppConfigurati
         Else
         {
 
-            Write-Host
-            Write-WELog " Targeted app package id '$($WEJSON_Convert.packageId)' has not been added from Managed Google Play" " INFO" -ForegroundColor Red
+            Write-Information Write-WELog " Targeted app package id '$($WEJSON_Convert.packageId)' has not been added from Managed Google Play" " INFO"
             Write-WELog " The App Configuration Policy can't be created" " INFO" -ForegroundColor Red
 
         }
@@ -728,8 +702,7 @@ Else
     Write-WELog " App Configuration JSON is for Managed Apps" " INFO" -ForegroundColor Yellow
    ;  $WEJSON_Output = $WEJSON_Convert | ConvertTo-Json -Depth 5
     $WEJSON_Output
-    Write-Host
-    Write-WELog " Adding App Configuration Policy '$WEDisplayName'" " INFO" -ForegroundColor Yellow
+    Write-Information Write-WELog " Adding App Configuration Policy '$WEDisplayName'" " INFO"
     Add-ManagedAppAppConfigPolicy -JSON $WEJSON_Output   
 
 }

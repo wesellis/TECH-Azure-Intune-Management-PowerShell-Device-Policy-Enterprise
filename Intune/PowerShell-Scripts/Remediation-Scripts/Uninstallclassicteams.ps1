@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Uninstallclassicteams
 
@@ -98,8 +98,8 @@ foreach($user in $WEAllUsers)
 ; 
 $WETeamsFolder_old = " $($WEENV:SystemDrive)\Users\*\AppData\Local\Microsoft\Teams" ; 
 $WETeamsIcon_old = " $($WEENV:SystemDrive)\Users\*\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Microsoft Teams*.lnk"
-Get-Item $WETeamsFolder_old | Remove-Item -Force -Recurse
-Get-Item $WETeamsIcon_old | Remove-Item -Force Recurse
+Get-Item -ErrorAction Stop $WETeamsFolder_old | Remove-Item -Force -Recurse
+Get-Item -ErrorAction Stop $WETeamsIcon_old | Remove-Item -Force Recurse
 
 
 

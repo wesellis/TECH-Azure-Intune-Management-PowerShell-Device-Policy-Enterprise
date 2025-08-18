@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Bitlockerkeyissuedetection
 
@@ -136,7 +136,7 @@ Write-LogEntry -Value " - Obtaining certificate for BitLocker key retrieval" -Se
 
 try {
     # Retrieve the MS-Organization-Access certificate
-   ;  $WECertificate = Get-ChildItem Cert:\LocalMachine\My | Where-Object { $_.Issuer -like " *MS-Organization-Access*" } | Select-Object -First 1
+   ;  $WECertificate = Get-ChildItem -ErrorAction Stop Cert:\LocalMachine\My | Where-Object { $_.Issuer -like " *MS-Organization-Access*" } | Select-Object -First 1
 } catch {
     Write-LogEntry -Value " [Certificate Error] - MS-Organization-Access certificate not found. $($_.Exception.Message)]" -Severity 3; exit 1
 }

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Save Vcredist
 
@@ -74,7 +74,8 @@ param(
 )
 Process {
     # Functions
-    function WE-Start-DownloadFile {
+    [CmdletBinding()]
+function WE-Start-DownloadFile {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(

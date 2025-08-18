@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Invoke Deviceaction Set
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -199,13 +195,13 @@ This function is used to get AAD Users from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any users registered with AAD
 .EXAMPLE
-Get-AADUser
+Get-AADUser -ErrorAction Stop
 Returns all users registered with Azure AD
 .EXAMPLE
 Get-AADUser -userPrincipleName user@domain.com
 Returns specific user by UserPrincipalName registered with Azure AD
 .NOTES
-NAME: Get-AADUser
+NAME: Get-AADUser -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -223,7 +219,7 @@ $WEUser_resource = " users"
 
     try {
 
-        if($userPrincipalName -eq "" -or $userPrincipalName -eq $null){
+        if($userPrincipalName -eq "" -or $null -eq $userPrincipalName){
 
         $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)"
         (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -232,7 +228,7 @@ $WEUser_resource = " users"
 
         else {
 
-            if($WEProperty -eq "" -or $WEProperty -eq $null){
+            if($WEProperty -eq "" -or $null -eq $WEProperty){
 
             $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEUser_resource)/$userPrincipalName"
             Write-Verbose $uri
@@ -256,14 +252,13 @@ $WEUser_resource = " users"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -282,7 +277,7 @@ The function connects to the Graph API Interface and gets a users devices regist
 Get-AADUserDevices -UserID $WEUserID
 Returns all user devices registered in Intune MDM
 .NOTES
-NAME: Get-AADUserDevices
+NAME: Get-AADUserDevices -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -310,14 +305,13 @@ $WEResource = " users/$WEUserID/managedDevices"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -371,13 +365,13 @@ $graphApiVersion = " Beta"
 
         if($WECount_Params -eq 0){
 
-        write-host " No parameter set, specify -RemoteLock -ResetPasscode -Wipe -Delete -Sync or -rename against the function" -f Red
+        Write-Information " No parameter set, specify -RemoteLock -ResetPasscode -Wipe -Delete -Sync or -rename against the function" -f Red
 
         }
 
         elseif($WECount_Params -gt 1){
 
-        write-host " Multiple parameters set, specify a single parameter -RemoteLock -ResetPasscode -Wipe -Delete or -Sync against the function" -f Red
+        Write-Information " Multiple parameters set, specify a single parameter -RemoteLock -ResetPasscode -Wipe -Delete or -Sync against the function" -f Red
 
         }
 
@@ -393,8 +387,7 @@ $graphApiVersion = " Beta"
 
         elseif($WEResetPasscode){
 
-            write-host
-            write-host " Are you sure you want to reset the Passcode this device? Y or N?"
+            Write-Information Write-Information " Are you sure you want to reset the Passcode this device? Y or N?"
             $WEConfirm = read-host
 
             if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
@@ -417,8 +410,7 @@ $graphApiVersion = " Beta"
 
         elseif($WEWipe){
 
-        write-host
-        write-host " Are you sure you want to wipe this device? Y or N?"
+        Write-Information Write-Information " Are you sure you want to wipe this device? Y or N?"
         $WEConfirm = read-host
 
             if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
@@ -441,8 +433,7 @@ $graphApiVersion = " Beta"
 
         elseif($WERetire){
 
-        write-host
-        write-host " Are you sure you want to retire this device? Y or N?"
+        Write-Information Write-Information " Are you sure you want to retire this device? Y or N?"
         $WEConfirm = read-host
 
             if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
@@ -465,10 +456,8 @@ $graphApiVersion = " Beta"
 
         elseif($WEDelete){
 
-        write-host
-        Write-Warning " A deletion of a device will only work if the device has already had a retire or wipe request sent to the device..."
-        Write-Host
-        write-host " Are you sure you want to delete this device? Y or N?"
+        Write-Information Write-Warning " A deletion of a device will only work if the device has already had a retire or wipe request sent to the device..."
+        Write-Information Write-Information " Are you sure you want to delete this device? Y or N?"
         $WEConfirm = read-host
 
             if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
@@ -491,8 +480,7 @@ $graphApiVersion = " Beta"
         
         elseif($WESync){
 
-        write-host
-        write-host " Are you sure you want to sync this device? Y or N?"
+        Write-Information Write-Information " Are you sure you want to sync this device? Y or N?"
         $WEConfirm = read-host
 
             if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
@@ -515,7 +503,7 @@ $graphApiVersion = " Beta"
 
         elseif($WERename){
 
-        write-host " Please type the new device name:" -ForegroundColor Yellow
+        Write-Information " Please type the new device name:"
         $WENewDeviceName = Read-Host
 
 $WEJSON = @"
@@ -526,9 +514,8 @@ $WEJSON = @"
 
 " @
 
-        write-host
-        write-host " Note: The RenameDevice remote action is only supported on supervised iOS and Windows 10 Azure AD joined devices"
-        write-host " Are you sure you want to rename this device to" $($WENewDeviceName) " (Y or N?)"
+        Write-Information Write-Information " Note: The RenameDevice remote action is only supported on supervised iOS and Windows 10 Azure AD joined devices"
+        Write-Information " Are you sure you want to rename this device to" $($WENewDeviceName) " (Y or N?)"
         $WEConfirm = read-host
 
             if($WEConfirm -eq " y" -or $WEConfirm -eq " Y" ){
@@ -555,14 +542,13 @@ $WEJSON = @"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -572,10 +558,7 @@ $WEJSON = @"
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -585,19 +568,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -606,15 +585,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -622,21 +599,17 @@ $global:authToken = Get-AuthToken -User $WEUser
 
 
 
-write-host
-write-host " User Principal Name:" -f Yellow
+Write-Information write-host " User Principal Name:" -f Yellow
 $WEUPN = Read-Host
 
-write-host
-
-$WEUser = Get-AADUser -userPrincipalName $WEUPN
+Write-Information $WEUser = Get-AADUser -userPrincipalName $WEUPN
 
 $id = $WEUser.Id
-write-host " User ID:" $id
+Write-Information " User ID:" $id
 
 
 
-Write-Host
-Write-WELog " Checking if the user" " INFO" $WEUser.displayName " has any devices assigned..." -ForegroundColor DarkCyan
+Write-Information Write-WELog " Checking if the user" " INFO" $WEUser.displayName " has any devices assigned..."
 
 $WEDevices = Get-AADUserDevices -UserID $id
 
@@ -646,11 +619,8 @@ if($WEDevices){
 
 $WEDeviceCount = @($WEDevices).count
 
-Write-Host
-Write-WELog " User has $WEDeviceCount devices added to Intune..." " INFO"
-Write-Host
-
-    if($WEDevices.id.count -gt 1){
+Write-Information Write-WELog " User has $WEDeviceCount devices added to Intune..." " INFO"
+Write-Information if($WEDevices.id.count -gt 1){
 
    ;  $WEManaged_Devices = $WEDevices.deviceName | sort -Unique
 
@@ -660,8 +630,7 @@ Write-Host
     { Write-WELog " $i. $($WEManaged_Devices[$i-1])" " INFO" 
     $menu.Add($i,($WEManaged_Devices[$i-1]))}
 
-    Write-Host
-    [int]$ans = Read-Host 'Enter Device id (Numerical value)'
+    Write-Information [int]$ans = Read-Host 'Enter Device id (Numerical value)'
     $selection = $menu.Item($ans)
 
         if($selection){
@@ -670,7 +639,7 @@ Write-Host
 
        ;  $WESelectedDeviceId = $WESelectedDevice | select -ExpandProperty id
 
-        write-host " User" $WEUser.userPrincipalName " has device" $WESelectedDevice.deviceName
+        Write-Information " User" $WEUser.userPrincipalName " has device" $WESelectedDevice.deviceName
         #Invoke-DeviceAction -DeviceID $WESelectedDeviceId -RemoteLock -Verbose
         #Invoke-DeviceAction -DeviceID $WESelectedDeviceId -Retire -Verbose
         #Invoke-DeviceAction -DeviceID $WESelectedDeviceId -Wipe -Verbose
@@ -684,7 +653,7 @@ Write-Host
 
     elseif($WEDevices.id.count -eq 1){
 
-        write-host " User" $WEUser.userPrincipalName " has one device" $WEDevices.deviceName
+        Write-Information " User" $WEUser.userPrincipalName " has one device" $WEDevices.deviceName
         #Invoke-DeviceAction -DeviceID $WEDevices.id -RemoteLock -Verbose
         #Invoke-DeviceAction -DeviceID $WEDevices.id -Retire -Verbose
         #Invoke-DeviceAction -DeviceID $WEDevices.id -Wipe -Verbose
@@ -698,18 +667,10 @@ Write-Host
 
 else {
 
-Write-Host
-write-host " User $WEUPN doesn't have any owned Devices..." -f Yellow
+Write-Information write-host " User $WEUPN doesn't have any owned Devices..." -f Yellow
 
 }
 
-write-host
-
-
-
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

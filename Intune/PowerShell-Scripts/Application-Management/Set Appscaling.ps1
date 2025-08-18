@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Appscaling
 
@@ -51,7 +51,8 @@
 $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
-Function Set-RegistryValue {
+[CmdletBinding()]
+Function Set-RegistryValue -ErrorAction Stop {
     <#
         .SYNOPSIS
             Creates a registry value in a target key. Creates the target key if it does not exist.
@@ -115,7 +116,7 @@ $ErrorActionPreference = " Stop"
 
 
 
-$stampDate = Get-Date
+$stampDate = Get-Date -ErrorAction Stop
 $scriptName = ([System.IO.Path]::GetFileNameWithoutExtension($(Split-Path $script:MyInvocation.MyCommand.Path -Leaf))); 
 $logFile = " $env:LocalAppData\IntuneScriptLogs\$scriptName-" + $stampDate.ToFileTimeUtc() + " .log"
 Start-Transcript -Path $logFile

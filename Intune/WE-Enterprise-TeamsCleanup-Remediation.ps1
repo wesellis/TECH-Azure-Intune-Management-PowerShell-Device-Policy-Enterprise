@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 # Wesley Ellis Enterprise Teams Classic Cleanup & Migration Tool
 # Author: Wesley Ellis
 # Contact: wesellis.com
@@ -29,9 +29,10 @@ param (
 # Wesley Ellis Enhanced Framework
 $WEScript = "WE-TeamsCleanup-Enterprise"
 $WEVersion = "3.0"
-$WEStartTime = Get-Date
+$WEStartTime = Get-Date -ErrorAction Stop
 
 # Enhanced logging function
+[CmdletBinding()]
 function Write-WETeamsLog {
     param(
         [string]$Message,
@@ -51,7 +52,7 @@ function Write-WETeamsLog {
     }
     
     $logEntry = "$timestamp [$WEScript] [$User] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
     
     # Always log to file for compliance and auditing
     $logPath = "$env:TEMP\WE-TeamsCleanup-$(Get-Date -Format 'yyyyMMdd').log"
@@ -59,7 +60,8 @@ function Write-WETeamsLog {
 }
 
 # Wesley Ellis Teams Installation Detection
-function Get-WETeamsInstallations {
+[CmdletBinding()]
+function Get-WETeamsInstallations -ErrorAction Stop {
     param([string]$UserProfile)
     
     $installations = @()
@@ -82,8 +84,8 @@ function Get-WETeamsInstallations {
                 Type = "Classic"
                 HasUpdateExe = Test-Path $updateExe
                 HasTeamsExe = Test-Path $teamsExe
-                Size = if (Test-Path $path) { (Get-ChildItem $path -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum } else { 0 }
-                LastModified = if (Test-Path $path) { (Get-Item $path).LastWriteTime } else { $null }
+                Size = if (Test-Path $path) { (Get-ChildItem -ErrorAction Stop $path -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum } else { 0 }
+                LastModified = if (Test-Path $path) { (Get-Item -ErrorAction Stop $path).LastWriteTime } else { $null }
             }
             
             $installations += $installation
@@ -105,7 +107,8 @@ function Get-WETeamsInstallations {
 }
 
 # Enhanced Teams Uninstallation Function
-function Remove-WEClassicTeams {
+[CmdletBinding()]
+function Remove-WEClassicTeams -ErrorAction Stop {
     param(
         [string]$TeamsPath,
         [string]$UserName,
@@ -168,7 +171,8 @@ function Remove-WEClassicTeams {
 }
 
 # Registry Cleanup Function
-function Remove-WETeamsRegistry {
+[CmdletBinding()]
+function Remove-WETeamsRegistry -ErrorAction Stop {
     param([string]$UserName)
     
     if (-not $WECleanRegistry) {
@@ -282,10 +286,10 @@ try {
     )
     
     foreach ($shortcutPath in $shortcutPaths) {
-        $shortcuts = Get-Item $shortcutPath -ErrorAction SilentlyContinue
+        $shortcuts = Get-Item -ErrorAction Stop $shortcutPath -ErrorAction SilentlyContinue
         if ($shortcuts) {
             if (-not $WETestMode) {
-                Remove-Item $shortcuts -Force -ErrorAction SilentlyContinue
+                Remove-Item -ErrorAction Stop $shortcuts -Force -ErrorAction SilentlyContinue
             }
             Write-WETeamsLog "$(if($WETestMode){'Would remove'}else{'Removed'}) $($shortcuts.Count) shortcut(s)" "SUCCESS"
         }

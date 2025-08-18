@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install Winget
 
@@ -38,7 +38,7 @@ $WEErrorActionPreference = "Stop"
 $WEVerbosePreference = if ($WEPSBoundParameters.ContainsKey('Verbose')) { " Continue" } else { " SilentlyContinue" }
 
 $wingetUrl = " https://github.com/microsoft/winget-cli/releases/download/v1.7.3172-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-$version = " 1.22.3172.0" # <-- can be retrieved from Get-AppxPackage cmdlet: Get-AppxPackage | Where-Object {$_.Name -eq " Microsoft.DesktopAppInstaller" }
+$version = " 1.22.3172.0" # <-- can be retrieved from Get-AppxPackage -ErrorAction Stop cmdlet: Get-AppxPackage -ErrorAction Stop | Where-Object {$_.Name -eq " Microsoft.DesktopAppInstaller" }
 
 
 
@@ -47,7 +47,8 @@ $uixamlURL = " https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
 
 
 
-function WE-Get-CurrentVersion {
+[CmdletBinding()]
+function WE-Get-CurrentVersion -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -56,7 +57,7 @@ param(
     )
 
     try {
-        $currentVersion = (Get-AppxPackage | Where-Object { $_.Name -eq $WEPackageName }).Version
+        $currentVersion = (Get-AppxPackage -ErrorAction Stop | Where-Object { $_.Name -eq $WEPackageName }).Version
         return $currentVersion
     }
     catch {
@@ -65,6 +66,7 @@ param(
     }
 }
 
+[CmdletBinding()]
 function WE-Install-Winget {
     [CmdletBinding()]; 
 $ErrorActionPreference = " Stop"
@@ -90,7 +92,7 @@ param(
 
         # verify winget version
         Start-Sleep -Seconds 5
-        $wingetVersion = (Get-AppxPackage | Where-Object { $_.Name -eq " Microsoft.DesktopAppInstaller" }).Version
+        $wingetVersion = (Get-AppxPackage -ErrorAction Stop | Where-Object { $_.Name -eq " Microsoft.DesktopAppInstaller" }).Version
         if ($wingetVersion -eq $WEVersion) {
             Write-WELog " Winget version $wingetVersion installed successfully" " INFO"
         }

@@ -1,8 +1,8 @@
-# Connect to Azure account
+﻿# Connect to Azure account
 Connect-AzAccount
 
 # Get list of all VNETs in subscription
-$vnetList = Get-AzVirtualNetwork
+$vnetList = Get-AzVirtualNetwork -ErrorAction Stop
 
 # Create an array to store VNET details
 $vnetDetails = @()

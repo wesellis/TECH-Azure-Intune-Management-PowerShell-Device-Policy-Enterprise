@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Storeappinformation
 
@@ -133,7 +133,7 @@ Process {
         " GooglePlay" {
             $WEWebRequest = Invoke-WebRequest -Uri $WEURL
            ;  $WEWebRequestObject = $WEWebRequest.Links | Where-Object { $_.innerText -like " *$($WEAppName)*" }
-            if ($WEWebRequestObject -ne $null) {
+            if ($null -ne $WEWebRequestObject) {
                 foreach ($WEObject in $WEWebRequestObject) {
                    ;  $WEPSObject = [PSCustomObject]@{
                         " AppName" = $WEObject.innerText

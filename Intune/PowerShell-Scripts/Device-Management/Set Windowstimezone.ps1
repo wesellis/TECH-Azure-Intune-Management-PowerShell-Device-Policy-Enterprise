@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set Windowstimezone
 
@@ -79,7 +79,8 @@ Begin {
 }
 Process {
     # Functions
-    function WE-Write-LogEntry {
+    [CmdletBinding()]
+function WE-Write-LogEntry {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -101,7 +102,7 @@ param(
         
         # Construct time stamp for log entry
         if (-not(Test-Path -Path 'variable:global:TimezoneBias')) {
-            [string]$global:TimezoneBias = [System.TimeZoneInfo]::Local.GetUtcOffset((Get-Date)).TotalMinutes
+            [string]$script:TimezoneBias = [System.TimeZoneInfo]::Local.GetUtcOffset((Get-Date)).TotalMinutes
             if ($WETimezoneBias -match " ^-" ) {
                 $WETimezoneBias = $WETimezoneBias.Replace('-', '+')
             }
@@ -129,7 +130,8 @@ param(
         }
     }
 
-    function WE-Get-GeoCoordinate {
+    [CmdletBinding()]
+function WE-Get-GeoCoordinate -ErrorAction Stop {
         # Construct return value object
         $WECoordinates = [PSCustomObject]@{
             Latitude = $null
@@ -171,7 +173,8 @@ param(
         return $WECoordinates
     }
 
-    function WE-New-RegistryKey {
+    [CmdletBinding()]
+function WE-New-RegistryKey -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -191,7 +194,8 @@ param(
         }
     }
 
-    function WE-Set-RegistryValue {
+    [CmdletBinding()]
+function WE-Set-RegistryValue -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -227,7 +231,7 @@ param(
         try {
             Write-LogEntry -Value " Checking presence of registry value '$($WEName)' in registry key: $($WEPath)" -Severity 1
             $WERegistryValue = Get-ItemPropertyValue -Path $WEPath -Name $WEName -ErrorAction SilentlyContinue
-            if ($WERegistryValue -ne $null) {
+            if ($null -ne $WERegistryValue) {
                 Write-LogEntry -Value " Setting registry value '$($WEName)' to: $($WEValue)" -Severity 1
                 Set-ItemProperty -Path $WEPath -Name $WEName -Value $WEValue -Force -ErrorAction Stop
             }
@@ -242,7 +246,8 @@ param(
         }
     }
 
-    function WE-Enable-LocationServices {
+    [CmdletBinding()]
+function WE-Enable-LocationServices {
         $WEAppsAccessLocation = " HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy"
         Set-RegistryValue -Path $WEAppsAccessLocation -Name " LetAppsAccessLocation" -Value 0 -Type " DWord"
 
@@ -267,7 +272,8 @@ param(
         }
     }
 
-    function WE-Disable-LocationServices {
+    [CmdletBinding()]
+function WE-Disable-LocationServices {
         $WELocationConsentKey = " HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location"
         Set-RegistryValue -Path $WELocationConsentKey -Name " Value" -Value " Deny" -Type " String"
 
@@ -290,7 +296,7 @@ param(
             Enable-LocationServices
 
             # Retrieve the latitude and longitude values
-            $WEGeoCoordinates = Get-GeoCoordinate
+            $WEGeoCoordinates = Get-GeoCoordinate -ErrorAction Stop
             if (($WEGeoCoordinates.Latitude -ne $null) -and ($WEGeoCoordinates.Longitude -ne $null)) {
                 Write-LogEntry -Value " Successfully resolved current device coordinates" -Severity 1
                 Write-LogEntry -Value " Detected latitude: $($WEGeoCoordinates.Latitude)" -Severity 1
@@ -304,7 +310,7 @@ param(
                     Write-LogEntry -Value " Attempting to determine IANA time zone id from Azure MAPS API using query: $($WEAzureMapsQuery)" -Severity 1
                     $WEAzureMapsTimeZoneURI = " https://atlas.microsoft.com/timezone/byCoordinates/json?subscription-key=$($WEAzureMapsSharedKey)&api-version=1.0&options=all&query=$($WEAzureMapsQuery)"
                     $WEAzureMapsTimeZoneResponse = Invoke-RestMethod -Uri $WEAzureMapsTimeZoneURI -Method " Get" -ErrorAction Stop
-                    if ($WEAzureMapsTimeZoneResponse -ne $null) {
+                    if ($null -ne $WEAzureMapsTimeZoneResponse) {
                         $WEIANATimeZoneValue = $WEAzureMapsTimeZoneResponse.TimeZones.Id
                         Write-LogEntry -Value " Successfully retrieved IANA time zone id from current position data: $($WEIANATimeZoneValue)" -Severity 1
 
@@ -313,7 +319,7 @@ param(
                             Write-LogEntry -Value " Attempting to Azure Maps API to enumerate Windows time zone ids" -Severity 1
                             $WEAzureMapsWindowsEnumURI = " https://atlas.microsoft.com/timezone/enumWindows/json?subscription-key=$($WEAzureMapsSharedKey)&api-version=1.0"
                            ;  $WEAzureMapsWindowsEnumResponse = Invoke-RestMethod -Uri $WEAzureMapsWindowsEnumURI -Method " Get" -ErrorAction Stop
-                            if ($WEAzureMapsWindowsEnumResponse -ne $null) {
+                            if ($null -ne $WEAzureMapsWindowsEnumResponse) {
                                ;  $WETimeZoneID = $WEAzureMapsWindowsEnumResponse | Where-Object { ($WEPSItem.IanaIds -like $WEIANATimeZoneValue) -and ($WEPSItem.Territory.Length -eq 2) } | Select-Object -ExpandProperty WindowsId
                                 Write-LogEntry -Value " Successfully determined the Windows time zone id: $($WETimeZoneID)" -Severity 1
 

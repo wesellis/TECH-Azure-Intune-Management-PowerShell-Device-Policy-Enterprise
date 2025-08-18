@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Softwareupdates Get
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -205,7 +201,7 @@ Returns Windows 10 Software Update policies configured in Intune
 Get-SoftwareUpdatePolicy -iOS
 Returns iOS update policies configured in Intune
 .NOTES
-NAME: Get-SoftwareUpdatePolicy
+NAME: Get-SoftwareUpdatePolicy -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -228,15 +224,14 @@ $graphApiVersion = " Beta"
 
         if($WECount_Params -gt 1){
 
-        write-host " Multiple parameters set, specify a single parameter -iOS or -Windows10 against the function" -f Red
+        Write-Information " Multiple parameters set, specify a single parameter -iOS or -Windows10 against the function" -f Red
 
         }
 
         elseif($WECount_Params -eq 0){
 
         Write-WELog " Parameter -iOS or -Windows10 required against the function..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information break
 
         }
 
@@ -264,14 +259,13 @@ $graphApiVersion = " Beta"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -287,10 +281,10 @@ This function is used to get AAD Groups from the Graph API REST interface
 .DESCRIPTION
 The function connects to the Graph API Interface and gets any Groups registered with AAD
 .EXAMPLE
-Get-AADGroup
+Get-AADGroup -ErrorAction Stop
 Returns all users registered with Azure AD
 .NOTES
-NAME: Get-AADGroup
+NAME: Get-AADGroup -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -316,7 +310,7 @@ $WEGroup_resource = " groups"
 
         }
 
-        elseif($WEGroupName -eq "" -or $WEGroupName -eq $null){
+        elseif($WEGroupName -eq "" -or $null -eq $WEGroupName){
 
         $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)"
         (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
@@ -342,9 +336,7 @@ $WEGroup_resource = " groups"
                 $WEGID = $WEGroup.id
 
                 $WEGroup.displayName
-                write-host
-
-                $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
+                Write-Information $uri = " https://graph.microsoft.com/$graphApiVersion/$($WEGroup_resource)/$WEGID/Members"
                 (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
 
                 }
@@ -359,14 +351,13 @@ $WEGroup_resource = " groups"
 
     $ex = $_.Exception
     $errorResponse = $ex.Response.GetResponseStream()
-   ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+   ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
     $reader.BaseStream.Position = 0
     $reader.DiscardBufferedData()
    ;  $responseBody = $reader.ReadToEnd();
     Write-WELog " Response content:`n$responseBody" " INFO" -f Red
     Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-    write-host
-    break
+    Write-Information break
 
     }
 
@@ -376,10 +367,7 @@ $WEGroup_resource = " groups"
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -389,19 +377,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -410,15 +394,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -429,19 +411,17 @@ $global:authToken = Get-AuthToken -User $WEUser
 $WEWSUPs = Get-SoftwareUpdatePolicy -Windows10
 
 Write-WELog " Software updates - Windows 10 Update Rings" " INFO" -ForegroundColor Cyan
-Write-Host
-
-    if($WEWSUPs){
+Write-Information if($WEWSUPs){
 
         foreach($WEWSUP in $WEWSUPs){
 
-        write-host " Software Update Policy:" $WEWSUP.displayName -f Yellow
+        Write-Information " Software Update Policy:" $WEWSUP.displayName -f Yellow
         $WEWSUP
 
 
         $WETargetGroupIds = $WEWSUP.groupAssignments.targetGroupId
 
-        write-host " Getting SoftwareUpdate Policy assignment..." -f Cyan
+        Write-Information " Getting SoftwareUpdate Policy assignment..." -f Cyan
 
             if($WETargetGroupIds){
 
@@ -465,30 +445,24 @@ Write-Host
 
     else {
 
-    Write-Host
-    Write-WELog " No Windows 10 Update Rings defined..." " INFO" -ForegroundColor Red
+    Write-Information Write-WELog " No Windows 10 Update Rings defined..." " INFO"
 
     }
 
-write-host
-
-
-; 
+Write-Information ; 
 $WEISUPs = Get-SoftwareUpdatePolicy -iOS
 
 Write-WELog " Software updates - iOS Update Policies" " INFO" -ForegroundColor Cyan
-Write-Host
-
-    if($WEISUPs){
+Write-Information if($WEISUPs){
 
         foreach($WEISUP in $WEISUPs){
 
-        write-host " Software Update Policy:" $WEISUP.displayName -f Yellow
+        Write-Information " Software Update Policy:" $WEISUP.displayName -f Yellow
         $WEISUP
 
        ;  $WETargetGroupIds = $WEISUP.groupAssignments.targetGroupId
 
-        write-host " Getting SoftwareUpdate Policy assignment..." -f Cyan
+        Write-Information " Getting SoftwareUpdate Policy assignment..." -f Cyan
 
             if($WETargetGroupIds){
 
@@ -512,15 +486,10 @@ Write-Host
 
     else {
 
-    Write-Host
-    Write-WELog " No iOS Software Update Rings defined..." " INFO" -ForegroundColor Red
+    Write-Information Write-WELog " No iOS Software Update Rings defined..." " INFO"
 
     }
 
-Write-Host
-
-
-
-# Wesley Ellis Enterprise PowerShell Toolkit
+Write-Information # Wesley Ellis Enterprise PowerShell Toolkit
 # Enhanced automation solutions: wesellis.com
 # ============================================================================

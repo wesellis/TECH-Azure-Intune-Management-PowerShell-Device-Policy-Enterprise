@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Intune Remediation Bios Thermalmode Setting
 
@@ -92,7 +92,7 @@ try
         2 {" Quiet" }
         3 {" Performance" }
     }
-    if($WEBIOSThermalMode -eq $null)
+    if($null -eq $WEBIOSThermalMode)
     {
         Write-Error -Category ResourceUnavailable -CategoryTargetName " root/dcim/sysman" -CategoryTargetType " DCIM_ThermalInformation" -Message " Unable to enumerate the class 'DCIM_ThermalInformation' in the namespace 'root/dcim/sysman'" 	
         exit 1
@@ -100,7 +100,7 @@ try
     else
     {
         $WECheckAdminPW = Get-CimInstance -Namespace root/dcim/sysman/wmisecurity -ClassName PasswordObject -Filter " NameId='Admin'" | Select-Object -ExpandProperty IsPasswordSet
-        if($WECheckAdminPW -eq $null)
+        if($null -eq $WECheckAdminPW)
 	    {
 		    Write-Error -Category ResourceUnavailable -CategoryTargetName " root/dcim/sysman/wmisecurity" -CategoryTargetType " PasswordObject" -Message " Unable to get the 'Admin' object in class 'PasswordObject' in the Namespace 'root/dcim/sysman/wmisecurity'" 
 		    exit 1
@@ -147,7 +147,7 @@ try
 catch
 {
     $errMsg = $_.Exception.Message
-    write-host $errMsg
+    Write-Information $errMsg
     exit 1
 }
 

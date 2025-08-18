@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Mrtbone Set Mgazureautomationaccountpermissions
 
@@ -116,7 +116,7 @@ foreach($WEAppRole in $WEAppRoles)
       " ResourceId" = $WEGraphServicePrincipal.Id
       " AppRoleId" = $WEAppRole.Id
     }
-  New-MgServicePrincipalAppRoleAssignment `
+  New-MgServicePrincipalAppRoleAssignment -ErrorAction Stop `
       -ServicePrincipalId $WEAppRoleAssignment.PrincipalId `
       -BodyParameter $WEAppRoleAssignment `
       -Verbose

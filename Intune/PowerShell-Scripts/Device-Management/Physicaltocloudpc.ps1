@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Physicaltocloudpc
 
@@ -58,7 +58,8 @@ $skuMapping = @{
 }
 
 
-function WE-Get-Windows365SKU {
+[CmdletBinding()]
+function WE-Get-Windows365SKU -ErrorAction Stop {
     param ($ram, $storage)
     
     # Sort SKUs by RAM and Storage (ensuring we always pick the smallest SKU that meets/exceeds both)

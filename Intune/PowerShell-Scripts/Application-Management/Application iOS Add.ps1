@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Application Ios Add
 
@@ -49,7 +49,8 @@ See LICENSE in the project root for license information.
 
 
 
-function WE-Get-AuthToken {
+[CmdletBinding()]
+function WE-Get-AuthToken -ErrorAction Stop {
 
 <#
 .SYNOPSIS
@@ -57,10 +58,10 @@ This function is used to authenticate with the Graph API REST interface
 .DESCRIPTION
 The function authenticate with the Graph API Interface with the tenant name
 .EXAMPLE
-Get-AuthToken
+Get-AuthToken -ErrorAction Stop
 Authenticates you with the Graph API interface
 .NOTES
-NAME: Get-AuthToken
+NAME: Get-AuthToken -ErrorAction Stop
 
 
 [cmdletbinding()]
@@ -72,7 +73,7 @@ param(
     $WEUser
 )
 
-$userUpn = New-Object " System.Net.Mail.MailAddress" -ArgumentList $WEUser
+$userUpn = New-Object -ErrorAction Stop " System.Net.Mail.MailAddress" -ArgumentList $WEUser
 
 $tenant = $userUpn.Host
 
@@ -80,20 +81,18 @@ Write-WELog " Checking for AzureAD module..." " INFO"
 
     $WEAadModule = Get-Module -Name " AzureAD" -ListAvailable
 
-    if ($WEAadModule -eq $null) {
+    if ($null -eq $WEAadModule) {
 
         Write-WELog " AzureAD PowerShell module not found, looking for AzureADPreview" " INFO"
         $WEAadModule = Get-Module -Name " AzureADPreview" -ListAvailable
 
     }
 
-    if ($WEAadModule -eq $null) {
-        write-host
-        write-host " AzureAD Powershell module not installed..." -f Red
-        write-host " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
-        write-host " Script can't continue..." -f Red
-        write-host
-        exit
+    if ($null -eq $WEAadModule) {
+        Write-Information write-host " AzureAD Powershell module not installed..." -f Red
+        Write-Information " Install by running 'Install-Module AzureAD' or 'Install-Module AzureADPreview' from an elevated PowerShell prompt" -f Yellow
+        Write-Information " Script can't continue..." -f Red
+        Write-Information exit
     }
 
 
@@ -140,14 +139,14 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     try {
 
-    $authContext = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
+    $authContext = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
 
     # https://msdn.microsoft.com/en-us/library/azure/microsoft.identitymodel.clients.activedirectory.promptbehavior.aspx
     # Change the prompt behaviour to force credentials each time: Auto, Always, Never, RefreshSession
 
-    $platformParameters = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
+    $platformParameters = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList " Auto"
 
-    $userId = New-Object " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
+    $userId = New-Object -ErrorAction Stop " Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList ($WEUser, " OptionalDisplayableId" )
 
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
@@ -169,10 +168,8 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
         else {
 
-        Write-Host
-        Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO" -ForegroundColor Red
-        Write-Host
-        break
+        Write-Information Write-WELog " Authorization Access Token is null, please re-run authentication..." " INFO"
+        Write-Information break
 
         }
 
@@ -180,10 +177,9 @@ $authority = " https://login.microsoftonline.com/$WETenant"
 
     catch {
 
-    write-host $_.Exception.Message -f Red
-    write-host $_.Exception.ItemName -f Red
-    write-host
-    break
+    Write-Information $_.Exception.Message -f Red
+    Write-Information $_.Exception.ItemName -f Red
+    Write-Information break
 
     }
 
@@ -205,7 +201,7 @@ Function Get-itunesApplication(){
     Get-itunesApplication -SearchString " Microsoft Corporation" -Limit 10
     Gets an iOS application from itunes store with a limit of 10 results
     .NOTES
-    NAME: Get-itunesApplication
+    NAME: Get-itunesApplication -ErrorAction Stop
     https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/
     #>
     
@@ -254,11 +250,10 @@ param(
     
         catch {
     
-        write-host $_.Exception.Message -f Red
-        write-host $_.Exception.ItemName -f Red
+        Write-Information $_.Exception.Message -f Red
+        Write-Information $_.Exception.ItemName -f Red
         write-verbose $_.Exception
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -304,14 +299,14 @@ param(
         # Step 1 - Downloading the icon for the application
         $iconUrl = $app.artworkUrl60
     
-            if ($iconUrl -eq $null){
+            if ($null -eq $iconUrl){
     
             Write-WELog " 60x60 icon not found, using 100x100 icon" " INFO"
             $iconUrl = $app.artworkUrl100
             
             }
             
-            if ($iconUrl -eq $null){
+            if ($null -eq $iconUrl){
             
             Write-WELog " 60x60 icon not found, using 512x512 icon" " INFO"
             $iconUrl = $app.artworkUrl512
@@ -374,9 +369,7 @@ param(
         Write-WELog " Creating application via Graph" " INFO"
         $createResult = Invoke-RestMethod -Uri $uri -Method Post -ContentType " application/json" -Body (ConvertTo-Json $graphApp) -Headers $authToken
         Write-WELog " Application created as $uri/$($createResult.id)" " INFO"
-        write-host
-        
-        }
+        Write-Information }
         
         catch {
     
@@ -387,14 +380,13 @@ param(
         
         $ex.Response.GetResponseStream()
     
-       ;  $reader = New-Object System.IO.StreamReader($errorResponse)
+       ;  $reader = New-Object -ErrorAction Stop System.IO.StreamReader($errorResponse)
         $reader.BaseStream.Position = 0
         $reader.DiscardBufferedData()
        ;  $responseBody = $reader.ReadToEnd();
         Write-WELog " Response content:`n$responseBody" " INFO" -f Red
         Write-Error " Request to $WEUri failed with HTTP Status $($ex.Response.StatusCode) $($ex.Response.StatusDescription)"
-        write-host
-        break
+        Write-Information break
     
         }
     
@@ -404,10 +396,7 @@ param(
 
 
 
-write-host
-
-
-if($global:authToken){
+Write-Information if($global:authToken){
 
     # Setting DateTime to Universal time to work in all timezones
     $WEDateTime = (Get-Date).ToUniversalTime()
@@ -417,19 +406,15 @@ if($global:authToken){
 
         if($WETokenExpires -le 0){
 
-        write-host " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
-        write-host
+        Write-Information " Authentication Token expired" $WETokenExpires " minutes ago" -ForegroundColor Yellow
+        Write-Information # Defining User Principal Name if not present
 
-            # Defining User Principal Name if not present
-
-            if($WEUser -eq $null -or $WEUser -eq "" ){
+            if($null -eq $WEUser -or $WEUser -eq "" ){
 
             $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-            Write-Host
+            Write-Information }
 
-            }
-
-        $global:authToken = Get-AuthToken -User $WEUser
+        $script:authToken = Get-AuthToken -User $WEUser
 
         }
 }
@@ -438,15 +423,13 @@ if($global:authToken){
 
 else {
 
-    if($WEUser -eq $null -or $WEUser -eq "" ){
+    if($null -eq $WEUser -or $WEUser -eq "" ){
 
     $WEUser = Read-Host -Prompt " Please specify your user principal name for Azure Authentication"
-    Write-Host
-
-    }
+    Write-Information }
 
 
-$global:authToken = Get-AuthToken -User $WEUser
+$script:authToken = Get-AuthToken -User $WEUser
 
 }
 
@@ -486,7 +469,7 @@ if($WEApplications) {
         if($itunesApp.count -gt 1){
 
         $itunesApp.count
-        write-host " More than 1 application was found in the itunes store" -f Cyan
+        Write-Information " More than 1 application was found in the itunes store" -f Cyan
 
             foreach($iapp in $itunesApp){
 
@@ -506,11 +489,8 @@ if($WEApplications) {
         # if application isn't found in itunes returning doesn't exist
         else {
 
-        write-host
-        write-host " Application '$WEApplication' doesn't exist" -f Red
-        write-host
-
-        }
+        Write-Information write-host " Application '$WEApplication' doesn't exist" -f Red
+        Write-Information }
 
     }
 
@@ -522,11 +502,8 @@ else {
     # if there are results returned from itunes query
     if($itunesApps.results){
 
-    write-host
-    write-host " Number of iOS applications to add:" $itunesApps.results.count -f Yellow
-    Write-Host
-
-        # Looping through applications returned from itunes
+    Write-Information Write-Information " Number of iOS applications to add:" $itunesApps.results.count -f Yellow
+    Write-Information # Looping through applications returned from itunes
         foreach($itunesApp in $itunesApps.results){
 
         Add-iOSApplication -itunesApp $itunesApp
@@ -538,11 +515,8 @@ else {
     # No applications returned from itunes
     else {
 
-    write-host
-    write-host " No applications found..." -f Red
-    write-host
-
-    }
+    Write-Information write-host " No applications found..." -f Red
+    Write-Information }
 
 }
 

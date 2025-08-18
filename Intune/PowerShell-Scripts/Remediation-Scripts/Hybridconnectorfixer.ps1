@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Hybridconnectorfixer
 
@@ -51,7 +51,7 @@ if(-not(Test-Path $WEWorkingDir))
 }
 
 
-$WEWebView2Installed = Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue | Where-Object {$_.DisplayName -like " *Microsoft Edge WebView2" }
+$WEWebView2Installed = Get-ItemProperty -ErrorAction Stop HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue | Where-Object {$_.DisplayName -like " *Microsoft Edge WebView2" }
 
 if($WEWebView2Installed)
 {
@@ -88,7 +88,7 @@ catch
 
 
 ; 
-$WEIntuneConnector = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like " *$($WEIntuneConnectorProductName)*" } | Sort-Object DisplayVersion -Descending | Select-Object -First 1
+$WEIntuneConnector = Get-ItemProperty -ErrorAction Stop HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like " *$($WEIntuneConnectorProductName)*" } | Sort-Object DisplayVersion -Descending | Select-Object -First 1
 
 if($WEIntuneConnector)
 {

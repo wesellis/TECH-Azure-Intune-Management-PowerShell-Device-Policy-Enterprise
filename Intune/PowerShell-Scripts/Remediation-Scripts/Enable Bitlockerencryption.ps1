@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Enable Bitlockerencryption
 
@@ -87,7 +87,8 @@ param(
 )
 Process {
     # Functions
-    function WE-Write-LogEntry {
+    [CmdletBinding()]
+function WE-Write-LogEntry {
 		[CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -109,7 +110,7 @@ param(
 		
 		# Construct time stamp for log entry
 		if (-not(Test-Path -Path 'variable:global:TimezoneBias')) {
-			[string]$global:TimezoneBias = [System.TimeZoneInfo]::Local.GetUtcOffset((Get-Date)).TotalMinutes
+			[string]$script:TimezoneBias = [System.TimeZoneInfo]::Local.GetUtcOffset((Get-Date)).TotalMinutes
 			if ($WETimezoneBias -match " ^-" ) {
 				$WETimezoneBias = $WETimezoneBias.Replace('-', '+')
 			}
@@ -137,7 +138,8 @@ param(
 		}
     }
     
-    function WE-Invoke-Executable {
+    [CmdletBinding()]
+function WE-Invoke-Executable {
         [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -185,7 +187,8 @@ param(
         return $WEInvocation.ExitCode
     }
 
-    function WE-Test-RegistryValue {
+    [CmdletBinding()]
+function WE-Test-RegistryValue {
         [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -210,7 +213,7 @@ param(
                 $WEExistence = Get-ItemProperty -Path $WEPath -ErrorAction Stop
             }
             
-            if ($WEExistence -ne $null) {
+            if ($null -ne $WEExistence) {
                 return $true
             }
         }
@@ -219,7 +222,8 @@ param(
         }
     }
     
-    function WE-Set-RegistryValue {
+    [CmdletBinding()]
+function WE-Set-RegistryValue -ErrorAction Stop {
         [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(
@@ -245,7 +249,7 @@ param(
         )
         try {
             $WERegistryValue = Get-ItemProperty -Path $WEPath -Name $WEName -ErrorAction SilentlyContinue
-            if ($WERegistryValue -ne $null) {
+            if ($null -ne $WERegistryValue) {
                 Set-ItemProperty -Path $WEPath -Name $WEName -Value $WEValue -Force -ErrorAction Stop
             }
             else {
@@ -338,7 +342,7 @@ param(
                         Write-LogEntry -Value " Attempting to retrieve the current encryption status of the operating system drive" -Severity 1
                         $WEBitLockerOSVolume = Get-BitLockerVolume -MountPoint $env:SystemRoot -ErrorAction Stop
         
-                        if ($WEBitLockerOSVolume -ne $null) {
+                        if ($null -ne $WEBitLockerOSVolume) {
                             # Determine whether BitLocker is turned on or off
                             if (($WEBitLockerOSVolume.VolumeStatus -like " FullyDecrypted" ) -or ($WEBitLockerOSVolume.KeyProtector.Count -eq 0)) {
                                 Write-LogEntry -Value " Current encryption status of the operating system drive was detected as: $($WEBitLockerOSVolume.VolumeStatus)" -Severity 1
@@ -422,7 +426,7 @@ param(
                                     # Attempt to backup recovery password to Azure AD device object
                                     Write-LogEntry -Value " Attempting to backup recovery password to Azure AD device object" -Severity 1
                                     $WERecoveryPasswordKeyProtector = $WEBitLockerOSVolume.KeyProtector | Where-Object { $_.KeyProtectorType -like " RecoveryPassword" }
-                                    if ($WERecoveryPasswordKeyProtector -ne $null) {
+                                    if ($null -ne $WERecoveryPasswordKeyProtector) {
                                         BackupToAAD-BitLockerKeyProtector -MountPoint $WEBitLockerOSVolume.MountPoint -KeyProtectorId $WERecoveryPasswordKeyProtector.KeyProtectorId -ErrorAction Stop
                                         Write-LogEntry -Value " Successfully backed up recovery password details" -Severity 1
                                     }
@@ -504,7 +508,7 @@ param(
                             try {
                                 Write-LogEntry -Value " Attempting to backup recovery password to Azure AD device object" -Severity 1
                                ;  $WERecoveryPasswordKeyProtector = $WEBitLockerOSVolume.KeyProtector | Where-Object { $_.KeyProtectorType -like " RecoveryPassword" }
-                                if ($WERecoveryPasswordKeyProtector -ne $null) {
+                                if ($null -ne $WERecoveryPasswordKeyProtector) {
                                     BackupToAAD-BitLockerKeyProtector -MountPoint $WEBitLockerOSVolume.MountPoint -KeyProtectorId $WERecoveryPasswordKeyProtector.KeyProtectorId -ErrorAction Stop
                                     Set-RegistryValue -Path $WERegistryRootPath -Name " BitLockerEscrowResult" -Value " True"
                                     Write-LogEntry -Value " Successfully backed up recovery password details" -Severity 1

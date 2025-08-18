@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Test Autopilotazureaddeviceassociation
 
@@ -92,7 +92,8 @@ param(
 )
 Process {
     # Functions
-    function WE-Get-AutopilotDevice {
+    [CmdletBinding()]
+function WE-Get-AutopilotDevice -ErrorAction Stop {
         <#
         .SYNOPSIS
             Retrieve all Autopilot device identities.
@@ -119,7 +120,8 @@ Process {
         }
     }
 
-    function WE-Get-AzureADDeviceRecord {
+    [CmdletBinding()]
+function WE-Get-AzureADDeviceRecord -ErrorAction Stop {
         <#
         .SYNOPSIS
             Retrieve an Azure AD device record.
@@ -164,12 +166,12 @@ param(
 
     # Gather Autopilot device details
     Write-Verbose -Message " Attempting to retrieve all Autopilot device identities, this could take some time"
-    $WEAutopilotDevices = Get-AutopilotDevice
+    $WEAutopilotDevices = Get-AutopilotDevice -ErrorAction Stop
 
     # Measure detected Autopilot identities count
     $WEAutopilotIdentitiesCount = ($WEAutopilotDevices | Measure-Object).Count
 
-    if ($WEAutopilotDevices -ne $null) {
+    if ($null -ne $WEAutopilotDevices) {
         Write-Verbose -Message " Detected count of Autopilot identities: $($WEAutopilotIdentitiesCount)"
 
         # Construct and start a timer for output
@@ -201,7 +203,7 @@ param(
 
             # Get Azure AD device record for associated device based on what's set for the Autopilot identity
            ;  $WEAzureADDevice = Get-AzureADDeviceRecord -DeviceId $WEAutopilotDevice.azureAdDeviceId
-            if ($WEAzureADDevice -eq $null) {
+            if ($null -eq $WEAzureADDevice) {
                 # Construct custom object for output
                ;  $WEPSObject = [PSCustomObject]@{
                     Id = $WEAutopilotDevice.id

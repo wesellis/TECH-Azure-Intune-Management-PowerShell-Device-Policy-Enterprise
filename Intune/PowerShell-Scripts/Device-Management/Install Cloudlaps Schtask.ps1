@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Install Cloudlaps Schtask
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
@@ -85,7 +86,8 @@ $WEScriptBlock = {
 
     Process {
         # Functions
-        Function CreateLog {
+        [CmdletBinding()]
+Function CreateLog {
             <#
 .SYNOPSIS
     Proaction Remediation script for CloudLAPS solution used within Endpoint Analytics with Microsoft Endpoint Manager to rotate a local administrator password.
@@ -113,7 +115,7 @@ $WEScriptBlock = {
                 $WEEventLogName = " CloudLAPS-Client"
                 $WEEventLogSource = " CloudLAPS-Client"
                 $WECloudLAPSEventLog = Get-WinEvent -LogName $WEEventLogName -ErrorAction SilentlyContinue
-                if ($WECloudLAPSEventLog -eq $null) {
+                if ($null -eq $WECloudLAPSEventLog) {
                     try {
                         New-EventLog -LogName $WEEventLogName -Source $WEEventLogSource -ErrorAction Stop
                     }
@@ -124,7 +126,8 @@ $WEScriptBlock = {
             }
         }
 
-        function WE-Test-AzureADDeviceRegistration {
+        [CmdletBinding()]
+function WE-Test-AzureADDeviceRegistration {
             <#
         .SYNOPSIS
             Determine if the device conforms to the requirement of being either Azure AD joined or Hybrid Azure AD joined.
@@ -152,7 +155,8 @@ $WEScriptBlock = {
             }
         }
 
-        function WE-Get-AzureADDeviceID {
+        [CmdletBinding()]
+function WE-Get-AzureADDeviceID -ErrorAction Stop {
             <#
         .SYNOPSIS
             Get the Azure AD device ID from the local device.
@@ -175,10 +179,10 @@ $WEScriptBlock = {
 
                 # Retrieve the child key name that is the thumbprint of the machine certificate containing the device identifier guid
                 $WEAzureADJoinInfoThumbprint = Get-ChildItem -Path $WEAzureADJoinInfoRegistryKeyPath | Select-Object -ExpandProperty " PSChildName"
-                if ($WEAzureADJoinInfoThumbprint -ne $null) {
+                if ($null -ne $WEAzureADJoinInfoThumbprint) {
                     # Retrieve the machine certificate based on thumbprint from registry key
                     $WEAzureADJoinCertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" -Recurse | Where-Object { $WEPSItem.Thumbprint -eq $WEAzureADJoinInfoThumbprint }
-                    if ($WEAzureADJoinCertificate -ne $null) {
+                    if ($null -ne $WEAzureADJoinCertificate) {
                         # Determine the device identifier from the subject name
                         $WEAzureADDeviceID = ($WEAzureADJoinCertificate | Select-Object -ExpandProperty " Subject" ) -replace " CN=" , ""
                     
@@ -192,7 +196,8 @@ $WEScriptBlock = {
             }
         }
 
-        function WE-Get-AzureADRegistrationCertificateThumbprint {
+        [CmdletBinding()]
+function WE-Get-AzureADRegistrationCertificateThumbprint -ErrorAction Stop {
             <#
         .SYNOPSIS
             Get the thumbprint of the certificate used for Azure AD device registration.
@@ -221,7 +226,8 @@ $WEScriptBlock = {
             }
         }
     
-        function WE-New-RSACertificateSignature {
+        [CmdletBinding()]
+function WE-New-RSACertificateSignature -ErrorAction Stop {
             <#
         .SYNOPSIS
             Creates a new signature based on content passed as parameter input using the private key of a certificate determined by it's thumbprint, to sign the computed hash of the content.
@@ -265,12 +271,12 @@ param(
             Process {
                 # Determine the certificate based on thumbprint input
                 $WECertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" -Recurse | Where-Object { $WEPSItem.Thumbprint -eq $WECertificateThumbprint }
-                if ($WECertificate -ne $null) {
+                if ($null -ne $WECertificate) {
                     if ($WECertificate.HasPrivateKey -eq $true) {
                         # Read the RSA private key
                         $WERSAPrivateKey = [System.Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPrivateKey($WECertificate)
                     
-                        if ($WERSAPrivateKey -ne $null) {
+                        if ($null -ne $WERSAPrivateKey) {
                             if ($WERSAPrivateKey -is [System.Security.Cryptography.RSACng]) {
                                 # Construct a new SHA256Managed object to be used when computing the hash
                                 $WESHA256Managed = New-Object -TypeName " System.Security.Cryptography.SHA256Managed"
@@ -299,7 +305,8 @@ param(
             }
         }
     
-        function WE-Get-PublicKeyBytesEncodedString {
+        [CmdletBinding()]
+function WE-Get-PublicKeyBytesEncodedString -ErrorAction Stop {
             <#
         .SYNOPSIS
             Returns the public key byte array encoded as a Base64 string, of the certificate where the thumbprint passed as parameter input is a match.
@@ -332,7 +339,7 @@ param(
             Process {
                 # Determine the certificate based on thumbprint input
                 $WECertificate = Get-ChildItem -Path " Cert:\LocalMachine\My" -Recurse | Where-Object { $WEPSItem.Thumbprint -eq $WEThumbprint }
-                if ($WECertificate -ne $null) {
+                if ($null -ne $WECertificate) {
                     # Get the public key bytes
                     [byte[]]$WEPublicKeyBytes = $WECertificate.GetPublicKey()
     
@@ -342,7 +349,8 @@ param(
             }
         }
 
-        function WE-Get-ComputerSystemType {
+        [CmdletBinding()]
+function WE-Get-ComputerSystemType -ErrorAction Stop {
             <#
         .SYNOPSIS
             Get the computer system type, either VM or NonVM.
@@ -400,9 +408,9 @@ param(
 
             # Retrieve variables required to build request header
             $WESerialNumber = Get-CimInstance -Class " Win32_BIOS" | Select-Object -ExpandProperty " SerialNumber"
-            $WEComputerSystemType = Get-ComputerSystemType
-            $WEAzureADDeviceID = Get-AzureADDeviceID
-            $WECertificateThumbprint = Get-AzureADRegistrationCertificateThumbprint
+            $WEComputerSystemType = Get-ComputerSystemType -ErrorAction Stop
+            $WEAzureADDeviceID = Get-AzureADDeviceID -ErrorAction Stop
+            $WECertificateThumbprint = Get-AzureADRegistrationCertificateThumbprint -ErrorAction Stop
             $WESignature = New-RSACertificateSignature -Content $WEAzureADDeviceID -Thumbprint $WECertificateThumbprint
             $WEPublicKeyBytesEncoded = Get-PublicKeyBytesEncodedString -Thumbprint $WECertificateThumbprint
 
@@ -455,7 +463,7 @@ param(
 
                     # Check if existing local administrator user account exists
                     $WELocalAdministratorAccount = Get-LocalUser -Name $WELocalAdministratorName -ErrorAction SilentlyContinue
-                    if ($WELocalAdministratorAccount -eq $null) {
+                    if ($null -eq $WELocalAdministratorAccount) {
                         # Create local administrator account
                         try {
                             Write-EventLog -LogName $WEEventLogName -Source $WEEventLogSource -EntryType Information -EventId 20 -Message " CloudLAPS: Local administrator account does not exist, attempt to create it"
@@ -583,6 +591,7 @@ param(
         exit $WEExitCode
     }
 }
+[CmdletBinding()]
 Function Install-CloudLAPSClient {
 
     <#
@@ -615,7 +624,7 @@ Function Install-CloudLAPSClient {
     $WECloudLAPSClientPath = " C:\ProgramData\CloudLAPS Client"
     $WECloudLAPSClientScript = " CLAPS_Client.ps1"
     $WECloudLAPSClientScriptPath = Join-Path -Path $WECloudLAPSClientPath -ChildPath $WECloudLAPSClientScript
-    $WEBuiltinUsersSid = New-Object System.Security.Principal.SecurityIdentifier -ArgumentList @([System.Security.Principal.WellKnownSidType]::BuiltinUsersSid, $null)
+    $WEBuiltinUsersSid = New-Object -ErrorAction Stop System.Security.Principal.SecurityIdentifier -ArgumentList @([System.Security.Principal.WellKnownSidType]::BuiltinUsersSid, $null)
             
     #Create Local Path for Client Script
     If (-not(Test-Path -Path $WECloudLAPSClientPath)) {
@@ -648,7 +657,7 @@ Function Install-CloudLAPSClient {
         $WEACL2.SetAccessRuleProtection($WETrue, $WETrue)
         Set-Acl -AclObject $WEACL2 -Path $WECloudLAPSClientScriptPath
         $WEACL2 = Get-ACL -Path $WECloudLAPSClientScriptPath
-        $WEACE_Remove = New-Object system.security.AccessControl.FileSystemAccessRule($WEBuiltinUsersSid, " Read" , " Allow" )
+        $WEACE_Remove = New-Object -ErrorAction Stop system.security.AccessControl.FileSystemAccessRule($WEBuiltinUsersSid, " Read" , " Allow" )
         $WEACL2.RemoveAccessRuleAll($WEACE_Remove)
         Set-Acl -AclObject $WEACL2 -Path $WECloudLAPSClientScriptPath
     }

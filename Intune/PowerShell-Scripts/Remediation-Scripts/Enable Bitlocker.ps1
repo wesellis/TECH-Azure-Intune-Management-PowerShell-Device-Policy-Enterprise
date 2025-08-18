@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Enable Bitlocker
 
@@ -56,7 +56,8 @@ try {
 }
 
 
-function WE-Get-BitLockerStatus {
+[CmdletBinding()]
+function WE-Get-BitLockerStatus -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -73,7 +74,8 @@ param(
 }
 
 
-function WE-Get-TpmStatus {
+[CmdletBinding()]
+function WE-Get-TpmStatus -ErrorAction Stop {
     try {
         $tpm = Get-Tpm -ErrorAction Stop
         return [PSCustomObject]@{
@@ -94,11 +96,12 @@ function WE-Get-TpmStatus {
 }
 
 
+[CmdletBinding()]
 function WE-Test-BitLockerReadiness {
     $issues = @()
     
     # Check TPM
-    $tpmStatus = Get-TpmStatus
+    $tpmStatus = Get-TpmStatus -ErrorAction Stop
     if (-not $tpmStatus.TpmPresent) {
         $issues = $issues + " TPM is not present on this system"
     } elseif (-not $tpmStatus.TpmReady) {
@@ -124,6 +127,7 @@ function WE-Test-BitLockerReadiness {
 }
 
 
+[CmdletBinding()]
 function WE-Enable-BitLockerEncryption {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -165,7 +169,8 @@ param(
 }
 
 
-function WE-Get-EncryptionProgress {
+[CmdletBinding()]
+function WE-Get-EncryptionProgress -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param([string]$WEDrive = " C:" )

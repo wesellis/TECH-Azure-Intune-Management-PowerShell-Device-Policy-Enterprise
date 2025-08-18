@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Import Entradynamicdevicegroup
 
@@ -120,7 +120,7 @@ process {
                     MailNickname                  = (New-Guid)
                     ErrorAction                   = " Stop"
                 }
-               ;  $newGroup = New-MgGroup @params
+               ;  $newGroup = New-MgGroup -ErrorAction Stop @params
                 Write-Output -InputObject $newGroup
             }
         }

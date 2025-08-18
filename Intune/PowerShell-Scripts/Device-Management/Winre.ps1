@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Winre
 
@@ -45,7 +45,7 @@ Start-Process " reagentc.exe" -ArgumentList " /disable"
 
 Start-Sleep -Seconds 5
 
-Get-Partition | Where-Object -FilterScript {$_.Type -eq " Recovery" } | Remove-Partition -Confirm:$false
+Get-Partition -ErrorAction Stop | Where-Object -FilterScript {$_.Type -eq " Recovery" } | Remove-Partition -Confirm:$false
 
 
 Start-Sleep -Seconds 5
@@ -66,9 +66,9 @@ Start-Sleep -Seconds 5
 
 Start-Process " reagentc.exe" -ArgumentList '/enable'
 ; 
-$partitionNumber = Get-Partition | Where-Object -FilterScript {$_.Type -eq " Recovery" } | Select-Object -ExpandProperty PartitionNumber
+$partitionNumber = Get-Partition -ErrorAction Stop | Where-Object -FilterScript {$_.Type -eq " Recovery" } | Select-Object -ExpandProperty PartitionNumber
 
-(Get-Content " $($psscriptroot)\unmount.txt" ) | ForEach-Object {$_ -replace " <x>" , " $partitionNumber" } | Set-Content " $($psscriptroot)\unmount.txt"
+(Get-Content -ErrorAction Stop " $($psscriptroot)\unmount.txt" ) | ForEach-Object {$_ -replace " <x>" , " $partitionNumber" } | Set-Content -ErrorAction Stop " $($psscriptroot)\unmount.txt"
 
 Start-Sleep -Seconds 2
 

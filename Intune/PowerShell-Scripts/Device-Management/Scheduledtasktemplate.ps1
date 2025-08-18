@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Scheduledtasktemplate
 
@@ -64,9 +64,11 @@ $WETaskName = " Your Task Name"
 
 $WELogFilePath = Join-Path -Path $env:TEMP -ChildPath " ScriptLog_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 
+[CmdletBinding()]
 function WE-Write-Log {
     
 
+[CmdletBinding()]
 function Write-WELog {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -86,7 +88,7 @@ param(
     }
     
     $logEntry = " $timestamp [WE-Enhanced] [$Level] $Message"
-    Write-Host $logEntry -ForegroundColor $colorMap[$Level]
+    Write-Information $logEntry -ForegroundColor $colorMap[$Level]
 }
 
 [CmdletBinding()]
@@ -103,9 +105,9 @@ param(
    ;  $WELogMessage = " [$WETimestamp] [$WEType] $WEMessage"
     
     switch ($WEType) {
-        " ERROR" { Write-Host $WELogMessage -ForegroundColor Red }
-        " WARNING" { Write-Host $WELogMessage -ForegroundColor Yellow }
-        default { Write-Host $WELogMessage }
+        " ERROR" { Write-Information $WELogMessage -ForegroundColor Red }
+        " WARNING" { Write-Information $WELogMessage -ForegroundColor Yellow }
+        default { Write-Information $WELogMessage }
     }
     
     Add-Content -Path $WELogFilePath -Value $WELogMessage

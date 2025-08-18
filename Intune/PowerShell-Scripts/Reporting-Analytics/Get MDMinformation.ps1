@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Mdminformation
 
@@ -82,6 +82,7 @@ param(
 )
 
 
+[CmdletBinding()]
 function WE-Test-CertificateIssuer {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -96,7 +97,7 @@ param(
     )
 
     # Create a new instance of the x509Chain class to build and validate the certificate chain
-    $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain
+    $chain = New-Object -ErrorAction Stop System.Security.Cryptography.X509Certificates.X509Chain
     $chain.ChainPolicy.RevocationMode = [System.Security.Cryptography.X509Certificates.X509RevocationMode]::NoCheck # Disable revocation check
 
     if ($chain.Build($cert)) {
@@ -134,14 +135,16 @@ param(
 }
 
 
+[CmdletBinding()]
 function WE-Test-IsAdmin {
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    $principal = New-Object -ErrorAction Stop Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 
-function WE-Get-PrivateKeyInfo {
+[CmdletBinding()]
+function WE-Get-PrivateKeyInfo -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
 param(
@@ -183,6 +186,7 @@ param(
     }
 }
 
+[CmdletBinding()]
 function WE-Convert-BitStringToGuid {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"
@@ -231,7 +235,7 @@ function WE-ConvertToHexString($byteArray) {
 }
 
 
-$x509Store = New-Object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::My, [System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine)
+$x509Store = New-Object -ErrorAction Stop System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::My, [System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine)
 $x509Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadOnly)
 
 

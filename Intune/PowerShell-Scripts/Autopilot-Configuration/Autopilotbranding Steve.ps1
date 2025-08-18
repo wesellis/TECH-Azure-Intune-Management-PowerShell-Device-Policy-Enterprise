@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Autopilotbranding Steve
 
@@ -34,6 +34,7 @@
     Requires appropriate permissions and modules
 
 
+[CmdletBinding()]
 function WE-Test-RequiredPath {
     param([Parameter(Mandatory=$false)]
     [ValidateNotNullOrEmpty()]
@@ -89,10 +90,10 @@ Start-Transcript " $($env:ProgramData)\Microsoft\AutopilotBranding\AutopilotBran
 $installFolder = " $WEPSScriptRoot\"
 Log " Install folder: $installFolder"
 Log " Loading configuration: $($installFolder)Config.xml"
-[Xml]$config = Get-Content " $($installFolder)Config.xml"
+[Xml]$config = Get-Content -ErrorAction Stop " $($installFolder)Config.xml"
 
 
-$ci = Get-ComputerInfo
+$ci = Get-ComputerInfo -ErrorAction Stop
 if ($ci.OsBuildNumber -le 22000) {
 	Log " Importing layout: $($installFolder)Layout.xml"
 	Copy-Item " $($installFolder)Layout.xml" " C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml" -Force
@@ -134,7 +135,10 @@ $config.Config.RemoveApps.App | % {
 		try {
 			Log " Removing provisioned app: $current"
 			$_ | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Out-Null
-		} catch { }
+		} catch {
+    Write-Error "An error occurred: $($_.Exception.Message)"
+    throw
+}
 	}
 }
 
@@ -142,7 +146,7 @@ $config.Config.RemoveApps.App | % {
 if ($config.Config.OneDriveSetup) {
 	Log " Downloading OneDriveSetup"
 	$dest = " $($env:TEMP)\OneDriveSetup.exe"
-	$client = new-object System.Net.WebClient
+	$client = new-object -ErrorAction Stop System.Net.WebClient
 	$client.DownloadFile($config.Config.OneDriveSetup, $dest)
 	Log " Installing: $dest"
 	$proc = Start-Process $dest -ArgumentList " /allusers" -WindowStyle Hidden -PassThru
@@ -155,7 +159,7 @@ Log " Turning off (old) Edge desktop shortcut"
 reg.exe add " HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v DisableEdgeDesktopShortcutCreation /t REG_DWORD /d 1 /f /reg:64 | Out-Host
 
 <# STEP 7: Add language packs
-Get-ChildItem " $($installFolder)LPs" -Filter *.cab | % {
+Get-ChildItem -ErrorAction Stop " $($installFolder)LPs" -Filter *.cab | % {
 	Log " Adding language pack: $($_.FullName)"
 	Add-WindowsPackage -Online -NoRestart -PackagePath $_.FullName
 }
@@ -217,7 +221,7 @@ if ($config.Config.OEMInfo)
 Log " Enabling UE-V"
 Enable-UEV
 Set-UevConfiguration -Computer -SettingsStoragePath " %OneDriveCommercial%\UEV" -SyncMethod External -DisableWaitForSyncOnLogon
-Get-ChildItem " $($installFolder)UEV" -Filter *.xml | % {
+Get-ChildItem -ErrorAction Stop " $($installFolder)UEV" -Filter *.xml | % {
 	Log " Registering template: $($_.FullName)"
 	Register-UevTemplate -Path $_.FullName
 }#>
@@ -245,7 +249,7 @@ reg.exe add " HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v Search
 
 
 <# installs chocolatey
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+Invoke-Expression ((New-Object -ErrorAction Stop System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 
 ; 

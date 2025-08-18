@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Assignmentsbygroup
 
@@ -65,7 +65,8 @@ $groupId = $selectedGroup.id
 Write-WELog " `nSelected Group:`n$($selectedGroup.Name) ($groupId)`n" " INFO" -ForegroundColor Cyan
 
 
-function WE-Get-AssignedItems
+[CmdletBinding()]
+function WE-Get-AssignedItems -ErrorAction Stop
 {
     [CmdletBinding()]
 $ErrorActionPreference = " Stop"

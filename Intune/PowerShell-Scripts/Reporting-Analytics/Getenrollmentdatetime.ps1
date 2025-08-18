@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Getenrollmentdatetime
 
@@ -40,7 +40,7 @@ $enrollmentPath = " HKLM:\SOFTWARE\Microsoft\Enrollments\"
 $enrollments = Get-ChildItem -Path $enrollmentPath
 foreach($enrollment in $enrollments)
 {
-    $object = Get-ItemProperty Registry::$enrollment
+    $object = Get-ItemProperty -ErrorAction Stop Registry::$enrollment
     $enrollPath = Join-Path -Path $enrollmentPath -ChildPath $object.PSChildName
     $key = Get-ItemProperty -Path $enrollPath -Name " DiscoveryServiceFullURL"
     if($key)
@@ -69,7 +69,7 @@ function convertFromBinary($binary)
 
 $firstSessionTime = convertFromBinary($firstSessionBinary.FirstSessionTimestamp)
 ; 
-$currentTime = Get-Date
+$currentTime = Get-Date -ErrorAction Stop
 ; 
 $timeDifference = $currentTime - $firstSessionTime
 

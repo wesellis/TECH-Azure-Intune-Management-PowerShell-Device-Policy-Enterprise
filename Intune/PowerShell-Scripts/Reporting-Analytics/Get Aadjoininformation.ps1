@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Get Aadjoininformation
 
@@ -114,7 +114,8 @@ public class dsreg {
 }
 '@
 
-function WE-Get-AadJoinInformation {
+[CmdletBinding()]
+function WE-Get-AadJoinInformation -ErrorAction Stop {
     [CmdletBinding()]
 $ErrorActionPreference = "Stop"
 param(

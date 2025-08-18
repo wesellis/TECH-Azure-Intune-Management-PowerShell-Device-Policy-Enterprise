@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     New Folderredirecttaskfavorites
 
@@ -60,7 +60,7 @@ param(
 
 
 $WEVerbosePreference = " Continue"
-$stampDate = Get-Date
+$stampDate = Get-Date -ErrorAction Stop
 $WELogFile = " $env:ProgramData\IntuneScriptLogs\New-FolderRedirectTask-" + $stampDate.ToFileTimeUtc() + " .log"
 Start-Transcript -Path $WELogFile
 

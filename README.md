@@ -1,13 +1,15 @@
-# 🔧 Azure Intune Management Toolkit
+# 🔧 Azure Intune Management Enterprise Toolkit
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue.svg)](https://microsoft.com/powershell)
+[![PowerShell](https://img.shields.io/badge/PowerShell-7.0+-blue.svg)](https://microsoft.com/powershell)
 [![Azure](https://img.shields.io/badge/Azure-Intune-0078d4.svg)](https://endpoint.microsoft.com)
-[![Price](https://img.shields.io/badge/Price-$49-success.svg)](https://gumroad.com/l/azure-intune-toolkit)
+[![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-brightgreen.svg)](https://github.com/wesellis/TECH-Azure-Intune-Management-PowerShell-Device-Policy-Enterprise)
 
-> **Enterprise-grade PowerShell toolkit for Azure Intune management - Save hours on device management, policy deployment, and administrative automation**
+> **Enterprise-grade PowerShell toolkit for comprehensive Azure Intune management featuring 395+ production-ready scripts, advanced device automation, policy deployment, and complete administrative control**
 
-Trusted by IT administrators managing 100+ devices. Automate your Intune workflows and reduce manual tasks by 80%.
+**Author**: Wesley Ellis | **Email**: wes@wesellis.com | **Website**: wesellis.com
+
+Trusted by IT administrators managing 1000+ devices. Automate your Intune workflows and reduce manual tasks by 90%.
 
 ## 🎯 Why This Toolkit?
 
@@ -28,111 +30,165 @@ Trusted by IT administrators managing 100+ devices. Automate your Intune workflo
 
 ## 💎 What's Included
 
-**50+ Production-Ready Scripts** covering:
+**395+ Production-Ready Scripts** covering:
 
 ## Repository Structure
 
 ```
-PowerShell-for-Azure-Intune-Management/
-├── Azure Authentication/     # Azure authentication and connection scripts
-├── Azure Visualizations/     # Reporting and visualization tools
-├── Intune/                  # Intune device and policy management
-│   ├── Device-Management/   # Device configuration and security scripts
-│   └── Task-Management/     # Scheduled task management tools
-├── Mapping Out/             # Network and infrastructure mapping
-└── Windows Image Creation/   # Windows image preparation and deployment
+Azure-Intune-Management-Enterprise/
+└── Intune/
+    └── PowerShell-Scripts/
+        ├── Device-Management/         # Core device provisioning and management (185 scripts)
+        ├── Application-Management/    # App deployment and lifecycle (94 scripts)
+        ├── Compliance-Detection/      # Detection and monitoring (49 scripts)
+        ├── Reporting-Analytics/       # Analytics and reporting tools (39 scripts)
+        ├── Remediation-Scripts/       # Issue remediation and fixes (28 scripts)
+        ├── Policy-Configuration/      # Compliance and configuration policies (7 scripts)
+        ├── Security-Hardening/        # Security baselines and hardening (9 scripts)
+        ├── BIOS-Management/           # Hardware BIOS configuration (7 scripts)
+        ├── Certificate-Management/    # PKI and certificate handling (3 scripts)
+        └── Autopilot-Configuration/   # Windows Autopilot automation (2 scripts)
 ```
 
 ### Core Modules
 
-🔐 **Azure Authentication Suite**
-- Multi-tenant authentication automation
-- Service principal management
-- Secure credential handling
-- MFA-compliant connections
+📱 **Device Management (185 scripts)**
+- Advanced device provisioning and configuration
+- LAPS implementation and management
+- Windows 11/10 optimization and compliance
+- Azure AD join and hybrid configurations
+- Bulk device operations and automation
+- User profile and data management
 
-📱 **Intune Device Management**
-- LAPS implementation scripts
-- Malware removal tools (OneStart.ai, etc.)
-- Windows 11 optimization
-- Compliance automation
-- Bulk device actions
+🚀 **Application Management (94 scripts)**
+- Enterprise app deployment automation
+- Win32 and LOB application management
+- Microsoft Store app configuration
+- Application compliance and monitoring
+- BIOS and firmware management
+- Dell hardware optimization scripts
 
-📊 **Reporting & Visualization**
-- Policy assignment reports
-- Device compliance dashboards
-- Resource utilization maps
-- Cost analysis tools
+🔍 **Compliance Detection (49 scripts)**
+- Automated compliance monitoring
+- Security baseline detection
+- Hardware and software inventory
+- TPM and BitLocker validation
+- Custom compliance requirements
+- Real-time status reporting
 
-🖥️ **Windows Management**
-- Fast Startup management
-- Context menu restoration
-- Scheduled task automation
-- Image deployment tools
+📊 **Reporting & Analytics (39 scripts)**
+- Comprehensive device reporting
+- Policy assignment analytics
+- User and group management reports
+- Audit log analysis and export
+- Custom dashboard generation
+- Export tools for various formats
 
-🔍 **Infrastructure Mapping**
-- Network topology discovery
-- NSG rule documentation
-- Resource dependency visualization
-- Architecture documentation
+🛠️ **Remediation Scripts (28 scripts)**
+- Automated issue resolution
+- Malware and unwanted software removal
+- System optimization and repair
+- Registry and configuration fixes
+- Performance enhancement tools
+- Proactive maintenance automation
+
+🔒 **Security Hardening (9 scripts)**
+- Advanced security policy enforcement
+- Endpoint protection configuration
+- Network security implementation
+- Data protection and encryption
+- Zero-trust security models
+- Compliance framework automation
 
 ## Prerequisites
 
-- PowerShell 5.1 or later
-- Azure PowerShell module
-- Microsoft.Graph.Intune module
-- Appropriate Azure and Intune administrative permissions
+- PowerShell 7.0 or later (cross-platform support)
+- Azure PowerShell module (`Az`)
+- Microsoft Graph PowerShell SDK
+- Microsoft.Graph.Intune module (legacy support)
+- Appropriate Azure AD and Intune administrative permissions
+- Windows 10/11 or Windows Server for full functionality
 
 ## Installation
 
 ```powershell
-# Clone the repository
-git clone https://github.com/wesellis/PowerShell-for-Azure-Intune-Management.git
-cd PowerShell-for-Azure-Intune-Management
+# Clone the enterprise repository
+git clone https://github.com/wesellis/TECH-Azure-Intune-Management-PowerShell-Device-Policy-Enterprise.git
+cd TECH-Azure-Intune-Management-PowerShell-Device-Policy-Enterprise
 
-# Install required modules
+# Install required modern modules
 Install-Module Az -Force -AllowClobber
+Install-Module Microsoft.Graph -Force -AllowClobber
 Install-Module Microsoft.Graph.Intune -Force
-Install-Module MSOnline -Force
+
+# Connect to Microsoft Graph and Azure
+Connect-MgGraph -Scopes "DeviceManagementApps.ReadWrite.All","DeviceManagementConfiguration.ReadWrite.All"
+Connect-AzAccount
 ```
 
 ## Usage Examples
 
-### Azure Authentication
+### Device Management Examples
 ```powershell
-# Connect to Azure with enhanced authentication
-.\Azure Authentication\Connect-AzureEnvironment.ps1
+# Advanced device provisioning and configuration
+.\Intune\PowerShell-Scripts\Device-Management\Start-Intunemanagement.ps1
+
+# Create LAPS user account for secure device access
+.\Intune\PowerShell-Scripts\Device-Management\Add-LAPSuser.ps1
+
+# Bulk device operations and management
+.\Intune\PowerShell-Scripts\Device-Management\Manageddevices-Get.ps1
+
+# Windows 11 optimization and compliance
+.\Intune\PowerShell-Scripts\Device-Management\Set-Windowssystemconfig.ps1
+
+# Azure AD join and enrollment automation
+.\Intune\PowerShell-Scripts\Device-Management\Upload-Windowsautopilotdeviceinfo.ps1
 ```
 
-### Intune Device Management
+### Application Management Examples  
 ```powershell
-# Get device compliance status
-.\Intune\Get-DeviceCompliance.ps1
+# Enterprise application deployment
+.\Intune\PowerShell-Scripts\Application-Management\Win32-Application-Add.ps1
 
-# Deploy configuration policies
-.\Intune\Deploy-ConfigurationPolicy.ps1
+# Microsoft Store app management
+.\Intune\PowerShell-Scripts\Application-Management\Application-Office365-Add.ps1
 
-# Create LAPS user account for device management
-.\Intune\Device-Management\Add-LAPSuser.ps1
+# Application compliance monitoring
+.\Intune\PowerShell-Scripts\Application-Management\Required-Apps-Check.ps1
 
-# Disable Windows Fast Startup for compatibility
-.\Intune\Device-Management\Disable-FastStartup.ps1
-
-# Enable full context menu in Windows 11
-.\Intune\Device-Management\EnableFullContextMenu.ps1
-
-# Remove OneStart.ai malware/unwanted software
-.\Intune\Device-Management\Remove-OneStart.ps1
-
-# Manage scheduled tasks
-.\Intune\Task-Management\Remove-ScheduledTask.ps1
-.\Intune\Task-Management\ScheduledTaskTemplate.ps1
+# Dell BIOS and hardware management
+.\Intune\PowerShell-Scripts\Application-Management\Dell-BIOS-Setting.ps1
 ```
 
-### Azure Visualizations
+### Compliance & Detection
+```powershell  
+# Automated compliance monitoring
+.\Intune\PowerShell-Scripts\Compliance-Detection\2025-Compliance.ps1
+
+# BitLocker and TPM validation
+.\Intune\PowerShell-Scripts\Compliance-Detection\Bitlocker-Detection.ps1
+
+# Custom compliance requirements
+.\Intune\PowerShell-Scripts\Compliance-Detection\Customcompliancerequirements.ps1
+
+# Security baseline detection
+.\Intune\PowerShell-Scripts\Compliance-Detection\Azure-Security-Center-Compliance-Scanner.ps1
+```
+
+### Reporting & Analytics
 ```powershell
-# Generate Azure resource reports
-.\Azure Visualizations\Generate-AzureReport.ps1
+# Comprehensive device reporting
+.\Intune\PowerShell-Scripts\Reporting-Analytics\Export-Intunedata.ps1
+
+# Policy assignment analytics
+.\Intune\PowerShell-Scripts\Reporting-Analytics\Assignmentsbygroup.ps1
+
+# User and device analytics
+.\Intune\PowerShell-Scripts\Reporting-Analytics\User-Policy-Report-Get.ps1
+
+# Audit log analysis
+.\Intune\PowerShell-Scripts\Reporting-Analytics\Auditing-Get.ps1
 ```
 
 ## Script Categories

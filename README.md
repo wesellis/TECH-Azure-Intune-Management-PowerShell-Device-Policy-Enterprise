@@ -2,8 +2,10 @@
 
 A collection of PowerShell scripts for managing Azure Intune devices and policies.
 
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-5391FE?style=flat-square&logo=powershell&logoColor=white)](#)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/wesellis/TECH-Azure-Intune-Management-PowerShell-Device-Policy-Enterprise?style=flat-square)](https://github.com/wesellis/TECH-Azure-Intune-Management-PowerShell-Device-Policy-Enterprise/stargazers)
+[![Last Commit](https://img.shields.io/github/last-commit/wesellis/TECH-Azure-Intune-Management-PowerShell-Device-Policy-Enterprise?style=flat-square)](https://github.com/wesellis/TECH-Azure-Intune-Management-PowerShell-Device-Policy-Enterprise/commits)
 
 ---
 

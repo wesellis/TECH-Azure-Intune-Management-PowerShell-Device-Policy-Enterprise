@@ -1,0 +1,151 @@
+name: PowerShell Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run weekly on Monday at 9:00 AM
+    - cron: '0 9 * * 1'
+
+jobs:
+  syntax-check:
+    name: Syntax Validation
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup PowerShell
+      shell: pwsh
+      run: |
+        Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)"
+
+    - name: Install Required Modules
+      shell: pwsh
+      run: |
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+        Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+
+    - name: Run Syntax Check
+      shell: pwsh
+      run: |
+        $scripts = Get-ChildItem -Path . -Filter "*.ps1" -Recurse |
+                   Where-Object { $_.FullName -notmatch '\\\.git\\' }
+
+        $errors = @()
+        foreach ($script in $scripts) {
+          $parseErrors = $null
+          [void] [System.Management.Automation.Language.Parser]::ParseFile(
+            $script.FullName,
+            [ref]$null,
+            [ref]$parseErrors
+          )
+          if ($parseErrors) {
+            $errors += "$($script.Name): $($parseErrors.Count) syntax errors"
+          }
+        }
+
+        if ($errors) {
+          Write-Error "Syntax errors found:`n$($errors -join "`n")"
+          exit 1
+        }
+
+        Write-Host "✓ All $($scripts.Count) scripts have valid syntax" -ForegroundColor Green
+
+  pester-tests:
+    name: Pester Tests
+    runs-on: windows-latest
+    needs: syntax-check
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Pester
+      shell: pwsh
+      run: |
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Install-Module -Name Pester -MinimumVersion 5.0 -Force -SkipPublisherCheck
+        Install-Module -Name Microsoft.Graph.Intune -Force -SkipPublisherCheck -ErrorAction SilentlyContinue
+        Install-Module -Name AzureAD -Force -SkipPublisherCheck -ErrorAction SilentlyContinue
+
+    - name: Run Pester Tests
+      shell: pwsh
+      run: |
+        $config = New-PesterConfiguration
+        $config.Run.Path = './tests'
+        $config.Output.Verbosity = 'Detailed'
+        $config.TestResult.Enabled = $true
+        $config.TestResult.OutputPath = 'test-results.xml'
+        $config.TestResult.OutputFormat = 'NUnitXml'
+
+        Invoke-Pester -Configuration $config
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: test-results.xml
+
+  script-analyzer:
+    name: PSScriptAnalyzer
+    runs-on: windows-latest
+    needs: syntax-check
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        Set-PSRepository PSGallery -InstallationPolicy Trusted
+        Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+
+    - name: Run PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        $results = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error,Warning -ExcludeRule PSAvoidUsingWriteHost
+
+        if ($results) {
+          $results | Format-Table -AutoSize
+          Write-Warning "Found $($results.Count) issues"
+
+          # Fail on errors only
+          $errors = $results | Where-Object Severity -eq 'Error'
+          if ($errors) {
+            Write-Error "Found $($errors.Count) errors"
+            exit 1
+          }
+        } else {
+          Write-Host "✓ No issues found" -ForegroundColor Green
+        }
+
+  validation-report:
+    name: Generate Validation Report
+    runs-on: windows-latest
+    needs: [syntax-check, pester-tests, script-analyzer]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run Validation Framework
+      shell: pwsh
+      run: |
+        if (Test-Path ./tests/Invoke-ScriptValidation.ps1) {
+          $results = ./tests/Invoke-ScriptValidation.ps1 -DetailedReport -ExportPath ./validation-report.html
+          Write-Host "✓ Validation report generated" -ForegroundColor Green
+        }
+
+    - name: Upload Validation Report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: validation-report
+        path: validation-report.html

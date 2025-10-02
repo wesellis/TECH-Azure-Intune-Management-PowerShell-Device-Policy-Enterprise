@@ -93,3 +93,30 @@ MIT License - See [LICENSE](LICENSE) for details.
 **Author:** Wesley Ellis
 **Note:** These scripts are for educational and administrative purposes. Use at your own risk.
 
+
+---
+
+## Project Status & Roadmap
+
+**Completion: ~80%**
+
+### What Works
+- ✅ 411 PowerShell scripts for Intune management
+- ✅ Device management automation
+- ✅ Policy deployment scripts
+- ✅ Azure authentication modules
+- ✅ Graph API integration
+- ✅ Resource visualization tools
+- ✅ Task automation
+- ✅ Windows image creation utilities
+
+### Known Limitations
+- ⚠️ **Testing**: No automated test suite for 411 scripts
+- ⚠️ **Documentation**: Individual script documentation varies
+- ⚠️ **Standardization**: Scripts may use different coding patterns
+- ⚠️ **Error Handling**: Consistency across scripts unknown
+
+### Current Status
+This is a **large collection of functional PowerShell scripts** for Azure Intune management. With 411 scripts, it represents extensive automation capabilities for enterprise device management. The main limitation is the scale makes comprehensive testing and standardization challenging.
+
+**Note**: Test all scripts in non-production environments first.

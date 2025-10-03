@@ -132,7 +132,7 @@ function Test-SecurityPractices {
     }
 
     # Check for hardcoded credentials
-    if ($content -match '(password|credential|secret)\s*=\s*["\'][^"\']+["\']') {
+    if ($content -match '(password|credential|secret)\s*=\s*["\x27][^"\x27]+["\x27]') {
         $result.Issues += "Potential hardcoded credential detected"
         $result.Score -= 40
     }
@@ -340,9 +340,16 @@ try {
     Write-Host "`n=== Azure Intune Scripts Validation Framework ===" -ForegroundColor Cyan
     Write-Host "Analyzing PowerShell scripts...`n" -ForegroundColor White
 
-    # Find all PowerShell scripts
-    $scripts = Get-ChildItem -Path $Path -Filter "*.ps1" -Recurse -File |
-        Where-Object { $_.FullName -notmatch '\\tests\\' -and $_.FullName -notmatch '\\\.git\\' }
+    # Find all PowerShell scripts in Intune directory only
+    $intunePath = Join-Path $Path "Intune"
+    if (Test-Path $intunePath) {
+        $scripts = Get-ChildItem -Path $intunePath -Filter "*.ps1" -Recurse -File |
+            Where-Object { $_.FullName -notmatch '\\tests\\' -and $_.FullName -notmatch '\\\.git\\' }
+    } else {
+        # Fallback to all scripts if Intune directory doesn't exist
+        $scripts = Get-ChildItem -Path $Path -Filter "*.ps1" -Recurse -File |
+            Where-Object { $_.FullName -notmatch '\\tests\\' -and $_.FullName -notmatch '\\\.git\\' }
+    }
 
     Write-Host "Found $($scripts.Count) scripts to validate" -ForegroundColor Cyan
 
